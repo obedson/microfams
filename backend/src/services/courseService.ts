@@ -68,7 +68,7 @@ export class CourseService {
       // In a real app, we would generate a PDF and upload to S3
       // For this implementation, we'll generate a signed verification URL
       const certificateId = `${userId.slice(0, 8)}-${courseId.slice(0, 8)}`;
-      const certificateUrl = `https://microfarmle.vercel.app/verify/certificate/${certificateId}`;
+      const certificateUrl = `https://microfams.vercel.app/verify/certificate/${certificateId}`;
 
       // Update progress with certificate info
       await supabase
