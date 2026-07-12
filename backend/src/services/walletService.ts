@@ -4,7 +4,7 @@ import { ledgerService, InsufficientFundsError } from './ledgerService.js';
 import { logAudit } from '../utils/audit.js';
 import { sendEmail } from './emailService.js'; // Assuming basic email support
 import jwt from 'jsonwebtoken';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 export class WalletService {
   /**
@@ -41,7 +41,7 @@ export class WalletService {
 
     try {
       const interswitchData = await interswitchService.provisionVirtualAccount(groupId, groupName);
-      
+
       const { data, error } = await supabase
         .from('group_virtual_accounts')
         .upsert({
@@ -59,7 +59,7 @@ export class WalletService {
       return data;
     } catch (error: any) {
       console.error(`Failed to provision NUBAN for group ${groupId}:`, error.message);
-      
+
       // Mark as PENDING for retry
       await supabase
         .from('group_virtual_accounts')
@@ -68,7 +68,7 @@ export class WalletService {
           status: 'PENDING',
           updated_at: new Date().toISOString()
         }, { onConflict: 'group_id' });
-        
+
       throw error;
     }
   }
@@ -159,8 +159,8 @@ export class WalletService {
     if (!senderWallet || !recipientWallet) throw new Error('Wallet not found');
     if (recipientWallet.status !== 'ACTIVE') throw new Error('Recipient wallet is not active');
 
-    const reference = `P2P-${uuidv4()}`;
-    
+    const reference = `P2P-${randomUUID()}`;
+
     const result = await ledgerService.atomicP2PTransfer({
       senderWalletId: senderWallet.id,
       recipientWalletId: recipientWallet.id,
@@ -180,7 +180,7 @@ export class WalletService {
     // Notify users
     this.sendWalletNotification(senderId, `You sent ₦${amount.toLocaleString()} to another user.`);
     this.sendWalletNotification(recipientId, `You received ₦${amount.toLocaleString()} from another user.`);
-    
+
     return result;
   }
 
@@ -189,7 +189,7 @@ export class WalletService {
    */
   private async check24hrP2PLimit(userId: string, amount: number) {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    
+
     const { data: txs } = await supabase
       .from('wallet_transactions')
       .select('amount')
@@ -199,7 +199,7 @@ export class WalletService {
       .gte('created_at', twentyFourHoursAgo);
 
     const total = (txs || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
-    
+
     if (total + amount > 50000) {
       throw new Error('24-hour P2P transfer limit of ₦50,000 exceeded');
     }
@@ -207,7 +207,7 @@ export class WalletService {
 
   private async check24hrWithdrawalLimit(userId: string, amount: number) {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    
+
     const { data: txs } = await supabase
       .from('wallet_transactions')
       .select('amount')
@@ -217,7 +217,7 @@ export class WalletService {
       .gte('created_at', twentyFourHoursAgo);
 
     const total = (txs || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
-    
+
     if (total + amount > 100000) {
       throw new Error('24-hour withdrawal limit of ₦100,000 exceeded');
     }
@@ -228,11 +228,11 @@ export class WalletService {
    */
   async previewWithdrawal(userId: string, accountNumber: string, bankCode: string, amount: number) {
     if (amount < 1000) throw new Error('Minimum withdrawal amount is ₦1,000');
-    
+
     await this.check24hrWithdrawalLimit(userId, amount);
 
     const { accountName } = await interswitchService.nameEnquiry(accountNumber, bankCode);
-    
+
     const feeKobo = Number(process.env.INTERSWITCH_TRANSFER_FEE) || 5000;
     const feeNaira = feeKobo / 100;
 
@@ -257,8 +257,8 @@ export class WalletService {
     const { data: wallet } = await supabase.from('user_wallets').select('id').eq('user_id', userId).single();
     if (!wallet) throw new Error('Wallet not found');
 
-    const internalRef = `WD-${uuidv4()}`;
-    
+    const internalRef = `WD-${randomUUID()}`;
+
     // Debit wallet
     await ledgerService.debitWallet({
       walletId: wallet.id,
@@ -300,7 +300,7 @@ export class WalletService {
         .from('withdrawal_requests')
         .update({ interswitch_ref: result.transferRef })
         .eq('id', request.id);
-        
+
       if (result.status === 'SUCCESS' || result.status === 'FAILED') {
         await this.handleWithdrawalStatusUpdate(internalRef, result.status);
       }
@@ -335,7 +335,7 @@ export class WalletService {
         .from('withdrawal_requests')
         .update({ status: 'SUCCESS', updated_at: new Date().toISOString() })
         .eq('id', request.id);
-        
+
       this.sendWalletNotification(request.user_id, `Withdrawal of ₦${request.amount.toLocaleString()} was successful.`);
     } else {
       // REVERSAL
@@ -351,7 +351,7 @@ export class WalletService {
         .from('withdrawal_requests')
         .update({ status: 'FAILED', updated_at: new Date().toISOString() })
         .eq('id', request.id);
-        
+
       this.sendWalletNotification(request.user_id, `Withdrawal of ₦${request.amount.toLocaleString()} failed and was reversed to your wallet.`);
     }
   }
@@ -466,7 +466,7 @@ export class WalletService {
         .select('id')
         .eq('user_id', request.target_user_id)
         .single();
-        
+
       if (!targetWallet) throw new Error('Target user wallet not found');
 
       await ledgerService.atomicGroupTransfer({
@@ -533,10 +533,10 @@ export class WalletService {
 
     try {
       const statusResult = await interswitchService.queryTransactionStatus(request.internal_ref);
-      
+
       if (statusResult.status !== 'PENDING') {
         await this.handleWithdrawalStatusUpdate(request.internal_ref, statusResult.status);
-        
+
         const { data: updated } = await supabase
           .from('withdrawal_requests')
           .select('*')
@@ -579,7 +579,7 @@ export class WalletService {
         walletId: wallet.id,
         amount: deduction,
         type: 'WITHDRAWAL',
-        reference: `PENALTY-${uuidv4()}`,
+        reference: `PENALTY-${randomUUID()}`,
         metadata: { reason: 'Grace period penalty settlement' }
       });
       currentBalance -= deduction;
@@ -600,7 +600,7 @@ export class WalletService {
           walletId: wallet.id,
           amount: currentBalance,
           type: 'INTERNAL_TRANSFER',
-          reference: `GRACE-RETURN-${uuidv4()}`
+          reference: `GRACE-RETURN-${randomUUID()}`
         });
 
         await supabase.rpc('atomic_group_credit', {
@@ -632,7 +632,7 @@ export class WalletService {
     }
 
     const { accountNumber, amount, transactionReference } = payload;
-    
+
     // Deduplicate
     const { data: existing } = await supabase
       .from('wallet_transactions')
@@ -662,7 +662,7 @@ export class WalletService {
     });
 
     if (creditError) throw creditError;
-    
+
     // Notify Admin
     const { data: group } = await supabase.from('groups').select('creator_id, name').eq('id', groupAccount.group_id).single();
     if (group) {

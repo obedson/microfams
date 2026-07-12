@@ -1,23 +1,25 @@
 services:
   - type: web
-    name: agro-career-backend
+    name: microfams-backend
     env: node
-    plan: starter
-    buildCommand: npm install && npm run build
+    plan: starte
+    rootDir: backend
+    buildCommand: npm ci && npm run build
     startCommand: npm start
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3001
       - key: SUPABASE_URL
-        value: https://ovmjnzarenluuvfmdbpu.supabase.co
+        sync: false
       - key: SUPABASE_ANON_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWpuemFyZW5sdXV2Zm1kYnB1Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjIyOTI3NjEsImV4cCI6MjA3Nzg2ODc2MX0.akehe6x8vWTxafC5hk6dFBNnKNbkMMGnrNmqgwWMBq4
+        sync: false
       - key: SUPABASE_SERVICE_KEY
-        value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im92bWpuemFyZW5sdXV2Zm1kYnB1Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MjI5Mjc2MSwiZXhwIjoyMDc3ODY4NzYxfQ.VG28UJX1-7bWz6_MmpUdBJUaXdnOm9huMPdNN53hZzE
+        sync: false
       - key: JWT_SECRET
-        value: k9emTZScr7x64XH2h3fG/cn+s6DozpCMnwgp/ESz6ZvOZ2QFj7POFEpFHeRhv2iVCNR5Hz+DB3BDeN/VvmAyWg==
+        sync: false
       - key: FRONTEND_URL
         sync: false
       - key: PAYSTACK_SECRET_KEY

@@ -8,7 +8,11 @@
     "dev": "nodemon --exec tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "test": "jest"
+    "test": "jest",
+    "typecheck": "tsc --noEmit",
+    "test:ci": "npm run test:unit",
+    "test:unit": "jest --runInBand --ci --forceExit --testPathIgnorePatterns=analytics-properties\\|contribution.test\\|receipt-minimal\\|/tests/auth.test\\|/tests/api.test",
+    "test:integration:db": "jest --runInBand --ci --forceExit tests/auth.test.ts tests/api.test.ts src/tests/analytics-properties.test.ts src/tests/contribution.test.ts src/tests/receipt-minimal.test.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1008.0",
@@ -30,7 +34,6 @@
     "node-cron": "^3.0.3",
     "puppeteer": "^24.39.0",
     "qrcode": "^1.5.4",
-    "uuid": "^13.0.0",
     "winston": "^3.11.0"
   },
   "devDependencies": {
