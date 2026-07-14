@@ -1,15 +1,20 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator } from 'react-native';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { WebView } from 'react-native-webview';
-import axios from 'axios';
+import { RouteProp, useRoute, useNavigation } from '@react-navigation/native';
+import { WebView, WebViewNavigation } from 'react-native-webview';
+import axios, { AxiosError } from 'axios';
 import { API_URL } from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { RootStackParamList } from '../navigation/types';
+
+interface ApiError {
+  error?: string;
+}
 
 export default function MakeContributionScreen() {
-  const [paymentUrl, setPaymentUrl] = useState(null);
+  const [paymentUrl, setPaymentUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const route = useRoute();
+  const route = useRoute<RouteProp<RootStackParamList, 'MakeContribution'>>();
   const navigation = useNavigation();
   const { token } = useAuthStore();
   const { contributionId, amount } = route.params;
@@ -24,12 +29,15 @@ export default function MakeContributionScreen() {
       );
       setPaymentUrl(data.authorization_url);
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.error || 'Payment failed');
+      const message = error instanceof AxiosError
+        ? (error.response?.data as ApiError | undefined)?.error
+        : undefined;
+      Alert.alert('Error', message || 'Payment failed');
       setLoading(false);
     }
   };
 
-  const handleNavigationStateChange = (navState) => {
+  const handleNavigationStateChange = (navState: WebViewNavigation) => {
     if (navState.url.includes('/payment/callback')) {
       setPaymentUrl(null);
       Alert.alert('Success', 'Payment completed!', [

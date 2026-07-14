@@ -102,7 +102,7 @@ export default function ProductDetailScreen({ route, navigation }: any) {
           />
           {images.length > 1 && (
             <View style={styles.imageIndicators}>
-              {images.map((_, index) => (
+              {images.map((_: string, index: number) => (
                 <View
                   key={index}
                   style={[
