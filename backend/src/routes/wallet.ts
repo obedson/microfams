@@ -3,6 +3,7 @@ import { walletController } from '../controllers/walletController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { rateLimit } from 'express-rate-limit';
 import { requireFeature } from '../middleware/requireFeature.js';
+import { resolveTenant } from '../middleware/tenant.js';
 
 const router = Router();
 
@@ -17,6 +18,7 @@ const walletLimiter = rateLimit({
 
 // All wallet routes require authentication
 router.use(authenticateToken as any);
+router.use(resolveTenant);
 
 // Individual wallet routes
 router.get('/', requireFeature('financial.wallets.read'), walletController.getWallet);

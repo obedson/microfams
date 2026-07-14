@@ -3,10 +3,11 @@ import { initializePayment, verifyPayment } from '../controllers/paymentControll
 import { authenticateToken } from '../middleware/auth.js';
 import { paymentLimiter } from '../middleware/rateLimiter.js';
 import { requireFeature } from '../middleware/requireFeature.js';
+import { resolveTenant } from '../middleware/tenant.js';
 
 const router = Router();
 
-router.post('/initialize', authenticateToken, requireFeature('financial.payments.accept_new'), paymentLimiter, initializePayment);
+router.post('/initialize', authenticateToken, resolveTenant, requireFeature('financial.payments.accept_new'), paymentLimiter, initializePayment);
 router.get('/verify/:reference', requireFeature('financial.payments.service_existing'), verifyPayment);
 
 export default router;
@@ -19,7 +20,7 @@ import { AuthRequest } from '../middleware/auth.js';
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
 
-router.post('/initialize-order', authenticateToken, requireFeature('financial.payments.accept_new'), async (req: AuthRequest, res: Response) => {
+router.post('/initialize-order', authenticateToken, resolveTenant, requireFeature('financial.payments.accept_new'), async (req: AuthRequest, res: Response) => {
   try {
     const { amount, email, orders } = req.body;
 
@@ -63,7 +64,7 @@ router.post('/initialize-order', authenticateToken, requireFeature('financial.pa
   }
 });
 
-router.post('/initialize-group', authenticateToken, requireFeature('financial.payments.accept_new'), async (req: AuthRequest, res: Response) => {
+router.post('/initialize-group', authenticateToken, resolveTenant, requireFeature('financial.payments.accept_new'), async (req: AuthRequest, res: Response) => {
   try {
     const { member_id, amount } = req.body;
 
