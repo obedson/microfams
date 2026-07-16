@@ -6,6 +6,23 @@ container="microfams-upgrade-$RANDOM-$RANDOM"
 cleanup() { docker rm --force "$container" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
 
+wait_for_postgres() {
+  local stable_checks=0
+  for _ in $(seq 1 60); do
+    if docker exec "$container" psql --username postgres --dbname microfams \
+      --no-psqlrc --tuples-only --command 'SELECT 1' >/dev/null 2>&1; then
+      stable_checks=$((stable_checks + 1))
+      if [[ "$stable_checks" -ge 3 ]]; then return 0; fi
+    else
+      stable_checks=0
+    fi
+    sleep 1
+  done
+  echo "PostgreSQL did not become stably ready" >&2
+  docker logs "$container" >&2 || true
+  return 1
+}
+
 if [[ -z "${SUPABASE_DB_URL:-}" ]]; then
   echo "SUPABASE_DB_URL is missing" >&2
   exit 1
@@ -19,10 +36,7 @@ sed -i '/^CREATE SCHEMA public;$/d' /tmp/microfams-remote-public-schema.sql
 docker run --detach --name "$container" \
   --env POSTGRES_PASSWORD=postgres --env POSTGRES_DB=microfams \
   postgres:17-alpine >/dev/null
-for _ in $(seq 1 30); do
-  docker exec "$container" pg_isready --username postgres --dbname microfams >/dev/null 2>&1 && break
-  sleep 1
-done
+wait_for_postgres
 
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-schema-bootstrap.sql" >/dev/null
