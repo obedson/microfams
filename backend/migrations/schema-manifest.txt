@@ -1,0 +1,36 @@
+# Canonical clean-install order. Legacy corrective scripts that drop populated
+# tables or duplicate seed data are intentionally not part of this manifest.
+000_core_schema.sql
+create_nigeria_locations.sql
+002_group_core_schema.sql
+add_referral_system.sql
+add_profile_nin_subscription.sql
+add_password_reset.sql
+add_user_suspension.sql
+add_booking_enhancements.sql
+add_booking_audit_trail.sql
+add_pending_payment_status.sql
+001_farmle_platform_enhancement_schema.sql
+create_farm_records.sql
+create_marketplace.sql
+fix_marketplace_schema.sql
+fix_orders_table.sql
+add_integration_columns.sql
+add_video_urls.sql
+add_watch_time.sql
+create_contribution_system.sql
+create_contribution_tables.sql
+add_payment_transaction_function.sql
+add_wallet_system.sql
+add_group_consensus.sql
+repair_group_wallet_ledger.sql
+add_atomic_group_creation.sql
+add_group_payment_transaction_function.sql
+create_audit_logs.sql
+create_refunds.sql
+create_organizations.sql
+create_feature_flags.sql
+fix_function_security.sql
+enable_rls_policies.sql
+fix_courses_rls.sql
+disable_public_access.sql
