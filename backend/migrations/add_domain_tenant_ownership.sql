@@ -18,6 +18,21 @@ ALTER TABLE payment_receipts ADD COLUMN IF NOT EXISTS organization_id UUID REFER
 ALTER TABLE refunds ADD COLUMN IF NOT EXISTS organization_id UUID REFERENCES organizations(id);
 ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS organization_id UUID REFERENCES organizations(id);
 
+-- Preserve ownerless legacy rows without leaking them into an active tenant.
+-- This suspended system organization has no membership and therefore cannot be
+-- selected through the tenant resolver or read through tenant RLS policies.
+INSERT INTO organizations(
+  id, name, slug, type, status, metadata
+) VALUES (
+  '00000000-0000-4000-8000-000000000900',
+  'Legacy Ownership Quarantine',
+  'system-unassigned-legacy',
+  'farm_business',
+  'suspended',
+  '{"system": true, "purpose": "unresolved_legacy_ownership"}'::JSONB
+)
+ON CONFLICT (id) DO NOTHING;
+
 -- Existing users each own a personal organization whose id equals their user id.
 UPDATE properties SET organization_id = owner_id WHERE organization_id IS NULL;
 UPDATE groups SET organization_id = creator_id WHERE organization_id IS NULL;
@@ -71,6 +86,60 @@ UPDATE refunds r
 SET organization_id = b.organization_id
 FROM bookings b
 WHERE r.booking_id = b.id AND r.organization_id IS NULL;
+
+-- Any row still unresolved after following its ownership chain is malformed
+-- legacy data. Quarantine rather than deleting it or assigning it to a user.
+UPDATE properties SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
+UPDATE bookings
+SET organization_id = COALESCE(organization_id, '00000000-0000-4000-8000-000000000900'),
+    provider_organization_id = COALESCE(provider_organization_id, '00000000-0000-4000-8000-000000000900')
+WHERE organization_id IS NULL OR provider_organization_id IS NULL;
+UPDATE groups SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
+UPDATE farm_records SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
+UPDATE orders SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
+UPDATE user_wallets SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
+UPDATE wallet_transactions SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
+UPDATE contribution_cycles SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
+UPDATE member_contributions SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
+UPDATE payment_receipts SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
+UPDATE refunds SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
+
+INSERT INTO organization_audit_log(
+  organization_id, action, resource_type, resource_id, after_value
+)
+SELECT
+  '00000000-0000-4000-8000-000000000900',
+  'migration.legacy_ownership_quarantined',
+  'database_migration',
+  'add_domain_tenant_ownership',
+  jsonb_build_object(
+    'properties', (SELECT count(*) FROM properties WHERE organization_id = '00000000-0000-4000-8000-000000000900'),
+    'bookings', (SELECT count(*) FROM bookings WHERE organization_id = '00000000-0000-4000-8000-000000000900' OR provider_organization_id = '00000000-0000-4000-8000-000000000900'),
+    'groups', (SELECT count(*) FROM groups WHERE organization_id = '00000000-0000-4000-8000-000000000900'),
+    'farm_records', (SELECT count(*) FROM farm_records WHERE organization_id = '00000000-0000-4000-8000-000000000900'),
+    'orders', (SELECT count(*) FROM orders WHERE organization_id = '00000000-0000-4000-8000-000000000900'),
+    'wallet_transactions', (SELECT count(*) FROM wallet_transactions WHERE organization_id = '00000000-0000-4000-8000-000000000900')
+  )
+WHERE EXISTS (
+  SELECT 1 FROM bookings
+  WHERE organization_id = '00000000-0000-4000-8000-000000000900'
+     OR provider_organization_id = '00000000-0000-4000-8000-000000000900'
+  UNION ALL SELECT 1 FROM properties WHERE organization_id = '00000000-0000-4000-8000-000000000900'
+  UNION ALL SELECT 1 FROM groups WHERE organization_id = '00000000-0000-4000-8000-000000000900'
+  UNION ALL SELECT 1 FROM farm_records WHERE organization_id = '00000000-0000-4000-8000-000000000900'
+  UNION ALL SELECT 1 FROM orders WHERE organization_id = '00000000-0000-4000-8000-000000000900'
+  UNION ALL SELECT 1 FROM wallet_transactions WHERE organization_id = '00000000-0000-4000-8000-000000000900'
+);
 
 ALTER TABLE properties ALTER COLUMN organization_id SET NOT NULL;
 ALTER TABLE bookings ALTER COLUMN organization_id SET NOT NULL;
