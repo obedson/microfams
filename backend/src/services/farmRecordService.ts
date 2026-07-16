@@ -5,12 +5,23 @@ export class FarmRecordService {
   /**
    * Link a farm record to a specific booking
    */
-  static async linkToBooking(recordId: string, bookingId: string) {
+  static async linkToBooking(recordId: string, bookingId: string, organizationId: string) {
     try {
+      const { data: booking, error: bookingError } = await supabase
+        .from('bookings')
+        .select('id')
+        .eq('id', bookingId)
+        .eq('organization_id', organizationId)
+        .maybeSingle();
+
+      if (bookingError) throw bookingError;
+      if (!booking) throw new Error('Booking does not belong to the active organization');
+
       const { data, error } = await supabase
         .from('farm_records')
         .update({ booking_id: bookingId })
         .eq('id', recordId)
+        .eq('organization_id', organizationId)
         .select()
         .single();
 
@@ -25,12 +36,13 @@ export class FarmRecordService {
   /**
    * Get productivity report for a property (for owners)
    */
-  static async getPropertyProductivityReport(propertyId: string) {
+  static async getPropertyProductivityReport(propertyId: string, organizationId: string) {
     try {
       const { data: records, error } = await supabase
         .from('farm_records')
         .select('*')
-        .eq('property_id', propertyId);
+        .eq('property_id', propertyId)
+        .eq('organization_id', organizationId);
 
       if (error) throw error;
 
@@ -69,12 +81,13 @@ export class FarmRecordService {
   /**
    * Get recommendations based on farm records
    */
-  static async getRecommendations(farmerId: string) {
+  static async getRecommendations(farmerId: string, organizationId: string) {
     try {
       const { data: records, error } = await supabase
         .from('farm_records')
         .select('*')
         .eq('farmer_id', farmerId)
+        .eq('organization_id', organizationId)
         .order('record_date', { ascending: false })
         .limit(20);
 

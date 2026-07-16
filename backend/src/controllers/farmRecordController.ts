@@ -1,9 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { TenantRequest } from '../middleware/tenant.js';
 import { FarmRecordModel } from '../models/FarmRecord.js';
 import { FarmRecordService } from '../services/farmRecordService.js';
 import { asyncHandler, createError } from '../middleware/errorHandler.js';
 
-export const createRecord = asyncHandler(async (req: Request, res: Response) => {
+export const createRecord = asyncHandler(async (req: TenantRequest, res: Response) => {
   const userId = (req as any).user.id;
   const { property_id, booking_id, ...recordData } = req.body;
   
@@ -13,8 +14,9 @@ export const createRecord = asyncHandler(async (req: Request, res: Response) => 
   }
 
   const finalData = { 
-    ...recordData, 
+    ...recordData,
     farmer_id: userId,
+    organization_id: req.tenant!.id,
     property_id: property_id || null,
     booking_id: booking_id || null
   };
@@ -23,33 +25,33 @@ export const createRecord = asyncHandler(async (req: Request, res: Response) => 
   res.status(201).json({ success: true, data: record });
 });
 
-export const linkToBooking = asyncHandler(async (req: Request, res: Response) => {
+export const linkToBooking = asyncHandler(async (req: TenantRequest, res: Response) => {
   const { id: recordId } = req.params;
   const { booking_id } = req.body;
   
-  const record = await FarmRecordService.linkToBooking(recordId, booking_id);
+  const record = await FarmRecordService.linkToBooking(recordId, booking_id, req.tenant!.id);
   res.json({ success: true, data: record });
 });
 
-export const getPropertyProductivity = asyncHandler(async (req: Request, res: Response) => {
+export const getPropertyProductivity = asyncHandler(async (req: TenantRequest, res: Response) => {
   const { propertyId } = req.params;
-  const report = await FarmRecordService.getPropertyProductivityReport(propertyId);
+  const report = await FarmRecordService.getPropertyProductivityReport(propertyId, req.tenant!.id);
   res.json({ success: true, data: report });
 });
 
-export const getFarmerRecommendations = asyncHandler(async (req: Request, res: Response) => {
+export const getFarmerRecommendations = asyncHandler(async (req: TenantRequest, res: Response) => {
   const userId = (req as any).user.id;
-  const recommendations = await FarmRecordService.getRecommendations(userId);
+  const recommendations = await FarmRecordService.getRecommendations(userId, req.tenant!.id);
   res.json({ success: true, data: recommendations });
 });
 
-export const getMyRecords = asyncHandler(async (req: Request, res: Response) => {
+export const getMyRecords = asyncHandler(async (req: TenantRequest, res: Response) => {
   const userId = (req as any).user.id;
-  const records = await FarmRecordModel.findByFarmer(userId);
+  const records = await FarmRecordModel.findByFarmer(userId, req.tenant!.id);
   res.json({ success: true, data: records });
 });
 
-export const getAnalytics = asyncHandler(async (req: Request, res: Response) => {
+export const getAnalytics = asyncHandler(async (req: TenantRequest, res: Response) => {
   const userId = (req as any).user.id;
   const { startDate, endDate } = req.query;
 
@@ -60,7 +62,8 @@ export const getAnalytics = asyncHandler(async (req: Request, res: Response) => 
   console.log('Analytics request:', { userId, startDate, endDate });
 
   const records = await FarmRecordModel.getAnalytics(
-    userId, 
+    userId,
+    req.tenant!.id,
     startDate as string, 
     endDate as string
   );
@@ -83,16 +86,16 @@ export const getAnalytics = asyncHandler(async (req: Request, res: Response) => 
   res.json({ success: true, data: { analytics, records } });
 });
 
-export const updateRecord = asyncHandler(async (req: Request, res: Response) => {
+export const updateRecord = asyncHandler(async (req: TenantRequest, res: Response) => {
   const { id } = req.params;
   const userId = (req as any).user.id;
 
-  const record = await FarmRecordModel.update(id, req.body);
+  const record = await FarmRecordModel.update(id, req.tenant!.id, req.body);
   res.json({ success: true, data: record });
 });
 
-export const deleteRecord = asyncHandler(async (req: Request, res: Response) => {
+export const deleteRecord = asyncHandler(async (req: TenantRequest, res: Response) => {
   const { id } = req.params;
-  await FarmRecordModel.delete(id);
+  await FarmRecordModel.delete(id, req.tenant!.id);
   res.json({ success: true, message: 'Record deleted' });
 });
