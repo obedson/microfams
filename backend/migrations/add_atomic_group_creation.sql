@@ -6,6 +6,7 @@ CREATE OR REPLACE FUNCTION create_group_with_creator(
   p_description TEXT,
   p_category TEXT,
   p_creator_id UUID,
+  p_organization_id UUID,
   p_state_id INTEGER,
   p_lga_id INTEGER,
   p_entry_fee INTEGER,
@@ -35,7 +36,8 @@ BEGIN
     name, 
     description, 
     category, 
-    creator_id, 
+    creator_id,
+    organization_id,
     state_id, 
     lga_id, 
     entry_fee,
@@ -47,6 +49,7 @@ BEGIN
     p_description,
     p_category,
     p_creator_id,
+    p_organization_id,
     p_state_id,
     p_lga_id,
     p_entry_fee,
@@ -85,10 +88,18 @@ BEGIN
 END;
 $$;
 
--- Add unique constraint on payment_reference
-ALTER TABLE group_members 
-ADD CONSTRAINT unique_payment_reference 
-UNIQUE (payment_reference);
+-- Add unique constraint on payment_reference when upgrading older projects.
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'unique_payment_reference'
+      AND conrelid = 'group_members'::regclass
+  ) THEN
+    ALTER TABLE group_members
+      ADD CONSTRAINT unique_payment_reference UNIQUE (payment_reference);
+  END IF;
+END $$;
 
 -- Add index for faster lookups
 CREATE INDEX IF NOT EXISTS idx_group_members_payment_ref 

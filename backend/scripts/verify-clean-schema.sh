@@ -84,7 +84,7 @@ BEGIN
   SELECT id INTO lga_key FROM lgas WHERE state_id = state_key ORDER BY id LIMIT 1;
 
   SELECT create_group_with_creator(
-    'Schema Test Group', 'Clean install contract', 'mixed', owner_id,
+    'Schema Test Group', 'Clean install contract', 'mixed', owner_id, owner_id,
     state_key, lga_key, 1000, 50, 'schema-test-payment', 1000
   ) INTO result;
 
@@ -142,6 +142,12 @@ BEGIN
   );
 
   INSERT INTO user_wallets (user_id) VALUES (recipient_id) RETURNING id INTO recipient_wallet_id;
+  INSERT INTO contribution_cycles(
+    group_id, organization_id, cycle_month, cycle_year, expected_amount,
+    outstanding_amount, deadline_date
+  ) VALUES (
+    test_group_id, owner_id, 1, 2099, 1000, 1000, DATE '2099-01-28'
+  );
   INSERT INTO group_consensus_requests (
     group_id, requested_by, target_user_id, amount, status, request_type
   ) VALUES (
@@ -169,7 +175,8 @@ BEGIN
   END IF;
 END $$;
 
-GRANT SELECT ON properties, bookings, farm_records TO authenticated;
+GRANT SELECT ON properties, bookings, farm_records, groups, contribution_cycles,
+  user_wallets, wallet_transactions, withdrawal_requests TO authenticated;
 
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000101', FALSE);
@@ -182,6 +189,9 @@ DO $$ BEGIN
   END IF;
   IF (SELECT count(*) FROM farm_records) <> 1 THEN
     RAISE EXCEPTION 'farm organization cannot read its farm records';
+  END IF;
+  IF (SELECT count(*) FROM groups) <> 1 OR (SELECT count(*) FROM contribution_cycles) <> 1 THEN
+    RAISE EXCEPTION 'group organization cannot read its group finance records';
   END IF;
 END $$;
 
@@ -196,13 +206,18 @@ DO $$ BEGIN
   IF (SELECT count(*) FROM farm_records) <> 0 THEN
     RAISE EXCEPTION 'customer organization leaked provider farm records';
   END IF;
+  IF (SELECT count(*) FROM groups) <> 0 OR (SELECT count(*) FROM contribution_cycles) <> 0 THEN
+    RAISE EXCEPTION 'customer organization leaked group finance records';
+  END IF;
 END $$;
 
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000103', FALSE);
 DO $$ BEGIN
   IF (SELECT count(*) FROM properties) <> 0
     OR (SELECT count(*) FROM bookings) <> 0
-    OR (SELECT count(*) FROM farm_records) <> 0 THEN
+    OR (SELECT count(*) FROM farm_records) <> 0
+    OR (SELECT count(*) FROM groups) <> 0
+    OR (SELECT count(*) FROM contribution_cycles) <> 0 THEN
     RAISE EXCEPTION 'unrelated organization can read tenant data';
   END IF;
 END $$;

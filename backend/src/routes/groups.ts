@@ -7,6 +7,7 @@ import { GroupModel } from '../models/Group.js';
 import { WalletService } from '../services/walletService.js';
 import { Response } from 'express';
 import supabase from '../utils/supabase.js';
+import { resolveTenant, TenantRequest } from '../middleware/tenant.js';
 
 const walletService = new WalletService();
 const router = Router();
@@ -28,7 +29,7 @@ router.get('/search', async (req, res, next) => {
   }
 });
 
-router.get('/can-create', authenticateToken, async (req: AuthRequest, res: Response, next) => {
+router.get('/can-create', authenticateToken, resolveTenant, async (req: TenantRequest, res: Response, next) => {
   try {
     const result = await GroupModel.canCreateGroup(req.user.id);
     res.json(result);
@@ -46,7 +47,7 @@ router.get('/:id', async (req, res, next) => {
   }
 });
 
-router.post('/', authenticateToken, validate(createGroupSchema), async (req: AuthRequest, res: Response, next) => {
+router.post('/', authenticateToken, resolveTenant, validate(createGroupSchema), async (req: TenantRequest, res: Response, next) => {
   try {
     const { canCreate, conditions } = await GroupModel.canCreateGroup(req.user.id);
     if (!canCreate) {
@@ -61,6 +62,7 @@ router.post('/', authenticateToken, validate(createGroupSchema), async (req: Aut
     const group = await GroupModel.createWithPayment(
       { ...groupData, creator_id: req.user.id },
       req.user.id,
+      req.tenant!.id,
       payment_reference
     );
     
@@ -94,7 +96,7 @@ router.post('/', authenticateToken, validate(createGroupSchema), async (req: Aut
   }
 });
 
-router.post('/:id/join', authenticateToken, joinGroupLimiter, validate(joinGroupSchema), async (req: AuthRequest, res: Response, next) => {
+router.post('/:id/join', authenticateToken, resolveTenant, joinGroupLimiter, validate(joinGroupSchema), async (req: TenantRequest, res: Response, next) => {
   try {
     const { data: user } = await supabase
       .from('users')
@@ -109,8 +111,9 @@ router.post('/:id/join', authenticateToken, joinGroupLimiter, validate(joinGroup
     const { payment_reference, amount } = req.body;
     
     const membership = await GroupModel.joinGroup(
-      req.params.id, 
-      req.user.id, 
+      req.params.id,
+      req.user.id,
+      req.tenant!.id,
       payment_reference,
       amount
     );
@@ -123,8 +126,15 @@ router.post('/:id/join', authenticateToken, joinGroupLimiter, validate(joinGroup
   }
 });
 
-router.post('/confirm-payment/:memberId', authenticateToken, async (req: AuthRequest, res: Response, next) => {
+router.post('/confirm-payment/:memberId', authenticateToken, resolveTenant, async (req: TenantRequest, res: Response, next) => {
   try {
+    const { data: member } = await supabase
+      .from('group_members')
+      .select('id, groups!inner(organization_id)')
+      .eq('id', req.params.memberId)
+      .eq('groups.organization_id', req.tenant!.id)
+      .maybeSingle();
+    if (!member) return res.status(404).json({ error: 'Membership not found' });
     const membership = await GroupModel.confirmPayment(req.params.memberId);
     res.json(membership);
   } catch (error) {
@@ -141,13 +151,14 @@ router.get('/:id/members', async (req, res, next) => {
   }
 });
 
-router.get('/:id/membership-status', authenticateToken, async (req: AuthRequest, res: Response, next) => {
+router.get('/:id/membership-status', authenticateToken, resolveTenant, async (req: TenantRequest, res: Response, next) => {
   try {
     const { data, error } = await supabase
       .from('group_members')
-      .select('id, payment_status, amount_paid')
+      .select('id, payment_status, amount_paid, groups!inner(organization_id)')
       .eq('group_id', req.params.id)
       .eq('user_id', req.user.id)
+      .eq('groups.organization_id', req.tenant!.id)
       .maybeSingle();
     
     if (error) {

@@ -17,6 +17,7 @@ ALTER TABLE member_contributions ADD COLUMN IF NOT EXISTS organization_id UUID R
 ALTER TABLE payment_receipts ADD COLUMN IF NOT EXISTS organization_id UUID REFERENCES organizations(id);
 ALTER TABLE refunds ADD COLUMN IF NOT EXISTS organization_id UUID REFERENCES organizations(id);
 ALTER TABLE audit_logs ADD COLUMN IF NOT EXISTS organization_id UUID REFERENCES organizations(id);
+ALTER TABLE withdrawal_requests ADD COLUMN IF NOT EXISTS organization_id UUID REFERENCES organizations(id);
 
 -- Preserve ownerless legacy rows without leaking them into an active tenant.
 -- This suspended system organization has no membership and therefore cannot be
@@ -38,6 +39,10 @@ UPDATE properties SET organization_id = owner_id WHERE organization_id IS NULL;
 UPDATE groups SET organization_id = creator_id WHERE organization_id IS NULL;
 UPDATE farm_records SET organization_id = farmer_id WHERE organization_id IS NULL;
 UPDATE user_wallets SET organization_id = user_id WHERE organization_id IS NULL;
+UPDATE withdrawal_requests wr
+SET organization_id = uw.organization_id
+FROM user_wallets uw
+WHERE wr.wallet_id = uw.id AND wr.organization_id IS NULL;
 
 UPDATE bookings b
 SET organization_id = b.farmer_id,
@@ -113,6 +118,8 @@ UPDATE payment_receipts SET organization_id = '00000000-0000-4000-8000-000000000
 WHERE organization_id IS NULL;
 UPDATE refunds SET organization_id = '00000000-0000-4000-8000-000000000900'
 WHERE organization_id IS NULL;
+UPDATE withdrawal_requests SET organization_id = '00000000-0000-4000-8000-000000000900'
+WHERE organization_id IS NULL;
 
 INSERT INTO organization_audit_log(
   organization_id, action, resource_type, resource_id, after_value
@@ -153,6 +160,7 @@ ALTER TABLE contribution_cycles ALTER COLUMN organization_id SET NOT NULL;
 ALTER TABLE member_contributions ALTER COLUMN organization_id SET NOT NULL;
 ALTER TABLE payment_receipts ALTER COLUMN organization_id SET NOT NULL;
 ALTER TABLE refunds ALTER COLUMN organization_id SET NOT NULL;
+ALTER TABLE withdrawal_requests ALTER COLUMN organization_id SET NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_properties_organization ON properties(organization_id);
 CREATE INDEX IF NOT EXISTS idx_bookings_customer_organization ON bookings(organization_id);
@@ -167,6 +175,7 @@ CREATE INDEX IF NOT EXISTS idx_user_wallets_organization ON user_wallets(organiz
 CREATE INDEX IF NOT EXISTS idx_wallet_transactions_organization ON wallet_transactions(organization_id);
 CREATE INDEX IF NOT EXISTS idx_contribution_cycles_organization ON contribution_cycles(organization_id);
 CREATE INDEX IF NOT EXISTS idx_member_contributions_organization ON member_contributions(organization_id);
+CREATE INDEX IF NOT EXISTS idx_withdrawal_requests_organization ON withdrawal_requests(organization_id);
 
 CREATE OR REPLACE FUNCTION has_active_organization_membership(p_organization_id UUID)
 RETURNS BOOLEAN
@@ -266,12 +275,19 @@ BEGIN
   END LOOP;
 END $$;
 
+DROP POLICY IF EXISTS "Public read groups" ON groups;
+DROP POLICY IF EXISTS "Members read own group" ON group_members;
+DROP POLICY IF EXISTS "Members read cycles" ON contribution_cycles;
+DROP POLICY IF EXISTS "Creator create cycles" ON contribution_cycles;
+DROP POLICY IF EXISTS "Users read own contributions" ON member_contributions;
+DROP POLICY IF EXISTS "Users update own contributions" ON member_contributions;
+
 DO $$
 DECLARE table_name TEXT;
 BEGIN
   FOREACH table_name IN ARRAY ARRAY[
     'properties','groups','farm_records','marketplace_products','courses','user_wallets',
-    'wallet_transactions','contribution_cycles','member_contributions','payment_receipts','refunds','audit_logs'
+    'wallet_transactions','withdrawal_requests','contribution_cycles','member_contributions','payment_receipts','refunds','audit_logs'
   ] LOOP
     EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', table_name);
     EXECUTE format('DROP POLICY IF EXISTS tenant_read ON %I', table_name);

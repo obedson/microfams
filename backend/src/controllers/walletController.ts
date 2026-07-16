@@ -3,6 +3,7 @@ import { walletService } from '../services/walletService.js';
 import { AuthRequest } from '../middleware/auth.js';
 import { supabase } from '../utils/supabase.js';
 import Joi from 'joi';
+import { TenantRequest } from '../middleware/tenant.js';
 
 const p2pSchema = Joi.object({
   recipientEmail: Joi.string().email().required(),
@@ -25,22 +26,25 @@ const groupWithdrawSchema = Joi.object({
 });
 
 class WalletController {
-  async getWallet(req: AuthRequest, res: Response) {
+  async getWallet(req: TenantRequest, res: Response) {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;
-    const result = await walletService.getWalletWithHistory(req.user!.id, page, limit);
+    const result = await walletService.getWalletWithHistory(req.user!.id, page, limit, req.tenant!.id);
     res.json(result);
   }
 
-  async lookupRecipient(req: AuthRequest, res: Response) {
+  async lookupRecipient(req: TenantRequest, res: Response) {
     const { email } = req.body;
     if (!email) return res.status(400).json({ error: 'Email is required' });
 
-    const { data: recipient, error } = await supabase
-      .from('users')
-      .select('id, name, nin_verified')
-      .eq('email', email)
-      .single();
+    const { data: membership, error } = await supabase
+      .from('organization_memberships')
+      .select('user:users!inner(id, name, nin_verified, email)')
+      .eq('organization_id', req.tenant!.id)
+      .eq('status', 'active')
+      .eq('users.email', email)
+      .maybeSingle();
+    const recipient = membership?.user as any;
 
     if (error || !recipient) {
       return res.status(404).json({ error: 'User with this email not found' });
@@ -56,15 +60,18 @@ class WalletController {
     });
   }
 
-  async initiateP2P(req: AuthRequest, res: Response) {
+  async initiateP2P(req: TenantRequest, res: Response) {
     const { error, value } = p2pSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
 
-    const { data: recipient } = await supabase
-      .from('users')
-      .select('id')
-      .eq('email', value.recipientEmail)
-      .single();
+    const { data: membership } = await supabase
+      .from('organization_memberships')
+      .select('user:users!inner(id, email)')
+      .eq('organization_id', req.tenant!.id)
+      .eq('status', 'active')
+      .eq('users.email', value.recipientEmail)
+      .maybeSingle();
+    const recipient = membership?.user as any;
 
     if (!recipient) {
       return res.status(404).json({ error: 'User with this email not found' });
@@ -80,7 +87,8 @@ class WalletController {
         req.user!.id,
         recipient.id,
         value.amount,
-        req.ip || '0.0.0.0'
+        req.ip || '0.0.0.0',
+        req.tenant!.id
       );
       res.json(result);
     } catch (svcError: any) {
@@ -88,7 +96,7 @@ class WalletController {
     }
   }
 
-  async previewWithdrawal(req: AuthRequest, res: Response) {
+  async previewWithdrawal(req: TenantRequest, res: Response) {
     const { error, value } = withdrawSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
 
@@ -96,51 +104,54 @@ class WalletController {
       req.user!.id,
       value.accountNumber,
       value.bankCode,
-      value.amount
+      value.amount,
+      req.tenant!.id
     );
     res.json(result);
   }
 
-  async confirmWithdrawal(req: AuthRequest, res: Response) {
+  async confirmWithdrawal(req: TenantRequest, res: Response) {
     const { error, value } = confirmWithdrawSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
 
     const result = await walletService.confirmWithdrawal(
       req.user!.id,
       value.previewToken,
-      req.ip || '0.0.0.0'
+      req.ip || '0.0.0.0',
+      req.tenant!.id
     );
     res.status(202).json(result);
   }
 
-  async getTransaction(req: AuthRequest, res: Response) {
-    const result = await walletService.getTransaction(req.user!.id, req.params.id);
+  async getTransaction(req: TenantRequest, res: Response) {
+    const result = await walletService.getTransaction(req.user!.id, req.params.id, req.tenant!.id);
     res.json(result);
   }
 
-  async syncWithdrawal(req: AuthRequest, res: Response) {
-    const result = await walletService.syncWithdrawalStatus(req.user!.id, req.params.requestId);
+  async syncWithdrawal(req: TenantRequest, res: Response) {
+    const result = await walletService.syncWithdrawalStatus(req.user!.id, req.params.requestId, req.tenant!.id);
     res.json(result);
   }
 
-  async getWithdrawalStatus(req: AuthRequest, res: Response) {
+  async getWithdrawalStatus(req: TenantRequest, res: Response) {
     const { data, error } = await supabase
       .from('withdrawal_requests')
       .select('*')
       .eq('id', req.params.id)
       .eq('user_id', req.user!.id)
+      .eq('organization_id', req.tenant!.id)
       .single();
 
     if (error) return res.status(404).json({ error: 'Withdrawal not found' });
     res.json(data);
   }
 
-  async getGroupWallet(req: AuthRequest, res: Response) {
-    const result = await walletService.getGroupWallet(req.params.id, req.user!.id);
+  async getGroupWallet(req: TenantRequest, res: Response) {
+    const result = await walletService.getGroupWallet(req.params.id, req.user!.id, req.tenant!.id);
     res.json(result);
   }
 
-  async initiateGroupWithdrawal(req: AuthRequest, res: Response) {
+  async initiateGroupWithdrawal(req: TenantRequest, res: Response) {
     const { error, value } = groupWithdrawSchema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
 
@@ -149,21 +160,23 @@ class WalletController {
       req.user!.id,
       value.amount,
       value.targetUserId,
-      req.ip || '0.0.0.0'
+      req.ip || '0.0.0.0',
+      req.tenant!.id
     );
     res.status(201).json(result);
   }
 
-  async getGroupWithdrawalRequest(req: AuthRequest, res: Response) {
-    const result = await walletService.getGroupWithdrawalRequest(req.params.requestId);
+  async getGroupWithdrawalRequest(req: TenantRequest, res: Response) {
+    const result = await walletService.getGroupWithdrawalRequest(req.params.requestId, req.tenant!.id);
     res.json(result);
   }
 
-  async castApprovalVote(req: AuthRequest, res: Response) {
+  async castApprovalVote(req: TenantRequest, res: Response) {
     const result = await walletService.castApprovalVote(
       req.params.requestId,
       req.user!.id,
-      req.ip || '0.0.0.0'
+      req.ip || '0.0.0.0',
+      req.tenant!.id
     );
     res.json(result);
   }

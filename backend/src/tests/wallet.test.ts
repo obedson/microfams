@@ -118,4 +118,26 @@ describe('Wallet System Unit Tests', () => {
       expect(mockRpc).not.toHaveBeenCalled();
     });
   });
+
+  describe('tenant isolation', () => {
+    it('scopes wallet and transaction history to the active organization', async () => {
+      const eq = jest.fn().mockReturnThis();
+      const single = jest.fn().mockResolvedValue({
+        data: { id: 'wallet-1', organization_id: 'org-1' }, error: null
+      } as unknown as never);
+      const range = jest.fn().mockResolvedValue({ data: [], count: 0, error: null } as unknown as never);
+      (supabase.from as jest.Mock).mockReturnValue({
+        select: jest.fn().mockReturnThis(),
+        eq,
+        single,
+        order: jest.fn().mockReturnThis(),
+        range
+      });
+
+      await walletService.getWalletWithHistory('user-1', 1, 10, 'org-1');
+
+      expect(eq).toHaveBeenCalledWith('organization_id', 'org-1');
+      expect(eq).toHaveBeenCalledWith('wallet_id', 'wallet-1');
+    });
+  });
 });
