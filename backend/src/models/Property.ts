@@ -39,8 +39,8 @@ export class PropertyModel {
     return data || [];
   }
 
-  static async findById(id: string): Promise<any | null> {
-    const { data, error } = await supabase
+  static async findById(id: string, organizationId?: string): Promise<any | null> {
+    let query = supabase
       .from('properties')
       .select(`
         *,
@@ -50,8 +50,10 @@ export class PropertyModel {
           email
         )
       `)
-      .eq('id', id)
-      .single();
+      .eq('id', id);
+
+    if (organizationId) query = query.eq('organization_id', organizationId);
+    const { data, error } = await query.single();
 
     if (error) return null;
     return {
@@ -61,11 +63,12 @@ export class PropertyModel {
     };
   }
 
-  static async update(id: string, updates: Partial<Property>): Promise<Property | null> {
+  static async update(id: string, organizationId: string, updates: Partial<Property>): Promise<Property | null> {
     const { data, error } = await supabase
       .from('properties')
       .update(updates)
       .eq('id', id)
+      .eq('organization_id', organizationId)
       .select()
       .single();
 
@@ -73,11 +76,12 @@ export class PropertyModel {
     return data;
   }
 
-  static async delete(id: string): Promise<boolean> {
+  static async delete(id: string, organizationId: string): Promise<boolean> {
     const { error } = await supabase
       .from('properties')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('organization_id', organizationId);
 
     return !error;
   }

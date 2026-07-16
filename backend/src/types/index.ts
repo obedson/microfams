@@ -16,6 +16,7 @@ export interface AuthenticatedRequest extends Request {
 
 export interface Property {
   id: string;
+  organization_id: string;
   owner_id: string;
   title: string;
   description: string;

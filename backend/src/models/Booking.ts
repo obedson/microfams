@@ -2,6 +2,8 @@ import supabase from '../utils/supabase.js';
 
 export interface Booking {
   id: string;
+  organization_id: string;
+  provider_organization_id: string;
   property_id: string;
   farmer_id: string;
   start_date: string;
@@ -64,8 +66,8 @@ export class BookingModel {
     return data;
   }
 
-  static async findByIdWithDetails(id: string): Promise<any | null> {
-    const { data, error } = await supabase
+  static async findByIdWithDetails(id: string, organizationId?: string): Promise<any | null> {
+    let query = supabase
       .from('bookings')
       .select(`
         *,
@@ -89,8 +91,12 @@ export class BookingModel {
           phone
         )
       `)
-      .eq('id', id)
-      .single();
+      .eq('id', id);
+
+    if (organizationId) {
+      query = query.or(`organization_id.eq.${organizationId},provider_organization_id.eq.${organizationId}`);
+    }
+    const { data, error } = await query.single();
 
     if (error) return null;
     
@@ -216,10 +222,11 @@ export class BookingModel {
   }
 
   static async updateStatus(
-    id: string, 
-    status: string, 
+    id: string,
+    status: string,
     rejectionReason?: string,
-    cancelledBy?: string
+    cancelledBy?: string,
+    providerOrganizationId?: string,
   ): Promise<void> {
     const updateData: any = { 
       status, 
@@ -237,10 +244,13 @@ export class BookingModel {
       }
     }
 
-    const { error } = await supabase
+    let query = supabase
       .from('bookings')
       .update(updateData)
       .eq('id', id);
+
+    if (providerOrganizationId) query = query.eq('provider_organization_id', providerOrganizationId);
+    const { error } = await query;
 
     if (error) throw error;
   }
@@ -290,7 +300,7 @@ export class BookingModel {
     return (data?.length || 0) > 0;
   }
 
-  static async getOwnerStats(ownerId: string): Promise<any> {
+  static async getOwnerStats(ownerId: string, organizationId: string): Promise<any> {
     // Get bookings
     const { data: bookings, error: bookingsError } = await supabase
       .from('bookings')
@@ -303,7 +313,8 @@ export class BookingModel {
           owner_id
         )
       `)
-      .eq('properties.owner_id', ownerId);
+      .eq('properties.owner_id', ownerId)
+      .eq('provider_organization_id', organizationId);
 
     if (bookingsError) {
       console.error('Bookings query error:', bookingsError);
@@ -314,7 +325,8 @@ export class BookingModel {
     const { data: properties, error: propertiesError } = await supabase
       .from('properties')
       .select('id, is_active')
-      .eq('owner_id', ownerId);
+      .eq('owner_id', ownerId)
+      .eq('organization_id', organizationId);
 
     if (propertiesError) {
       console.error('Properties query error:', propertiesError);
@@ -379,7 +391,7 @@ export class BookingModel {
     return data || [];
   }
 
-  static async findByFarmerWithFilters(farmerId: string, filters: BookingFilters): Promise<PaginatedBookingResult> {
+  static async findByFarmerWithFilters(farmerId: string, organizationId: string, filters: BookingFilters): Promise<PaginatedBookingResult> {
     let query = supabase
       .from('bookings')
       .select(`
@@ -397,7 +409,8 @@ export class BookingModel {
           )
         )
       `, { count: 'exact' })
-      .eq('farmer_id', farmerId);
+      .eq('farmer_id', farmerId)
+      .eq('organization_id', organizationId);
 
     // Apply filters
     if (filters.status && filters.status.length > 0) {
@@ -446,7 +459,7 @@ export class BookingModel {
     };
   }
 
-  static async findByOwnerWithFilters(ownerId: string, filters: BookingFilters): Promise<PaginatedBookingResult> {
+  static async findByOwnerWithFilters(ownerId: string, organizationId: string, filters: BookingFilters): Promise<PaginatedBookingResult> {
     let query = supabase
       .from('bookings')
       .select(`
@@ -466,7 +479,8 @@ export class BookingModel {
           phone
         )
       `, { count: 'exact' })
-      .eq('properties.owner_id', ownerId);
+      .eq('properties.owner_id', ownerId)
+      .eq('provider_organization_id', organizationId);
 
     // Apply filters
     if (filters.status && filters.status.length > 0) {
