@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { supabase } from '../utils/supabase.js';
 import { uploadToSupabase } from '../utils/upload.js';
-import { AuthenticatedRequest } from '../types/index.js';
+import { TenantRequest } from '../middleware/tenant.js';
 import { MarketplaceService } from '../services/marketplaceService.js';
 
 export const getProducts = async (req: Request, res: Response) => {
@@ -25,12 +25,12 @@ export const getProducts = async (req: Request, res: Response) => {
   }
 };
 
-export const getRecommendations = async (req: AuthenticatedRequest, res: Response) => {
+export const getRecommendations = async (req: TenantRequest, res: Response) => {
   try {
     const userId = req.user?.id;
-    if (!userId) return res.status(401).json({ error: 'Unauthorized' });
+    if (!userId || !req.tenant) return res.status(401).json({ error: 'Unauthorized' });
 
-    const recommendations = await MarketplaceService.getRecommendedProducts(userId);
+    const recommendations = await MarketplaceService.getRecommendedProducts(userId, req.tenant.id);
     res.json(recommendations);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch recommendations' });
@@ -68,7 +68,7 @@ export const getProduct = async (req: Request, res: Response) => {
   }
 };
 
-export const createProduct = async (req: AuthenticatedRequest, res: Response) => {
+export const createProduct = async (req: TenantRequest, res: Response) => {
   try {
     const { name, category, description, price, unit, stock_quantity, minimum_order, location } = req.body;
     
@@ -88,6 +88,7 @@ export const createProduct = async (req: AuthenticatedRequest, res: Response) =>
     const { data, error } = await supabase
       .from('marketplace_products')
       .insert({
+        organization_id: req.tenant!.id,
         supplier_id: req.user?.id,
         name,
         category,
@@ -111,7 +112,7 @@ export const createProduct = async (req: AuthenticatedRequest, res: Response) =>
   }
 };
 
-export const updateProduct = async (req: AuthenticatedRequest, res: Response) => {
+export const updateProduct = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { name, category, description, price, unit, stock_quantity, minimum_order, location } = req.body;
@@ -153,6 +154,7 @@ export const updateProduct = async (req: AuthenticatedRequest, res: Response) =>
           .from('marketplace_products')
           .select('images')
           .eq('id', id)
+          .eq('organization_id', req.tenant!.id)
           .single();
         
         const existingImages = existing?.images || [];
@@ -167,6 +169,7 @@ export const updateProduct = async (req: AuthenticatedRequest, res: Response) =>
       .from('marketplace_products')
       .update(updates)
       .eq('id', id)
+      .eq('organization_id', req.tenant!.id)
       .eq('supplier_id', req.user?.id)
       .select()
       .single();
@@ -183,7 +186,7 @@ export const updateProduct = async (req: AuthenticatedRequest, res: Response) =>
   }
 };
 
-export const deleteProduct = async (req: AuthenticatedRequest, res: Response) => {
+export const deleteProduct = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     
@@ -191,6 +194,7 @@ export const deleteProduct = async (req: AuthenticatedRequest, res: Response) =>
       .from('marketplace_products')
       .delete()
       .eq('id', id)
+      .eq('organization_id', req.tenant!.id)
       .eq('supplier_id', req.user?.id);
 
     if (error) throw error;

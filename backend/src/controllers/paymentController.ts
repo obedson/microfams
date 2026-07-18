@@ -4,6 +4,8 @@ import { BookingModel } from '../models/Booking.js';
 import { asyncHandler, createError } from '../middleware/errorHandler.js';
 import supabase from '../utils/supabase.js';
 import { ReceiptService } from '../services/receiptService.js';
+import { TenantRequest } from '../middleware/tenant.js';
+import { expectedPaymentAmountInMinorUnits } from '../services/marketplaceOrderPolicy.js';
 
 const PAYSTACK_SECRET_KEY = process.env.PAYSTACK_SECRET_KEY;
 const PAYSTACK_BASE_URL = 'https://api.paystack.co';
@@ -12,15 +14,17 @@ const receiptService = new ReceiptService();
 export const initializePayment = asyncHandler(async (req: Request, res: Response) => {
   const { bookingId, booking_id } = req.body;
   const actualBookingId = bookingId || booking_id;
-  const userId = (req as any).user.id;
+  const tenantRequest = req as TenantRequest;
+  const userId = tenantRequest.user!.id;
+  const organizationId = tenantRequest.tenant!.id;
 
-  console.log('Payment request:', { bookingId, booking_id, actualBookingId, userId });
+  console.log('Payment request:', { actualBookingId, userId, organizationId });
 
   if (!PAYSTACK_SECRET_KEY) {
     throw createError('Payment service not configured', 500);
   }
 
-  const booking = await BookingModel.findById(actualBookingId);
+  const booking = await BookingModel.findByIdWithDetails(actualBookingId, organizationId);
   console.log('Found booking:', booking);
   
   if (!booking) {
@@ -41,7 +45,8 @@ export const initializePayment = asyncHandler(async (req: Request, res: Response
   const { error: preUpdateError } = await supabase
     .from('bookings')
     .update({ payment_reference: reference })
-    .eq('id', actualBookingId);
+    .eq('id', actualBookingId)
+    .eq('organization_id', organizationId);
 
   if (preUpdateError) {
     console.error('Failed to save payment intent:', preUpdateError);
@@ -107,17 +112,14 @@ export const verifyPayment = asyncHandler(async (req: Request, res: Response) =>
     
     if (data.status === 'success') {
       const bookingId = data.metadata?.booking_id;
-      
-      // Look up booking by ID or Reference
-      let booking;
-      if (bookingId) {
-        booking = await BookingModel.findById(bookingId);
-      } else {
-        const { data: bData } = await supabase.from('bookings').select('*').eq('payment_reference', reference).maybeSingle();
-        booking = bData;
-      }
+      let query = supabase.from('bookings').select('*').eq('payment_reference', reference);
+      if (bookingId) query = query.eq('id', bookingId);
+      const { data: booking } = await query.maybeSingle();
       
       if (booking) {
+        if (data.amount !== expectedPaymentAmountInMinorUnits(booking.total_amount) || data.currency !== 'NGN') {
+          throw createError('Payment does not match the stored booking intent', 409);
+        }
         if (booking.payment_status !== 'paid') {
           // Use atomic update
           await BookingModel.completePayment(booking.id, reference);
@@ -130,6 +132,7 @@ export const verifyPayment = asyncHandler(async (req: Request, res: Response) =>
           }
         }
       } else {
+        throw createError('Payment intent not found', 404);
         console.warn(`⚠️ verifyPayment: No booking found for reference ${reference} or ID ${bookingId}`);
       }
 
@@ -157,9 +160,11 @@ export const verifyPayment = asyncHandler(async (req: Request, res: Response) =>
 
 export const getPaymentStatus = asyncHandler(async (req: Request, res: Response) => {
   const { bookingId } = req.params;
-  const userId = (req as any).user.id;
+  const tenantRequest = req as TenantRequest;
+  const userId = tenantRequest.user!.id;
+  const organizationId = tenantRequest.tenant!.id;
 
-  const booking = await BookingModel.findById(bookingId);
+  const booking = await BookingModel.findByIdWithDetails(bookingId, organizationId);
   if (!booking) {
     throw createError('Booking not found', 404);
   }
