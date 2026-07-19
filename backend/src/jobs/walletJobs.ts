@@ -1,8 +1,8 @@
 import cron from 'node-cron';
 import { supabase } from '../utils/supabase.js';
-import { interswitchService } from '../services/interswitchService.js';
 import { walletService } from '../services/walletService.js';
 import { logger } from '../utils/logger.js';
+import { payoutService } from '../domains/financial/payoutService.js';
 
 /**
  * Requirement 5.11: Pending withdrawal timeout job
@@ -21,32 +21,47 @@ const checkPendingWithdrawals = async () => {
     }
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
-    const { data: pendingRequests } = await supabase
-      .from('withdrawal_requests')
-      .select('*')
-      .eq('status', 'PENDING')
-      .lt('created_at', twentyFourHoursAgo);
+    const { data: pendingPayouts } = await supabase
+      .from('payouts')
+      .select('id, internal_reference')
+      .in('state', ['submitted', 'processing'])
+      .lt('updated_at', twentyFourHoursAgo);
 
-    if (!pendingRequests || pendingRequests.length === 0) return;
+    if (!pendingPayouts || pendingPayouts.length === 0) return;
 
-    logger.info(`Checking ${pendingRequests.length} pending withdrawals`);
+    logger.info(`Checking ${pendingPayouts.length} pending payouts`);
 
-    for (const request of pendingRequests) {
+    for (const payout of pendingPayouts) {
       try {
-        if (!request.internal_ref) continue;
-        
-        const statusResult = await interswitchService.queryTransactionStatus(request.internal_ref);
-        
-        if (statusResult.status !== 'PENDING') {
-          await walletService.handleWithdrawalStatusUpdate(request.internal_ref, statusResult.status);
-          logger.info(`Updated withdrawal ${request.internal_ref} to ${statusResult.status}`);
-        }
+        const result = await payoutService.queryAndApply(payout.id);
+        logger.info(`Reconciled payout ${payout.internal_reference} to ${result.state}`);
       } catch (error: any) {
-        logger.error(`Failed to query status for withdrawal ${request.internal_ref}: ${error.message}`);
+        logger.error(`Failed to reconcile payout ${payout.internal_reference}: ${error.message}`);
       }
     }
   } catch (error: any) {
     logger.error(`Error in checkPendingWithdrawals job: ${error.message}`);
+  }
+};
+
+const processProviderEvents = async () => {
+  try {
+    const { data: events, error } = await supabase
+      .from('provider_events')
+      .select('id')
+      .eq('processing_state', 'received')
+      .order('received_at', { ascending: true })
+      .limit(50);
+    if (error) throw error;
+    for (const event of events ?? []) {
+      try {
+        await payoutService.processProviderEvent(event.id);
+      } catch (eventError: any) {
+        logger.error(`Failed to process provider event ${event.id}: ${eventError.message}`);
+      }
+    }
+  } catch (error: any) {
+    logger.error(`Error in provider event processing job: ${error.message}`);
   }
 };
 
@@ -123,6 +138,9 @@ const checkGracePeriodExpiries = async () => {
 export const startWalletJobs = () => {
   // Pending withdrawal timeout (every hour)
   cron.schedule('0 * * * *', checkPendingWithdrawals);
+
+  // Verified provider events (every minute)
+  cron.schedule('* * * * *', processProviderEvents);
   
   // NUBAN retry (every 5 minutes)
   cron.schedule('*/5 * * * *', retryNubanProvisioning);

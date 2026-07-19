@@ -4,6 +4,7 @@ import { AuthRequest } from '../middleware/auth.js';
 import { supabase } from '../utils/supabase.js';
 import Joi from 'joi';
 import { TenantRequest } from '../middleware/tenant.js';
+import { payoutService } from '../domains/financial/payoutService.js';
 
 const p2pSchema = Joi.object({
   recipientEmail: Joi.string().email().required(),
@@ -189,6 +190,7 @@ class WalletController {
   async interswitchWebhook(req: Request, res: Response) {
     const signature = req.headers['x-interswitch-signature'] as string;
     if (!signature) return res.status(400).json({ error: 'Missing signature' });
+    if (!Buffer.isBuffer(req.body)) return res.status(400).json({ error: 'Raw webhook body is required' });
 
     try {
       await walletService.handleInterswitchWebhook(req.body, signature);
@@ -196,6 +198,20 @@ class WalletController {
     } catch (error: any) {
       console.error('Interswitch Webhook Error:', error.message);
       res.status(400).json({ error: error.message });
+    }
+  }
+
+  async payoutWebhook(req: Request, res: Response) {
+    const signature = req.headers['x-interswitch-signature'];
+    if (typeof signature !== 'string') return res.status(400).json({ error: 'Missing signature' });
+    if (!Buffer.isBuffer(req.body)) return res.status(400).json({ error: 'Raw webhook body is required' });
+
+    try {
+      await payoutService.ingestWebhook(req.body, signature);
+      return res.sendStatus(200);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Payout webhook rejected';
+      return res.status(400).json({ error: message });
     }
   }
 }

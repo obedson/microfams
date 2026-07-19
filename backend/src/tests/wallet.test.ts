@@ -2,6 +2,7 @@ import { jest } from '@jest/globals';
 import { interswitchService } from '../services/interswitchService.js';
 import { walletService } from '../services/walletService.js';
 import { ledgerService } from '../services/ledgerService.js';
+import { payoutService } from '../domains/financial/payoutService.js';
 import { supabase } from '../utils/supabase.js';
 import axios from 'axios';
 import crypto from 'crypto';
@@ -72,7 +73,7 @@ describe('Wallet System Unit Tests', () => {
       process.env.INTERSWITCH_TRANSFER_FEE = '5000';
       process.env.JWT_SECRET = 'test-secret';
 
-      jest.spyOn(interswitchService, 'nameEnquiry').mockResolvedValue({
+      jest.spyOn(payoutService, 'validateDestination').mockResolvedValue({
         accountName: 'John Doe',
         bankCode: '044'
       });
