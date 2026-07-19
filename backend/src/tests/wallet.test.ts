@@ -119,6 +119,31 @@ describe('Wallet System Unit Tests', () => {
     });
   });
 
+  describe('tenant wallet provisioning', () => {
+    it('uses organization and user as the wallet identity', async () => {
+      const upsert = jest.fn().mockReturnThis();
+      (supabase.from as jest.Mock).mockReturnValue({
+        upsert,
+        select: jest.fn().mockReturnThis(),
+        single: jest.fn().mockResolvedValue({ data: { id: 'wallet-1' }, error: null } as unknown as never),
+      });
+
+      await walletService.provisionUserWallet('user-1', 'org-1');
+
+      expect(upsert).toHaveBeenCalledWith(
+        { user_id: 'user-1', organization_id: 'org-1' },
+        { onConflict: 'organization_id,user_id' },
+      );
+    });
+
+    it('uses the personal organization during registration', async () => {
+      const upsert = jest.fn().mockReturnThis();
+      (supabase.from as jest.Mock).mockReturnValue({ upsert, select: jest.fn().mockReturnThis(), single: jest.fn().mockResolvedValue({ data: {}, error: null } as unknown as never) });
+      await walletService.provisionUserWallet('user-1');
+      expect(upsert).toHaveBeenCalledWith(expect.objectContaining({ organization_id: 'user-1' }), expect.anything());
+    });
+  });
+
   describe('tenant isolation', () => {
     it('scopes wallet and transaction history to the active organization', async () => {
       const eq = jest.fn().mockReturnThis();
