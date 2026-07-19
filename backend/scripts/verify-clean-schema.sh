@@ -53,7 +53,7 @@ BEGIN
     SELECT 1 FROM unnest(ARRAY[
       'users','properties','bookings','groups','group_members','courses','user_progress',
       'marketplace_products','orders','user_wallets','wallet_transactions','organizations',
-      'feature_flags'
+      'feature_flags','financial_accounts','journal_entries','journal_lines'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -230,5 +230,8 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-education-tenancy.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-financial-ledger.sql"
 
 echo "clean schema verification passed"
