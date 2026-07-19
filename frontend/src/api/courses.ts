@@ -1,4 +1,5 @@
 import { Course, UserProgress } from '../types/course';
+import { getActiveOrganizationId, getTenantHeaders } from './tenantHeaders';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
@@ -20,12 +21,22 @@ const getToken = () => {
 
 export const courseApi = {
   getCourses: async (): Promise<Course[]> => {
-    const response = await fetch(`${API_BASE}/courses`);
+    const token = getToken();
+    const tenantPath = token && getActiveOrganizationId() ? '/courses/organization' : '/courses';
+    const response = await fetch(`${API_BASE}${tenantPath}`, {
+      headers: getTenantHeaders(token),
+    });
     return response.json();
   },
 
   getCourse: async (id: string): Promise<Course> => {
-    const response = await fetch(`${API_BASE}/courses/${id}`);
+    const token = getToken();
+    const tenantPath = token && getActiveOrganizationId()
+      ? `/courses/organization/${id}`
+      : `/courses/${id}`;
+    const response = await fetch(`${API_BASE}${tenantPath}`, {
+      headers: getTenantHeaders(token),
+    });
     return response.json();
   },
 
@@ -37,10 +48,7 @@ export const courseApi = {
     
     const response = await fetch(`${API_BASE}/courses`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getTenantHeaders(token, true),
       body: JSON.stringify(courseData)
     });
     
@@ -61,10 +69,7 @@ export const courseApi = {
     
     const response = await fetch(`${API_BASE}/courses/${id}`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getTenantHeaders(token, true),
       body: JSON.stringify(courseData)
     });
     
@@ -85,9 +90,7 @@ export const courseApi = {
     
     const response = await fetch(`${API_BASE}/courses/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: getTenantHeaders(token)
     });
     
     if (!response.ok) {
@@ -100,10 +103,7 @@ export const courseApi = {
     const token = getToken();
     await fetch(`${API_BASE}/courses/${courseId}/progress`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getTenantHeaders(token, true),
       body: JSON.stringify({ progress, completed, watch_time_seconds: watchTime })
     });
   },
@@ -111,7 +111,7 @@ export const courseApi = {
   getUserProgress: async (): Promise<UserProgress[]> => {
     const token = getToken();
     const response = await fetch(`${API_BASE}/courses/user/progress`, {
-      headers: { 'Authorization': `Bearer ${token}` }
+      headers: getTenantHeaders(token)
     });
     return response.json();
   }

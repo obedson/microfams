@@ -1,6 +1,5 @@
--- Check if RLS is enabled and disable it for courses table
--- Since we're using service key on backend, RLS should be disabled
-ALTER TABLE courses DISABLE ROW LEVEL SECURITY;
+-- Keep database-level tenant isolation enabled; the backend service role bypasses RLS.
+ALTER TABLE courses ENABLE ROW LEVEL SECURITY;
 
 -- Drop any existing policies
 DROP POLICY IF EXISTS "Public read courses" ON courses;

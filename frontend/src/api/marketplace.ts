@@ -1,4 +1,5 @@
 import { Product, Order } from '../types/marketplace';
+import { getTenantHeaders } from './tenantHeaders';
 
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
@@ -55,9 +56,7 @@ export const marketplaceApi = {
 
   createProduct: async (productData: any) => {
     const token = getToken();
-    const headers: any = {
-      'Authorization': `Bearer ${token}`
-    };
+    const headers: Record<string, string> = getTenantHeaders(token);
     
     // Don't set Content-Type for FormData, let browser set it
     if (!(productData instanceof FormData)) {
@@ -95,9 +94,7 @@ export const marketplaceApi = {
     
     const response = await fetch(`${API_BASE}/products/${id}`, {
       method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getTenantHeaders(token),
       body: formData
     });
     
@@ -113,9 +110,7 @@ export const marketplaceApi = {
     const token = getToken();
     const response = await fetch(`${API_BASE}/products/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: getTenantHeaders(token)
     });
     
     if (!response.ok) {
@@ -129,10 +124,7 @@ export const marketplaceApi = {
     const token = getToken();
     const response = await fetch(`${API_BASE}/orders`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getTenantHeaders(token, true),
       body: JSON.stringify(orderData)
     });
     
@@ -152,9 +144,7 @@ export const marketplaceApi = {
   getMyOrders: async () => {
     const token = getToken();
     const response = await fetch(`${API_BASE}/orders/my-orders`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: getTenantHeaders(token)
     });
     return response.json();
   },
@@ -162,9 +152,7 @@ export const marketplaceApi = {
   getMyProducts: async () => {
     const token = getToken();
     const response = await fetch(`${API_BASE}/products/my-products`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: getTenantHeaders(token)
     });
     return response.json();
   },
@@ -172,9 +160,7 @@ export const marketplaceApi = {
   getMySales: async () => {
     const token = getToken();
     const response = await fetch(`${API_BASE}/orders/my-sales`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      headers: getTenantHeaders(token)
     });
     return response.json();
   },
@@ -183,10 +169,7 @@ export const marketplaceApi = {
     const token = getToken();
     const response = await fetch(`${API_BASE}/orders/${id}/status`, {
       method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
+      headers: getTenantHeaders(token, true),
       body: JSON.stringify({ status })
     });
     

@@ -10,7 +10,7 @@ export const createMonthlyCycles = cron.schedule('0 0 1 * *', async () => {
   try {
     const { data: groups } = await supabase
       .from('groups')
-      .select('id')
+      .select('id, organization_id')
       .eq('contribution_enabled', true);
 
     if (!groups) return;
@@ -20,7 +20,7 @@ export const createMonthlyCycles = cron.schedule('0 0 1 * *', async () => {
     const year = now.getFullYear();
 
     for (const group of groups) {
-      await ContributionModel.createCycle(group.id, month, year);
+      await ContributionModel.createCycle(group.id, month, year, group.organization_id);
     }
 
     console.log(`Created cycles for ${groups.length} groups`);
@@ -41,7 +41,7 @@ export const checkOverduePayments = cron.schedule('0 9 * * *', async () => {
       .select(`
         *,
         member:group_members(id, user_id, missed_payments_count, user:users(email, name)),
-        cycle:contribution_cycles(deadline_date, group:groups(grace_period_days))
+        cycle:contribution_cycles(deadline_date, group:groups(id, organization_id, grace_period_days))
       `)
       .eq('payment_status', 'pending');
 
@@ -69,7 +69,8 @@ export const checkOverduePayments = cron.schedule('0 9 * * *', async () => {
           const { error: updateError } = await supabase
             .from('member_contributions')
             .update({ payment_status: 'overdue' })
-            .eq('id', contrib.id);
+            .eq('id', contrib.id)
+            .eq('organization_id', contrib.organization_id);
 
           if (updateError) {
             console.error(`Error updating contribution ${contrib.id}:`, updateError);
@@ -111,7 +112,7 @@ export const autoSuspendMembers = cron.schedule('0 10 * * *', async () => {
       .from('group_members')
       .select(`
         *,
-        group:groups(auto_suspend_after),
+        group:groups(auto_suspend_after, organization_id),
         user:users(email, name)
       `)
       .eq('member_status', 'active');
@@ -131,7 +132,7 @@ export const autoSuspendMembers = cron.schedule('0 10 * * *', async () => {
     for (const member of members) {
       try {
         if (member.missed_payments_count >= member.group.auto_suspend_after) {
-          await ContributionModel.updateMemberStatus(member.id, 'suspended');
+          await ContributionModel.updateMemberStatus(member.id, 'suspended', member.group.organization_id);
           await sendSuspensionNotice(member.user_id);
           suspendedCount++;
         }
@@ -157,7 +158,7 @@ export const autoExpelMembers = cron.schedule('0 11 * * *', async () => {
       .from('group_members')
       .select(`
         *,
-        group:groups(auto_expel_after),
+        group:groups(auto_expel_after, organization_id),
         user:users(email, name)
       `)
       .in('member_status', ['active', 'suspended']);
@@ -177,7 +178,7 @@ export const autoExpelMembers = cron.schedule('0 11 * * *', async () => {
     for (const member of members) {
       try {
         if (member.missed_payments_count >= member.group.auto_expel_after) {
-          await ContributionModel.updateMemberStatus(member.id, 'expelled');
+          await ContributionModel.updateMemberStatus(member.id, 'expelled', member.group.organization_id);
           await sendExpulsionNotice(member.user_id);
           expelledCount++;
         }

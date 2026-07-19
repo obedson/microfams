@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { MessageNotificationIcon } from './communication';
 import Button from './ui/Button';
 import ProfileDropdown from './ProfileDropdown';
+import OrganizationSwitcher from './OrganizationSwitcher';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -56,6 +57,7 @@ const Header: React.FC = () => {
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated ? (
               <>
+                <OrganizationSwitcher />
                 <Link
                   to="/dashboard"
                   className="text-gray-600 hover:text-primary-600 font-medium transition-colors"
@@ -110,6 +112,9 @@ const Header: React.FC = () => {
                   </Link>
                 );
               })}
+              {isAuthenticated && (
+                <div className="px-4 py-3"><OrganizationSwitcher /></div>
+              )}
               
               {!isAuthenticated && (
                 <Link

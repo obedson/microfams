@@ -1,12 +1,13 @@
 import { Router } from 'express';
-import { authenticateToken, requireRole } from '../middleware/auth.js';
+import { authenticateToken } from '../middleware/auth.js';
+import { requireTenantRole, resolveTenant } from '../middleware/tenant.js';
 import { getBookingReport, getEngagementReport, getRetentionBI, exportData } from '../controllers/reportController.js';
 
 const router = Router();
 
-// All reporting routes require admin privileges
 router.use(authenticateToken);
-router.use(requireRole(['admin']));
+router.use(resolveTenant);
+router.use(requireTenantRole(['owner', 'admin', 'finance_manager', 'program_manager', 'farm_manager', 'auditor']));
 
 router.get('/bookings', getBookingReport);
 router.get('/engagement', getEngagementReport);

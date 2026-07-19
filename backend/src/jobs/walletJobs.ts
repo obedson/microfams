@@ -49,7 +49,7 @@ const retryNubanProvisioning = async () => {
   try {
     const { data: pendingGvas } = await supabase
       .from('group_virtual_accounts')
-      .select('*, groups(name)')
+      .select('*, groups(name, organization_id)')
       .eq('status', 'PENDING')
       .lt('retry_count', 3);
 
@@ -63,7 +63,8 @@ const retryNubanProvisioning = async () => {
       if (Date.now() - lastAttempt < delay) continue;
 
       try {
-        await walletService.provisionGroupNuban(gva.group_id, (gva.groups as any).name);
+        const group = gva.groups as any;
+        await walletService.provisionGroupNuban(gva.group_id, group.name);
         logger.info(`Successfully provisioned NUBAN for group ${gva.group_id} on retry ${gva.retry_count + 1}`);
       } catch (error: any) {
         await supabase
@@ -72,7 +73,8 @@ const retryNubanProvisioning = async () => {
             retry_count: gva.retry_count + 1,
             updated_at: new Date().toISOString()
           })
-          .eq('id', gva.id);
+          .eq('id', gva.id)
+          .eq('organization_id', gva.organization_id);
         logger.error(`Failed NUBAN retry ${gva.retry_count + 1} for group ${gva.group_id}`);
       }
     }

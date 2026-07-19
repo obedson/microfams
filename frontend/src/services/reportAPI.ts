@@ -1,3 +1,5 @@
+import { getTenantHeaders } from '../api/tenantHeaders';
+
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
 interface BookingReportSummary {
@@ -23,9 +25,7 @@ interface RetentionBI {
 class ReportAPI {
   private getAuthHeaders() {
     const token = localStorage.getItem('token');
-    return {
-      'Authorization': `Bearer ${token}`
-    };
+    return getTenantHeaders(token);
   }
 
   async getBookingReport(startDate: string, endDate: string): Promise<{ summary: BookingReportSummary; bookings: any[] }> {

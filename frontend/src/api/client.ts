@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { useAuthStore } from '../store/authStore';
+import { getActiveOrganizationId } from './tenantHeaders';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
@@ -11,6 +12,10 @@ apiClient.interceptors.request.use((config) => {
   const token = useAuthStore.getState().token;
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  const organizationId = getActiveOrganizationId();
+  if (organizationId) {
+    config.headers['X-Organization-ID'] = organizationId;
   }
   return config;
 });
