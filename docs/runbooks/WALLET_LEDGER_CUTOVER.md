@@ -24,6 +24,14 @@ Activation posts balanced opening journals and makes `user_wallets.balance` and 
 
 Every command uses a tenant-scoped idempotency key, posts a balanced journal, links append-only `wallet_transactions` evidence, and rebuilds affected caches in the same database transaction.
 
+## Fund reservations and API money
+
+Wallet command APIs accept `amountMinor`, `currency`, and an idempotency key. They do not accept or return floating-point financial amounts. Legacy decimal columns remain compatibility caches only; application adapters convert them through exact decimal strings.
+
+Withdrawal confirmation creates an expiring `fund_reservations` record before any provider call. An active reservation reduces available balance without changing ledger balance. Consumption atomically moves the wallet liability to that wallet's pending-payout liability, and provider failure restores the exact consumed reservation through a compensating journal. Replays return the original reservation and journals.
+
+The hourly wallet recovery job expires abandoned active reservations. Reservation rows are tenant-scoped and can only be mutated by the security-definer reservation engine, even though the backend service role has general table privileges.
+
 Booking settlement and grace-period penalty deductions intentionally fail for active cutovers until their cross-organization settlement, fee, and revenue mappings are approved. Do not bypass these failures with direct cache writes.
 
 ## Rollback and recovery
