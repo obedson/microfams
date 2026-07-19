@@ -284,19 +284,19 @@ The product owner must approve or amend each proposed decision:
 
 | Decision | Recommendation | Status |
 | --- | --- | --- |
-| FC-01 | Integer minor-unit money, one currency per journal, no core FX conversion | Pending |
-| FC-02 | First-class tenant ledger accounts and control/subledger model | Pending |
-| FC-03 | Immutable balanced journals, idempotent posting, reversal-only correction | Pending |
-| FC-04 | Separate ledger, pending, reserved, and available balances | Pending |
-| FC-05 | Provider-neutral idempotent payment and payout state machines | Pending |
-| FC-06 | Daily provider/bank reconciliation with zero unexplained variance gate | Pending |
-| FC-07 | Effective-dated configurable limits/KYC rules; no hard-coded legal claims | Pending |
-| FC-08 | Audited opening-balance migration and derived legacy balance caches | Pending |
+| FC-01 | Integer minor-unit money, one currency per journal, no core FX conversion | Approved |
+| FC-02 | First-class tenant ledger accounts and control/subledger model | Approved |
+| FC-03 | Immutable balanced journals, idempotent posting, reversal-only correction | Approved |
+| FC-04 | Separate ledger, pending, reserved, and available balances | Approved |
+| FC-05 | Provider-neutral idempotent payment and payout state machines | Approved |
+| FC-06 | Daily provider/bank reconciliation with zero unexplained variance gate | Approved |
+| FC-07 | Effective-dated configurable limits/KYC rules; no hard-coded legal claims | Approved |
+| FC-08 | Audited opening-balance migration and derived legacy balance caches | Approved |
 
-Approval status: `pending`
+Approval status: `approved`
 
-Approved by: _pending_
+Approved by: Product owner (recorded from the Codex task)
 
-Approval date: _pending_
+Approval date: 2026-07-19
 
 Approved exceptions: _none recorded_
