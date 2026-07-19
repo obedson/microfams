@@ -82,6 +82,7 @@ Exit gate: sandbox and live-contract tests, privacy review, replay protection, a
 ## Phase 3 — Financial core
 
 - [ ] Approve accounting and money specifications.
+  - Proposed for owner approval in [`docs/specs/FINANCIAL_CORE.md`](specs/FINANCIAL_CORE.md); implementation remains blocked while its approval status is pending.
 - [ ] Replace the current wallet transaction model with first-class ledger accounts and balanced postings.
 - [ ] Add idempotent payment orchestration, provider adapters, webhooks, settlement, fees, refunds, reversals, and reconciliation.
 - [ ] Implement individual, group, escrow, savings, investment, clearing, fee, and settlement accounts.
