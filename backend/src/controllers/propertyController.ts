@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { TenantRequest } from '../middleware/tenant.js';
 import { PropertyModel } from '../models/Property.js';
 import { uploadToSupabase } from '../utils/upload.js';
 import { supabase } from '../utils/supabase.js';
@@ -20,7 +21,7 @@ const propertySchema = Joi.object({
   images: Joi.array().items(Joi.string()).default([])
 });
 
-export const createProperty = async (req: Request, res: Response) => {
+export const createProperty = async (req: TenantRequest, res: Response) => {
   try {
     const { error, value } = propertySchema.validate(req.body);
     if (error) {
@@ -30,6 +31,7 @@ export const createProperty = async (req: Request, res: Response) => {
     const property = await PropertyModel.create({
       ...value,
       owner_id: (req as any).user.id,
+      organization_id: req.tenant!.id,
       is_active: true
     });
 
@@ -67,7 +69,7 @@ export const getProperty = async (req: Request, res: Response) => {
   }
 };
 
-export const updateProperty = async (req: Request, res: Response) => {
+export const updateProperty = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     let updates = { ...req.body };
@@ -88,7 +90,7 @@ export const updateProperty = async (req: Request, res: Response) => {
       }
       
       // Get existing images and append new ones
-      const existingProperty = await PropertyModel.findById(id);
+      const existingProperty = await PropertyModel.findById(id, req.tenant!.id);
       if (!existingProperty) {
         return res.status(404).json({ success: false, error: 'Property not found' });
       }
@@ -97,7 +99,7 @@ export const updateProperty = async (req: Request, res: Response) => {
       updates.images = [...existingImages, ...newImages];
     }
     
-    const property = await PropertyModel.update(id, updates);
+    const property = await PropertyModel.update(id, req.tenant!.id, updates);
     if (!property) {
       return res.status(404).json({ success: false, error: 'Property not found or update failed' });
     }
@@ -109,12 +111,13 @@ export const updateProperty = async (req: Request, res: Response) => {
   }
 };
 
-export const deleteProperty = async (req: Request, res: Response) => {
+export const deleteProperty = async (req: TenantRequest, res: Response) => {
   try {
     const { data: bookings } = await supabase
       .from('bookings')
       .select('id')
       .eq('property_id', req.params.id)
+      .eq('provider_organization_id', req.tenant!.id)
       .limit(1);
 
     if (bookings && bookings.length > 0) {
@@ -124,7 +127,7 @@ export const deleteProperty = async (req: Request, res: Response) => {
       });
     }
 
-    const success = await PropertyModel.delete(req.params.id);
+    const success = await PropertyModel.delete(req.params.id, req.tenant!.id);
     if (!success) {
       return res.status(404).json({ success: false, error: 'Property not found' });
     }
@@ -134,14 +137,14 @@ export const deleteProperty = async (req: Request, res: Response) => {
   }
 };
 
-export const uploadImages = async (req: Request, res: Response) => {
+export const uploadImages = async (req: TenantRequest, res: Response) => {
   try {
     const files = req.files as Express.Multer.File[];
     if (!files || files.length === 0) {
       return res.status(400).json({ success: false, error: 'No images provided' });
     }
 
-    const property = await PropertyModel.findById(req.params.id);
+    const property = await PropertyModel.findById(req.params.id, req.tenant!.id);
     if (!property) {
       return res.status(404).json({ success: false, error: 'Property not found' });
     }
@@ -150,7 +153,7 @@ export const uploadImages = async (req: Request, res: Response) => {
       files.map(file => uploadToSupabase(file, 'properties'))
     );
 
-    const updatedProperty = await PropertyModel.update(req.params.id, {
+    const updatedProperty = await PropertyModel.update(req.params.id, req.tenant!.id, {
       images: [...property.images, ...imageUrls]
     });
 
@@ -161,18 +164,18 @@ export const uploadImages = async (req: Request, res: Response) => {
 };
 
 
-export const deleteImage = async (req: Request, res: Response) => {
+export const deleteImage = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { imageUrl } = req.body;
 
-    const property = await PropertyModel.findById(id);
+    const property = await PropertyModel.findById(id, req.tenant!.id);
     if (!property) {
       return res.status(404).json({ success: false, error: 'Property not found' });
     }
 
     const updatedImages = property.images.filter((img: string) => img !== imageUrl);
-    const updatedProperty = await PropertyModel.update(id, { images: updatedImages });
+    const updatedProperty = await PropertyModel.update(id, req.tenant!.id, { images: updatedImages });
 
     res.json({ success: true, data: updatedProperty });
   } catch (error) {
@@ -180,7 +183,7 @@ export const deleteImage = async (req: Request, res: Response) => {
   }
 };
 
-export const updateImageOrder = async (req: Request, res: Response) => {
+export const updateImageOrder = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { images } = req.body;
@@ -189,7 +192,7 @@ export const updateImageOrder = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: 'Images must be an array' });
     }
 
-    const updatedProperty = await PropertyModel.update(id, { images });
+    const updatedProperty = await PropertyModel.update(id, req.tenant!.id, { images });
     res.json({ success: true, data: updatedProperty });
   } catch (error) {
     res.status(500).json({ success: false, error: 'Failed to update image order' });

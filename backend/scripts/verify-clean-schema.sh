@@ -57,14 +57,15 @@ DECLARE
   test_group_id UUID;
   request_id UUID;
   credit_transaction_id UUID;
+  property_id UUID;
   state_key INTEGER;
   lga_key INTEGER;
   result JSON;
   transfer_result JSONB;
   actual_amount NUMERIC;
 BEGIN
-  INSERT INTO users (email, password, name, role)
-  VALUES ('schema-owner@example.test', 'not-a-real-password', 'Schema Owner', 'owner')
+  INSERT INTO users (id, email, password, name, role)
+  VALUES ('00000000-0000-4000-8000-000000000101', 'schema-owner@example.test', 'not-a-real-password', 'Schema Owner', 'owner')
   RETURNING id INTO owner_id;
 
   SELECT id INTO state_key FROM states ORDER BY id LIMIT 1;
@@ -98,9 +99,28 @@ BEGIN
     RAISE EXCEPTION 'group credit balance mismatch: %', actual_amount;
   END IF;
 
-  INSERT INTO users (email, password, name, role)
-  VALUES ('schema-recipient@example.test', 'not-a-real-password', 'Schema Recipient', 'farmer')
+  INSERT INTO users (id, email, password, name, role)
+  VALUES ('00000000-0000-4000-8000-000000000102', 'schema-recipient@example.test', 'not-a-real-password', 'Schema Recipient', 'farmer')
   RETURNING id INTO recipient_id;
+
+  INSERT INTO users (id, email, password, name, role)
+  VALUES ('00000000-0000-4000-8000-000000000103', 'schema-outsider@example.test', 'not-a-real-password', 'Schema Outsider', 'farmer');
+
+  INSERT INTO properties (
+    owner_id, organization_id, title, description, livestock_type, space_type,
+    size, size_unit, city, lga, price_per_month, available_from, available_to
+  ) VALUES (
+    owner_id, owner_id, 'Tenant A Farm', 'Tenant isolation fixture', 'poultry', 'empty_land',
+    100, 'm2', 'Abuja', 'AMAC', 10000, CURRENT_DATE, CURRENT_DATE + 90
+  ) RETURNING id INTO property_id;
+
+  INSERT INTO bookings (
+    property_id, farmer_id, organization_id, start_date, end_date, total_amount,
+    status, payment_status
+  ) VALUES (
+    property_id, recipient_id, recipient_id, CURRENT_DATE + 1, CURRENT_DATE + 31,
+    10000, 'pending_payment', 'pending'
+  );
 
   INSERT INTO user_wallets (user_id) VALUES (recipient_id) RETURNING id INTO recipient_wallet_id;
   INSERT INTO group_consensus_requests (
@@ -129,6 +149,37 @@ BEGIN
     RAISE EXCEPTION 'group transfer did not execute its consensus request';
   END IF;
 END $$;
+
+GRANT SELECT ON properties, bookings TO authenticated;
+
+SET ROLE authenticated;
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000101', FALSE);
+DO $$ BEGIN
+  IF (SELECT count(*) FROM properties) <> 1 THEN
+    RAISE EXCEPTION 'provider organization cannot read its property';
+  END IF;
+  IF (SELECT count(*) FROM bookings) <> 1 THEN
+    RAISE EXCEPTION 'provider organization cannot read its booking';
+  END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000102', FALSE);
+DO $$ BEGIN
+  IF (SELECT count(*) FROM properties) <> 0 THEN
+    RAISE EXCEPTION 'customer organization leaked provider property';
+  END IF;
+  IF (SELECT count(*) FROM bookings) <> 1 THEN
+    RAISE EXCEPTION 'customer organization cannot read its cross-tenant booking';
+  END IF;
+END $$;
+
+SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000103', FALSE);
+DO $$ BEGIN
+  IF (SELECT count(*) FROM properties) <> 0 OR (SELECT count(*) FROM bookings) <> 0 THEN
+    RAISE EXCEPTION 'unrelated organization can read tenant data';
+  END IF;
+END $$;
+RESET ROLE;
 SQL
 
 echo "clean schema verification passed"

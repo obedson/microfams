@@ -7,6 +7,7 @@ import { BookingCancellationService } from '../services/bookingCancellationServi
 import { PaymentRecoveryService } from '../services/paymentRecoveryService.js';
 import { AvailabilityService } from '../services/availabilityService.js';
 import Joi from 'joi';
+import { TenantRequest } from '../middleware/tenant.js';
 
 const bookingSchema = Joi.object({
   property_id: Joi.string().required(),
@@ -48,7 +49,7 @@ export const getBookedDates = async (req: Request, res: Response) => {
   }
 };
 
-export const createBooking = async (req: Request, res: Response) => {
+export const createBooking = async (req: TenantRequest, res: Response) => {
   try {
     const { error, value } = bookingSchema.validate(req.body);
     if (error) {
@@ -120,6 +121,8 @@ export const createBooking = async (req: Request, res: Response) => {
       end_date: value.end_date,
       total_amount: calculatedAmount,
       farmer_id: (req as any).user.id,
+      organization_id: req.tenant!.id,
+      provider_organization_id: property.organization_id,
       status: 'pending_payment',
       payment_status: 'pending',
       payment_retry_count: 0,
@@ -146,7 +149,7 @@ export const createBooking = async (req: Request, res: Response) => {
   }
 };
 
-export const getMyBookings = async (req: Request, res: Response) => {
+export const getMyBookings = async (req: TenantRequest, res: Response) => {
   try {
     const {
       status,
@@ -170,7 +173,7 @@ export const getMyBookings = async (req: Request, res: Response) => {
       limit: parseInt(limit as string)
     };
 
-    const result = await BookingModel.findByFarmerWithFilters((req as any).user.id, filters);
+    const result = await BookingModel.findByFarmerWithFilters((req as any).user.id, req.tenant!.id, filters);
     
     res.json({ 
       success: true, 
@@ -184,7 +187,7 @@ export const getMyBookings = async (req: Request, res: Response) => {
   }
 };
 
-export const getOwnerBookings = async (req: Request, res: Response) => {
+export const getOwnerBookings = async (req: TenantRequest, res: Response) => {
   try {
     const {
       status,
@@ -208,7 +211,7 @@ export const getOwnerBookings = async (req: Request, res: Response) => {
       limit: parseInt(limit as string)
     };
 
-    const result = await BookingModel.findByOwnerWithFilters((req as any).user.id, filters);
+    const result = await BookingModel.findByOwnerWithFilters((req as any).user.id, req.tenant!.id, filters);
     
     res.json({ 
       success: true, 
@@ -222,10 +225,10 @@ export const getOwnerBookings = async (req: Request, res: Response) => {
   }
 };
 
-export const getBookingById = async (req: Request, res: Response) => {
+export const getBookingById = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const booking = await BookingModel.findByIdWithDetails(id);
+    const booking = await BookingModel.findByIdWithDetails(id, req.tenant!.id);
 
     if (!booking) {
       return res.status(404).json({ success: false, error: 'Booking not found' });
@@ -246,7 +249,7 @@ export const getBookingById = async (req: Request, res: Response) => {
   }
 };
 
-export const updateBookingStatus = async (req: Request, res: Response) => {
+export const updateBookingStatus = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { error, value } = statusUpdateSchema.validate(req.body);
@@ -255,7 +258,7 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
       return res.status(400).json({ success: false, error: error.details[0].message });
     }
 
-    const booking = await BookingModel.findByIdWithDetails(id);
+    const booking = await BookingModel.findByIdWithDetails(id, req.tenant!.id);
     if (!booking) {
       return res.status(404).json({ success: false, error: 'Booking not found' });
     }
@@ -280,7 +283,7 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
       });
     }
 
-    await BookingModel.updateStatus(id, value.status, value.rejection_reason);
+    await BookingModel.updateStatus(id, value.status, value.rejection_reason, undefined, req.tenant!.id);
 
     // Send notification to farmer
     await sendEmail({
@@ -303,9 +306,9 @@ export const updateBookingStatus = async (req: Request, res: Response) => {
   }
 };
 
-export const getBookingStats = async (req: Request, res: Response) => {
+export const getBookingStats = async (req: TenantRequest, res: Response) => {
   try {
-    const stats = await BookingModel.getOwnerStats((req as any).user.id);
+    const stats = await BookingModel.getOwnerStats((req as any).user.id, req.tenant!.id);
     res.json({ success: true, data: stats });
   } catch (error) {
     console.error('Get booking stats error:', error);
@@ -313,11 +316,16 @@ export const getBookingStats = async (req: Request, res: Response) => {
   }
 };
 
-export const cancelBooking = async (req: Request, res: Response) => {
+export const cancelBooking = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { reason } = req.body;
     const userId = (req as any).user.id;
+
+    const scopedBooking = await BookingModel.findByIdWithDetails(id, req.tenant!.id);
+    if (!scopedBooking) {
+      return res.status(404).json({ success: false, error: 'Booking not found' });
+    }
 
     // Use the cancellation service for complete workflow
     const result = await BookingCancellationService.processCancellation({
@@ -344,10 +352,15 @@ export const cancelBooking = async (req: Request, res: Response) => {
   }
 };
 
-export const retryPayment = async (req: Request, res: Response) => {
+export const retryPayment = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req as any).user.id;
+
+    const scopedBooking = await BookingModel.findByIdWithDetails(id, req.tenant!.id);
+    if (!scopedBooking) {
+      return res.status(404).json({ success: false, error: 'Booking not found' });
+    }
     
     // Use the payment recovery service
     const result = await PaymentRecoveryService.processPaymentRetry({
@@ -373,11 +386,11 @@ export const retryPayment = async (req: Request, res: Response) => {
   }
 };
 
-export const getBookingHistory = async (req: Request, res: Response) => {
+export const getBookingHistory = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     
-    const booking = await BookingModel.findByIdWithDetails(id);
+    const booking = await BookingModel.findByIdWithDetails(id, req.tenant!.id);
     if (!booking) {
       return res.status(404).json({ success: false, error: 'Booking not found' });
     }
@@ -404,10 +417,15 @@ export const getBookingHistory = async (req: Request, res: Response) => {
   }
 };
 
-export const getCancellationEligibility = async (req: Request, res: Response) => {
+export const getCancellationEligibility = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req as any).user.id;
+
+    const scopedBooking = await BookingModel.findByIdWithDetails(id, req.tenant!.id);
+    if (!scopedBooking) {
+      return res.status(404).json({ success: false, error: 'Booking not found' });
+    }
 
     const eligibility = await BookingCancellationService.getCancellationEligibility(id, userId);
 
@@ -422,10 +440,15 @@ export const getCancellationEligibility = async (req: Request, res: Response) =>
   }
 };
 
-export const getPaymentRetryStatus = async (req: Request, res: Response) => {
+export const getPaymentRetryStatus = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const userId = (req as any).user.id;
+
+    const scopedBooking = await BookingModel.findByIdWithDetails(id, req.tenant!.id);
+    if (!scopedBooking) {
+      return res.status(404).json({ success: false, error: 'Booking not found' });
+    }
 
     const status = await PaymentRecoveryService.getRetryStatus(id, userId);
 
