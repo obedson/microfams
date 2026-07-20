@@ -40,7 +40,31 @@ CREATE POLICY "Users read own contributions" ON member_contributions FOR SELECT
   USING (member_id IN (
     SELECT id FROM group_members WHERE user_id = auth.uid()
   ));
-CREATE POLICY "Users update own contributions" ON member_contributions FOR UPDATE 
+CREATE POLICY "Users update own contributions" ON member_contributions FOR UPDATE
   USING (member_id IN (
     SELECT id FROM group_members WHERE user_id = auth.uid()
   ));
+
+-- Replace legacy self-referential membership policies with organization-based
+-- policies. The original group_members policy recursively queried itself.
+DROP POLICY IF EXISTS "Public read groups" ON groups;
+DROP POLICY IF EXISTS "Members read own group" ON group_members;
+DROP POLICY IF EXISTS "Members read cycles" ON contribution_cycles;
+DROP POLICY IF EXISTS "Creator create cycles" ON contribution_cycles;
+DROP POLICY IF EXISTS "Users read own contributions" ON member_contributions;
+DROP POLICY IF EXISTS "Users update own contributions" ON member_contributions;
+
+CREATE POLICY "Tenant members read groups" ON groups FOR SELECT
+  USING (has_active_organization_membership(organization_id));
+CREATE POLICY "Tenant members read group memberships" ON group_members FOR SELECT
+  USING (group_id IN (
+    SELECT id FROM groups WHERE has_active_organization_membership(organization_id)
+  ));
+CREATE POLICY "Tenant members read contribution cycles" ON contribution_cycles FOR SELECT
+  USING (has_active_organization_membership(organization_id));
+CREATE POLICY "Tenant managers create contribution cycles" ON contribution_cycles FOR INSERT
+  WITH CHECK (has_active_organization_membership(organization_id));
+CREATE POLICY "Tenant members read contributions" ON member_contributions FOR SELECT
+  USING (has_active_organization_membership(organization_id));
+CREATE POLICY "Tenant members update contributions" ON member_contributions FOR UPDATE
+  USING (has_active_organization_membership(organization_id));

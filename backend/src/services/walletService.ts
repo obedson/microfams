@@ -10,10 +10,10 @@ export class WalletService {
   /**
    * Requirement 7.1, 7.2: Provision User Wallet
    */
-  async provisionUserWallet(userId: string) {
+  async provisionUserWallet(userId: string, organizationId?: string) {
     const { data, error } = await supabase
       .from('user_wallets')
-      .upsert({ user_id: userId }, { onConflict: 'user_id' })
+      .upsert({ user_id: userId, ...(organizationId ? { organization_id: organizationId } : {}) }, { onConflict: 'user_id' })
       .select()
       .single();
 
@@ -76,16 +76,17 @@ export class WalletService {
   /**
    * Requirement 7.4: Get wallet with history
    */
-  async getWalletWithHistory(userId: string, page: number = 1, limit: number = 10) {
-    let { data: wallet, error: walletError } = await supabase
+  async getWalletWithHistory(userId: string, page: number = 1, limit: number = 10, organizationId?: string) {
+    let walletQuery = supabase
       .from('user_wallets')
       .select('*')
-      .eq('user_id', userId)
-      .single();
+      .eq('user_id', userId);
+    if (organizationId) walletQuery = walletQuery.eq('organization_id', organizationId);
+    let { data: wallet, error: walletError } = await walletQuery.single();
 
     if (walletError && walletError.code === 'PGRST116') {
       // Wallet missing (migration scenario), create it
-      wallet = await this.provisionUserWallet(userId);
+      wallet = await this.provisionUserWallet(userId, organizationId);
     } else if (walletError) {
       throw walletError;
     }
@@ -94,6 +95,7 @@ export class WalletService {
       .from('wallet_transactions')
       .select('*', { count: 'exact' })
       .eq('wallet_id', wallet.id)
+      .eq('organization_id', organizationId ?? wallet.organization_id)
       .order('created_at', { ascending: false })
       .range((page - 1) * limit, page * limit - 1);
 
@@ -113,7 +115,15 @@ export class WalletService {
   /**
    * Requirement 4.2: Get group wallet details
    */
-  async getGroupWallet(groupId: string, userId: string) {
+  async getGroupWallet(groupId: string, userId: string, organizationId?: string) {
+    let groupQuery = supabase
+      .from('groups')
+      .select('id, name, group_fund_balance')
+      .eq('id', groupId);
+    if (organizationId) groupQuery = groupQuery.eq('organization_id', organizationId);
+    const { data: group } = await groupQuery.maybeSingle();
+    if (!group) throw new Error('Group not found in the active organization');
+
     // Verify membership
     const { data: membership } = await supabase
       .from('group_members')
@@ -125,12 +135,6 @@ export class WalletService {
     if (!membership || membership.payment_status !== 'paid') {
       throw new Error('User is not a paid member of this group');
     }
-
-    const { data: group } = await supabase
-      .from('groups')
-      .select('id, name, group_fund_balance')
-      .eq('id', groupId)
-      .single();
 
     const { data: nuban } = await supabase
       .from('group_virtual_accounts')
@@ -144,7 +148,7 @@ export class WalletService {
   /**
    * Requirement 6.1-6.9: P2P Transfer
    */
-  async initiateP2PTransfer(senderId: string, recipientId: string, amount: number, ip: string) {
+  async initiateP2PTransfer(senderId: string, recipientId: string, amount: number, ip: string, organizationId?: string) {
     if (amount < 100) {
       throw new Error('Minimum P2P transfer amount is ₦100');
     }
@@ -153,8 +157,14 @@ export class WalletService {
     await this.check24hrP2PLimit(senderId, amount);
 
     // Get wallets
-    const { data: senderWallet } = await supabase.from('user_wallets').select('id').eq('user_id', senderId).single();
-    const { data: recipientWallet } = await supabase.from('user_wallets').select('id, status').eq('user_id', recipientId).single();
+    let senderQuery = supabase.from('user_wallets').select('id').eq('user_id', senderId);
+    let recipientQuery = supabase.from('user_wallets').select('id, status').eq('user_id', recipientId);
+    if (organizationId) {
+      senderQuery = senderQuery.eq('organization_id', organizationId);
+      recipientQuery = recipientQuery.eq('organization_id', organizationId);
+    }
+    const { data: senderWallet } = await senderQuery.single();
+    const { data: recipientWallet } = await recipientQuery.single();
 
     if (!senderWallet || !recipientWallet) throw new Error('Wallet not found');
     if (recipientWallet.status !== 'ACTIVE') throw new Error('Recipient wallet is not active');
@@ -205,16 +215,18 @@ export class WalletService {
     }
   }
 
-  private async check24hrWithdrawalLimit(userId: string, amount: number) {
+  private async check24hrWithdrawalLimit(userId: string, amount: number, organizationId?: string) {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
-    const { data: txs } = await supabase
+    let query = supabase
       .from('wallet_transactions')
       .select('amount')
       .eq('type', 'WITHDRAWAL')
       .eq('direction', 'DEBIT')
       .eq('status', 'SUCCESS')
       .gte('created_at', twentyFourHoursAgo);
+    if (organizationId) query = query.eq('organization_id', organizationId);
+    const { data: txs } = await query;
 
     const total = (txs || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
 
@@ -226,23 +238,25 @@ export class WalletService {
   /**
    * Requirement 5.1-5.6: Individual Withdrawal (Two-Step)
    */
-  async previewWithdrawal(userId: string, accountNumber: string, bankCode: string, amount: number) {
+  async previewWithdrawal(userId: string, accountNumber: string, bankCode: string, amount: number, organizationId?: string) {
     if (amount < 1000) throw new Error('Minimum withdrawal amount is ₦1,000');
 
-    await this.check24hrWithdrawalLimit(userId, amount);
+    await this.check24hrWithdrawalLimit(userId, amount, organizationId);
 
     const { accountName } = await interswitchService.nameEnquiry(accountNumber, bankCode);
 
     const feeKobo = Number(process.env.INTERSWITCH_TRANSFER_FEE) || 5000;
     const feeNaira = feeKobo / 100;
 
-    const { data: wallet } = await supabase.from('user_wallets').select('balance').eq('user_id', userId).single();
+    let walletQuery = supabase.from('user_wallets').select('balance').eq('user_id', userId);
+    if (organizationId) walletQuery = walletQuery.eq('organization_id', organizationId);
+    const { data: wallet } = await walletQuery.single();
     if (!wallet || Number(wallet.balance) < amount + feeNaira) {
       throw new InsufficientFundsError('Insufficient funds for withdrawal and fee');
     }
 
     const previewToken = jwt.sign(
-      { userId, accountNumber, bankCode, amount, fee: feeNaira, accountName },
+      { userId, organizationId, accountNumber, bankCode, amount, fee: feeNaira, accountName },
       process.env.JWT_SECRET || 'secret',
       { expiresIn: '5m' }
     );
@@ -250,11 +264,14 @@ export class WalletService {
     return { accountName, fee: feeNaira, previewToken };
   }
 
-  async confirmWithdrawal(userId: string, previewToken: string, ip: string) {
+  async confirmWithdrawal(userId: string, previewToken: string, ip: string, organizationId?: string) {
     const decoded: any = jwt.verify(previewToken, process.env.JWT_SECRET || 'secret');
     if (decoded.userId !== userId) throw new Error('Invalid preview token');
+    if (organizationId && decoded.organizationId !== organizationId) throw new Error('Preview token belongs to another organization');
 
-    const { data: wallet } = await supabase.from('user_wallets').select('id').eq('user_id', userId).single();
+    let walletQuery = supabase.from('user_wallets').select('id').eq('user_id', userId);
+    if (organizationId) walletQuery = walletQuery.eq('organization_id', organizationId);
+    const { data: wallet } = await walletQuery.single();
     if (!wallet) throw new Error('Wallet not found');
 
     const internalRef = `WD-${randomUUID()}`;
@@ -272,6 +289,7 @@ export class WalletService {
       .from('withdrawal_requests')
       .insert({
         user_id: userId,
+        organization_id: organizationId,
         wallet_id: wallet.id,
         amount: decoded.amount,
         fee_amount: decoded.fee,
@@ -359,7 +377,12 @@ export class WalletService {
   /**
    * Requirement 4.1-4.8: Group Withdrawal (Multi-sig)
    */
-  async initiateGroupWithdrawal(groupId: string, requestedBy: string, amount: number, targetUserId: string, ip: string) {
+  async initiateGroupWithdrawal(groupId: string, requestedBy: string, amount: number, targetUserId: string, ip: string, organizationId?: string) {
+    if (organizationId) {
+      const { data: ownedGroup } = await supabase.from('groups').select('id')
+        .eq('id', groupId).eq('organization_id', organizationId).maybeSingle();
+      if (!ownedGroup) throw new Error('Group not found in the active organization');
+    }
     // Verify requester is a member
     const { data: member } = await supabase
       .from('group_members')
@@ -402,23 +425,25 @@ export class WalletService {
     return request;
   }
 
-  async getGroupWithdrawalRequest(requestId: string) {
-    const { data, error } = await supabase
+  async getGroupWithdrawalRequest(requestId: string, organizationId?: string) {
+    let query = supabase
       .from('group_consensus_requests')
-      .select('*, group_consensus_approvals(voter_id, voted_at)')
-      .eq('id', requestId)
-      .single();
+      .select('*, groups!inner(organization_id), group_consensus_approvals(voter_id, voted_at)')
+      .eq('id', requestId);
+    if (organizationId) query = query.eq('groups.organization_id', organizationId);
+    const { data, error } = await query.single();
 
     if (error) throw error;
     return data;
   }
 
-  async castApprovalVote(requestId: string, voterId: string, ip: string) {
-    const { data: request } = await supabase
+  async castApprovalVote(requestId: string, voterId: string, ip: string, organizationId?: string) {
+    let requestQuery = supabase
       .from('group_consensus_requests')
-      .select('*, groups(member_count, creator_id)')
-      .eq('id', requestId)
-      .single();
+      .select('*, groups!inner(member_count, creator_id, organization_id)')
+      .eq('id', requestId);
+    if (organizationId) requestQuery = requestQuery.eq('groups.organization_id', organizationId);
+    const { data: request } = await requestQuery.single();
 
     if (!request || request.status !== 'PENDING') throw new Error('Request not found or not pending');
 
@@ -497,21 +522,23 @@ export class WalletService {
   /**
    * Requirement 10.1, 10.2: Get transaction details
    */
-  async getTransaction(userId: string, transactionId: string) {
-    const { data: wallet } = await supabase
+  async getTransaction(userId: string, transactionId: string, organizationId?: string) {
+    let walletQuery = supabase
       .from('user_wallets')
       .select('id')
-      .eq('user_id', userId)
-      .single();
+      .eq('user_id', userId);
+    if (organizationId) walletQuery = walletQuery.eq('organization_id', organizationId);
+    const { data: wallet } = await walletQuery.single();
 
     if (!wallet) throw new Error('Wallet not found');
 
-    const { data: transaction, error } = await supabase
+    let transactionQuery = supabase
       .from('wallet_transactions')
       .select('*')
       .eq('id', transactionId)
-      .eq('wallet_id', wallet.id)
-      .single();
+      .eq('wallet_id', wallet.id);
+    if (organizationId) transactionQuery = transactionQuery.eq('organization_id', organizationId);
+    const { data: transaction, error } = await transactionQuery.single();
 
     if (error) throw error;
     return transaction;
@@ -520,13 +547,14 @@ export class WalletService {
   /**
    * Requirement 5.10, 5.11: Manual sync/confirmation for testing/pending
    */
-  async syncWithdrawalStatus(userId: string, requestId: string) {
-    const { data: request } = await supabase
+  async syncWithdrawalStatus(userId: string, requestId: string, organizationId?: string) {
+    let query = supabase
       .from('withdrawal_requests')
       .select('*')
       .eq('id', requestId)
-      .eq('user_id', userId)
-      .single();
+      .eq('user_id', userId);
+    if (organizationId) query = query.eq('organization_id', organizationId);
+    const { data: request } = await query.single();
 
     if (!request) throw new Error('Withdrawal request not found');
     if (request.status !== 'PENDING') return request;

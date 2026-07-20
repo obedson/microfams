@@ -2,20 +2,13 @@ import { Request, Response } from 'express';
 import { supabase } from '../utils/supabase.js';
 import { GroupModel } from '../models/Group.js';
 import Joi from 'joi';
-
-interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-    role: string;
-  };
-}
+import { TenantRequest } from '../middleware/tenant.js';
 
 class GroupAdminController {
   /**
    * Requirement 5.1 - 5.7: Get Admin Dashboard Data
    */
-  async getAdminDashboard(req: AuthRequest, res: Response) {
+  async getAdminDashboard(req: TenantRequest, res: Response) {
     const groupId = req.params.id;
     try {
       // 1. Verify access (Owner or Platform Admin)
@@ -35,7 +28,9 @@ class GroupAdminController {
         .from('groups')
         .select('*, states(name), lgas(name)')
         .eq('id', groupId)
+        .eq('organization_id', req.tenant!.id)
         .single();
+      if (!group) return res.status(404).json({ error: 'Group not found' });
 
       const { count: memberCount } = await supabase
         .from('group_members')
@@ -85,7 +80,7 @@ class GroupAdminController {
   /**
    * Requirement 5.10, 5.11: Update Group
    */
-  async updateGroup(req: AuthRequest, res: Response) {
+  async updateGroup(req: TenantRequest, res: Response) {
     const groupId = req.params.id;
     const schema = Joi.object({
       name: Joi.string(),
@@ -113,7 +108,8 @@ class GroupAdminController {
       const { error: updateError } = await supabase
         .from('groups')
         .update({ ...value, updated_at: new Date().toISOString() })
-        .eq('id', groupId);
+        .eq('id', groupId)
+        .eq('organization_id', req.tenant!.id);
 
       if (updateError) throw updateError;
 
@@ -126,7 +122,7 @@ class GroupAdminController {
   /**
    * Requirement 5.8, 5.9: Cast Member Action Vote
    */
-  async castVote(req: AuthRequest, res: Response) {
+  async castVote(req: TenantRequest, res: Response) {
     const { id: groupId, memberId: targetMemberId } = req.params;
     const { actionType } = req.body;
 
@@ -135,6 +131,9 @@ class GroupAdminController {
     }
 
     try {
+      const { data: ownedGroup } = await supabase.from('groups').select('id')
+        .eq('id', groupId).eq('organization_id', req.tenant!.id).maybeSingle();
+      if (!ownedGroup) return res.status(404).json({ error: 'Group not found' });
       const result = await GroupModel.castMemberActionVote({
         groupId,
         actionType,
@@ -152,12 +151,13 @@ class GroupAdminController {
   /**
    * Requirement 5.6: Get Votes
    */
-  async getVotes(req: AuthRequest, res: Response) {
+  async getVotes(req: TenantRequest, res: Response) {
     try {
       const { data, error } = await supabase
         .from('group_member_action_votes')
-        .select('*, target:users!target_user_id(name), voter:users!voter_id(name)')
-        .eq('group_id', req.params.id);
+        .select('*, groups!inner(organization_id), target:users!target_user_id(name), voter:users!voter_id(name)')
+        .eq('group_id', req.params.id)
+        .eq('groups.organization_id', req.tenant!.id);
 
       if (error) throw error;
       res.json(data);
@@ -169,7 +169,7 @@ class GroupAdminController {
   /**
    * Requirement 6.1 - 6.7: Get Member Dashboard Data
    */
-  async getMemberDashboard(req: AuthRequest, res: Response) {
+  async getMemberDashboard(req: TenantRequest, res: Response) {
     const groupId = req.params.id;
     try {
       // 1. Verify membership (paid member)
@@ -190,7 +190,9 @@ class GroupAdminController {
         .from('groups')
         .select('id, name, description, category, group_fund_balance, created_at')
         .eq('id', groupId)
+        .eq('organization_id', req.tenant!.id)
         .single();
+      if (!group) return res.status(404).json({ error: 'Group not found' });
 
       // 3. Fetch Member Names List
       const { data: members } = await supabase

@@ -1,10 +1,12 @@
 import { Router } from 'express';
 import { groupAdminController } from '../controllers/groupAdminController.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { resolveTenant } from '../middleware/tenant.js';
 
 const router = Router();
 
 router.use(authenticateToken as any);
+router.use(resolveTenant);
 
 router.get('/:id/admin/dashboard', groupAdminController.getAdminDashboard);
 router.put('/:id', groupAdminController.updateGroup);

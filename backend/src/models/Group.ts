@@ -2,7 +2,7 @@ import supabase from '../utils/supabase.js';
 import { verifyPaystackPayment } from '../utils/paystack.js';
 
 export class GroupModel {
-  static async createWithPayment(groupData: any, userId: string, paymentRef: string) {
+  static async createWithPayment(groupData: any, userId: string, organizationId: string, paymentRef: string) {
     const entryFee = Number(groupData.entry_fee);
     if (entryFee < 500 || entryFee > 10000) {
       throw new Error('Entry fee must be between ₦500 and ₦10,000');
@@ -25,6 +25,7 @@ export class GroupModel {
       p_description: groupData.description,
       p_category: groupData.category,
       p_creator_id: userId,
+      p_organization_id: organizationId,
       p_state_id: groupData.state_id,
       p_lga_id: groupData.lga_id,
       p_entry_fee: entryFee,
@@ -60,17 +61,25 @@ export class GroupModel {
     return data;
   }
 
-  static async findById(id: string) {
-    const { data, error } = await supabase
+  static async findById(id: string, organizationId?: string) {
+    let query = supabase
       .from('groups')
       .select('*, creator:users!creator_id(name, email)')
-      .eq('id', id)
-      .single();
+      .eq('id', id);
+    if (organizationId) query = query.eq('organization_id', organizationId);
+    const { data, error } = await query.single();
     if (error) throw error;
     return data;
   }
 
-  static async joinGroup(groupId: string, userId: string, paymentRef: string, amount: number) {
+  static async joinGroup(groupId: string, userId: string, organizationId: string, paymentRef: string, amount: number) {
+    const { data: group } = await supabase
+      .from('groups')
+      .select('id')
+      .eq('id', groupId)
+      .eq('organization_id', organizationId)
+      .maybeSingle();
+    if (!group) throw new Error('Group not found in the active organization');
     // Ensure user doesn't already belong to a group
     const { count: groupCount, error: countError } = await supabase
       .from('group_members')

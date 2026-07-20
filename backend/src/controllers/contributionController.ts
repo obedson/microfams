@@ -1,10 +1,10 @@
 import { Response } from 'express';
-import { AuthRequest } from '../middleware/auth.js';
+import { TenantRequest } from '../middleware/tenant.js';
 import { ContributionModel } from '../models/Contribution.js';
 import { ContributionService } from '../services/contributionService.js';
 import supabase from '../utils/supabase.js';
 
-export const getUserGroupFunds = async (req: AuthRequest, res: Response) => {
+export const getUserGroupFunds = async (req: TenantRequest, res: Response) => {
   try {
     const userId = req.user.id;
     const funds = await ContributionService.getUserGroupFunds(userId);
@@ -14,7 +14,7 @@ export const getUserGroupFunds = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const calculateGroupDiscount = async (req: AuthRequest, res: Response) => {
+export const calculateGroupDiscount = async (req: TenantRequest, res: Response) => {
   try {
     const { groupId } = req.params;
     const { amount } = req.query;
@@ -29,7 +29,7 @@ export const calculateGroupDiscount = async (req: AuthRequest, res: Response) =>
   }
 };
 
-export const processGroupFundPayment = async (req: AuthRequest, res: Response) => {
+export const processGroupFundPayment = async (req: TenantRequest, res: Response) => {
   try {
     const { bookingId, groupId, amount } = req.body;
     
@@ -38,9 +38,18 @@ export const processGroupFundPayment = async (req: AuthRequest, res: Response) =
       .from('groups')
       .select('creator_id, member_count')
       .eq('id', groupId)
+      .eq('organization_id', req.tenant!.id)
       .single();
 
     if (!group) return res.status(404).json({ error: 'Group not found' });
+
+    const { data: booking } = await supabase
+      .from('bookings')
+      .select('id')
+      .eq('id', bookingId)
+      .eq('organization_id', req.tenant!.id)
+      .maybeSingle();
+    if (!booking) return res.status(404).json({ error: 'Booking not found in the active organization' });
 
     // Verify user is group admin OR platform admin
     const isGroupAdmin = group.creator_id === req.user.id;
@@ -80,7 +89,7 @@ export const processGroupFundPayment = async (req: AuthRequest, res: Response) =
   }
 };
 
-export const proposeAdminChange = async (req: AuthRequest, res: Response) => {
+export const proposeAdminChange = async (req: TenantRequest, res: Response) => {
   try {
     const { groupId, proposedAdminId } = req.body;
 
@@ -89,9 +98,21 @@ export const proposeAdminChange = async (req: AuthRequest, res: Response) => {
       .from('groups')
       .select('creator_id, member_count')
       .eq('id', groupId)
+      .eq('organization_id', req.tenant!.id)
       .single();
 
     if (!group) return res.status(404).json({ error: 'Group not found' });
+
+    const { data: proposedAdminMembership } = await supabase
+      .from('group_members')
+      .select('id')
+      .eq('group_id', groupId)
+      .eq('user_id', proposedAdminId)
+      .eq('is_active', true)
+      .maybeSingle();
+    if (!proposedAdminMembership) {
+      return res.status(400).json({ error: 'Proposed admin must be an active member of this group' });
+    }
 
     // Verify user is group admin OR platform admin
     const isGroupAdmin = group.creator_id === req.user.id;
@@ -128,15 +149,16 @@ export const proposeAdminChange = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const voteOnConsensusRequest = async (req: AuthRequest, res: Response) => {
+export const voteOnConsensusRequest = async (req: TenantRequest, res: Response) => {
   try {
     const { requestId } = req.params;
 
     // Check request
     const { data: request, error: fetchError } = await supabase
       .from('group_consensus_requests')
-      .select('*, groups(member_count)')
+      .select('*, groups!inner(member_count, organization_id)')
       .eq('id', requestId)
+      .eq('groups.organization_id', req.tenant!.id)
       .single();
 
     if (fetchError || !request) return res.status(404).json({ error: 'Request not found' });
@@ -156,7 +178,7 @@ export const voteOnConsensusRequest = async (req: AuthRequest, res: Response) =>
     // Cast vote
     const { error: voteError } = await supabase
       .from('group_consensus_approvals')
-      .insert({ request_id: requestId, voter_id: req.user.id });
+      .insert({ approval_request_id: requestId, voter_id: req.user.id });
 
     if (voteError && voteError.code === '23505') {
        return res.status(400).json({ error: 'You have already voted on this request' });
@@ -166,7 +188,7 @@ export const voteOnConsensusRequest = async (req: AuthRequest, res: Response) =>
     const { count: voteCount } = await supabase
       .from('group_consensus_approvals')
       .select('*', { count: 'exact', head: true })
-      .eq('request_id', requestId);
+      .eq('approval_request_id', requestId);
 
     const requiredVotes = Math.ceil((request.groups.member_count as number) * (2 / 3));
 
@@ -199,7 +221,7 @@ export const voteOnConsensusRequest = async (req: AuthRequest, res: Response) =>
   }
 };
 
-export const updateSettings = async (req: AuthRequest, res: Response) => {
+export const updateSettings = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const settings = req.body;
@@ -209,6 +231,7 @@ export const updateSettings = async (req: AuthRequest, res: Response) => {
       .from('groups')
       .select('creator_id')
       .eq('id', id)
+      .eq('organization_id', req.tenant!.id)
       .single();
 
     if (group?.creator_id !== req.user.id) {
@@ -228,6 +251,7 @@ export const updateSettings = async (req: AuthRequest, res: Response) => {
         auto_expel_after: settings.auto_expel_after
       })
       .eq('id', id)
+      .eq('organization_id', req.tenant!.id)
       .select()
       .single();
 
@@ -238,7 +262,7 @@ export const updateSettings = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getSettings = async (req: AuthRequest, res: Response) => {
+export const getSettings = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -247,6 +271,7 @@ export const getSettings = async (req: AuthRequest, res: Response) => {
       .from('groups')
       .select('creator_id')
       .eq('id', id)
+      .eq('organization_id', req.tenant!.id)
       .single();
 
     if (group?.creator_id !== req.user.id) {
@@ -257,6 +282,7 @@ export const getSettings = async (req: AuthRequest, res: Response) => {
       .from('groups')
       .select('contribution_enabled, contribution_amount, payment_day, grace_period_days, late_penalty_amount, late_penalty_type, auto_suspend_after, auto_expel_after')
       .eq('id', id)
+      .eq('organization_id', req.tenant!.id)
       .single();
 
     if (error) throw error;
@@ -266,22 +292,22 @@ export const getSettings = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const createCycle = async (req: AuthRequest, res: Response) => {
+export const createCycle = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { month, year } = req.body;
 
-    const cycle = await ContributionModel.createCycle(id, month, year);
+    const cycle = await ContributionModel.createCycle(id, month, year, req.tenant!.id);
     res.status(201).json(cycle);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const getCurrentCycle = async (req: AuthRequest, res: Response) => {
+export const getCurrentCycle = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const cycle = await ContributionModel.getCurrentCycle(id);
+    const cycle = await ContributionModel.getCurrentCycle(id, req.tenant!.id);
     
     if (!cycle) {
       return res.status(404).json({ error: 'No active cycle found' });
@@ -293,17 +319,17 @@ export const getCurrentCycle = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getCycleDetails = async (req: AuthRequest, res: Response) => {
+export const getCycleDetails = async (req: TenantRequest, res: Response) => {
   try {
     const { cycleId } = req.params;
-    const details = await ContributionModel.getCycleDetails(cycleId);
+    const details = await ContributionModel.getCycleDetails(cycleId, req.tenant!.id);
     res.json(details);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const makePayment = async (req: AuthRequest, res: Response) => {
+export const makePayment = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { payment_reference } = req.body;
@@ -313,65 +339,67 @@ export const makePayment = async (req: AuthRequest, res: Response) => {
       .from('member_contributions')
       .select('*, member:group_members(user_id)')
       .eq('id', id)
+      .eq('organization_id', req.tenant!.id)
       .single();
 
     if (contribution?.member.user_id !== req.user.id) {
       return res.status(403).json({ error: 'Unauthorized' });
     }
 
-    const penalty = await ContributionModel.calculatePenalty(id);
+    const penalty = await ContributionModel.calculatePenalty(id, req.tenant!.id);
     const totalAmount = contribution.expected_amount + penalty;
 
-    const payment = await ContributionModel.recordPayment(id, totalAmount, payment_reference);
+    const payment = await ContributionModel.recordPayment(id, totalAmount, payment_reference, req.tenant!.id);
     res.json(payment);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const getMyHistory = async (req: AuthRequest, res: Response) => {
+export const getMyHistory = async (req: TenantRequest, res: Response) => {
   try {
     // Get user's group memberships
     const { data: memberships } = await supabase
       .from('group_members')
-      .select('id')
-      .eq('user_id', req.user.id);
+      .select('id, groups!inner(organization_id)')
+      .eq('user_id', req.user.id)
+      .eq('groups.organization_id', req.tenant!.id);
 
     if (!memberships || memberships.length === 0) {
       return res.json([]);
     }
 
     const memberIds = memberships.map(m => m.id);
-    const history = await ContributionModel.getMemberHistory(memberIds[0]);
+    const history = await ContributionModel.getMemberHistory(memberIds[0], req.tenant!.id);
     res.json(history);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const suspendMember = async (req: AuthRequest, res: Response) => {
+export const suspendMember = async (req: TenantRequest, res: Response) => {
   try {
     const { memberId } = req.params;
 
-    const member = await ContributionModel.updateMemberStatus(memberId, 'suspended');
+    const member = await ContributionModel.updateMemberStatus(memberId, 'suspended', req.tenant!.id);
     res.json(member);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const expelMember = async (req: AuthRequest, res: Response) => {
+export const expelMember = async (req: TenantRequest, res: Response) => {
   try {
     const { memberId } = req.params;
 
-    const member = await ContributionModel.updateMemberStatus(memberId, 'expelled');
+    const member = await ContributionModel.updateMemberStatus(memberId, 'expelled', req.tenant!.id);
     res.json(member);
   } catch (error: any) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const getContributionById = async (req: AuthRequest, res: Response) => {
+export const getContributionById = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
 
@@ -388,6 +416,7 @@ export const getContributionById = async (req: AuthRequest, res: Response) => {
         )
       `)
       .eq('id', id)
+      .eq('organization_id', req.tenant!.id)
       .single();
 
     if (error) throw error;
@@ -397,10 +426,10 @@ export const getContributionById = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const getPenalty = async (req: AuthRequest, res: Response) => {
+export const getPenalty = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const penalty = await ContributionModel.calculatePenalty(id);
+    const penalty = await ContributionModel.calculatePenalty(id, req.tenant!.id);
     res.json({ penalty });
   } catch (error: any) {
     res.status(500).json({ error: error.message });

@@ -54,7 +54,8 @@ The following targeted order passes against a schema-only clone of the Supabase 
 1. `create_organizations.sql`
 2. `repair_group_wallet_ledger.sql`
 3. `add_domain_tenant_ownership.sql`
-4. `create_feature_flags.sql`
+4. `add_atomic_group_creation.sql`
+5. `create_feature_flags.sql`
 
 The verification also inserts a representative ownerless paid booking locally and proves that it is quarantined without creating a membership for the quarantine organization.
 
