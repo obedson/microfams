@@ -75,6 +75,11 @@ describe('Wallet System Integration Tests', () => {
         single: jest.fn().mockResolvedValue({ data: {}, error: null } as unknown as never)
       };
     }) as any);
+    (supabase.rpc as jest.Mock).mockResolvedValue({
+      data: { approved: true, snapshot_id: 'snapshot-1', rule_version_id: 'rule-1', rule_version: 1 },
+      error: null,
+    } as never);
+
 
     const preview = await walletService.previewWithdrawal(
       userId, '1234567890', '044', amountMinor, '00000000-0000-4000-8000-000000000111'

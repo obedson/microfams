@@ -16,6 +16,7 @@ import {
   ProviderPaymentResult,
   ProviderRefundResult,
 } from './paymentTypes.js';
+import { financialRuleService } from './financialRuleService.js';
 
 type PaymentSourceType = 'booking' | 'marketplace_order' | 'wallet' | 'group_membership' | 'contribution';
 
@@ -112,6 +113,16 @@ export class PaymentService {
     }
     const adapter = this.adapterFactory();
     await this.assertLiveRoutingEnabled(adapter, input.organizationId, input.actorId);
+    await financialRuleService.enforce({
+      organizationId: input.organizationId,
+      actorId: input.actorId,
+      commandType: 'payment.initialize',
+      commandId: input.idempotencyKey,
+      product: 'payments',
+      channel: input.sourceType,
+      amountMinor: input.amountMinor,
+      currency: 'NGN',
+    });
     const { data: payment, error } = await supabase.rpc('create_payment_intent', {
       p_organization_id: input.organizationId,
       p_source_type: input.sourceType,
