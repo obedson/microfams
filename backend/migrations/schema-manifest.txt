@@ -37,6 +37,7 @@ create_financial_ledger.sql
 prepare_wallet_ledger_cutover.sql
 activate_wallet_ledger_cutover.sql
 install_wallet_posting_engine.sql
+create_wallet_fund_reservations.sql
 fix_function_security.sql
 enable_rls_policies.sql
 fix_courses_rls.sql

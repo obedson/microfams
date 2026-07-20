@@ -7,13 +7,17 @@ import { TenantRequest } from '../middleware/tenant.js';
 
 const p2pSchema = Joi.object({
   recipientEmail: Joi.string().email().required(),
-  amount: Joi.number().min(100).required()
+  amountMinor: Joi.number().integer().min(10000).max(Number.MAX_SAFE_INTEGER).required(),
+  currency: Joi.string().valid('NGN').required(),
+  idempotencyKey: Joi.string().guid({ version: 'uuidv4' }).required()
 });
 
 const withdrawSchema = Joi.object({
   accountNumber: Joi.string().required(),
   bankCode: Joi.string().required(),
-  amount: Joi.number().min(1000).required()
+  amountMinor: Joi.number().integer().min(100000).max(Number.MAX_SAFE_INTEGER).required(),
+  currency: Joi.string().valid('NGN').required(),
+  idempotencyKey: Joi.string().guid({ version: 'uuidv4' }).required()
 });
 
 const confirmWithdrawSchema = Joi.object({
@@ -21,7 +25,9 @@ const confirmWithdrawSchema = Joi.object({
 });
 
 const groupWithdrawSchema = Joi.object({
-  amount: Joi.number().min(1).required(),
+  amountMinor: Joi.number().integer().min(1).max(Number.MAX_SAFE_INTEGER).required(),
+  currency: Joi.string().valid('NGN').required(),
+  idempotencyKey: Joi.string().guid({ version: 'uuidv4' }).required(),
   targetUserId: Joi.string().guid({ version: 'uuidv4' }).required()
 });
 
@@ -86,7 +92,8 @@ class WalletController {
       const result = await walletService.initiateP2PTransfer(
         req.user!.id,
         recipient.id,
-        value.amount,
+        value.amountMinor,
+        value.idempotencyKey,
         req.ip || '0.0.0.0',
         req.tenant!.id
       );
@@ -104,7 +111,8 @@ class WalletController {
       req.user!.id,
       value.accountNumber,
       value.bankCode,
-      value.amount,
+      value.amountMinor,
+      value.idempotencyKey,
       req.tenant!.id
     );
     res.json(result);
@@ -134,16 +142,12 @@ class WalletController {
   }
 
   async getWithdrawalStatus(req: TenantRequest, res: Response) {
-    const { data, error } = await supabase
-      .from('withdrawal_requests')
-      .select('*')
-      .eq('id', req.params.id)
-      .eq('user_id', req.user!.id)
-      .eq('organization_id', req.tenant!.id)
-      .single();
-
-    if (error) return res.status(404).json({ error: 'Withdrawal not found' });
-    res.json(data);
+    try {
+      const result = await walletService.getWithdrawalStatus(req.user!.id, req.params.id, req.tenant!.id);
+      res.json(result);
+    } catch {
+      res.status(404).json({ error: 'Withdrawal not found' });
+    }
   }
 
   async getGroupWallet(req: TenantRequest, res: Response) {
@@ -158,7 +162,8 @@ class WalletController {
     const result = await walletService.initiateGroupWithdrawal(
       req.params.id,
       req.user!.id,
-      value.amount,
+      value.amountMinor,
+      value.idempotencyKey,
       value.targetUserId,
       req.ip || '0.0.0.0',
       req.tenant!.id

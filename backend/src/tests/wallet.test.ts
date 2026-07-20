@@ -64,7 +64,7 @@ describe('Wallet System Unit Tests', () => {
 
   describe('WalletService.previewWithdrawal', () => {
     it('should reject amount < 1000', async () => {
-      await expect(walletService.previewWithdrawal('u-1', '1234567890', '044', 500))
+      await expect(walletService.previewWithdrawal('u-1', '1234567890', '044', 50000, 'preview-key'))
         .rejects.toThrow('Minimum withdrawal amount is ₦1,000');
     });
 
@@ -76,18 +76,22 @@ describe('Wallet System Unit Tests', () => {
         accountName: 'John Doe',
         bankCode: '044'
       });
+      jest.spyOn(ledgerService, 'getWalletBalanceSummary').mockResolvedValue({
+        currency: 'NGN', ledgerBalanceMinor: 200000, pendingDebitsMinor: 0,
+        pendingCreditsMinor: 0, availableBalanceMinor: 200000,
+      });
 
       (supabase.from as jest.Mock).mockReturnValue({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        single: jest.fn().mockResolvedValue({ data: { balance: 2000 }, error: null } as unknown as never),
+        single: jest.fn().mockResolvedValue({ data: { id: 'wallet-1' }, error: null } as unknown as never),
         gte: jest.fn().mockResolvedValue({ data: [], error: null } as unknown as never)
       });
 
-      const result = await walletService.previewWithdrawal('u-1', '1234567890', '044', 1000);
+      const result = await walletService.previewWithdrawal('u-1', '1234567890', '044', 100000, 'preview-key');
 
       expect(result.accountName).toBe('John Doe');
-      expect(result.fee).toBe(50);
+      expect(result.feeMinor).toBe(5000);
       expect(result.previewToken).toBeDefined();
     });
   });

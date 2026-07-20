@@ -10,10 +10,10 @@ export const walletApi = {
   lookupP2PRecipient: (email: string) =>
     apiClient.post('/wallet/p2p/lookup', { email }),
     
-  initiateP2P: (recipientEmail: string, amount: number) => 
-    apiClient.post('/wallet/p2p', { recipientEmail, amount }),
+  initiateP2P: (recipientEmail: string, amountMinor: number, idempotencyKey: string) =>
+    apiClient.post('/wallet/p2p', { recipientEmail, amountMinor, currency: 'NGN', idempotencyKey }),
   
-  previewWithdrawal: (data: { accountNumber: string; bankCode: string; amount: number }) => 
+  previewWithdrawal: (data: { accountNumber: string; bankCode: string; amountMinor: number; idempotencyKey: string; currency: 'NGN' }) =>
     apiClient.post('/wallet/withdraw', data),
   
   confirmWithdrawal: (data: { previewToken: string }) => 
@@ -25,7 +25,7 @@ export const walletApi = {
   getGroupWallet: (groupId: string) => 
     apiClient.get(`/wallet/groups/${groupId}`),
   
-  initiateGroupWithdrawal: (groupId: string, data: { amount: number; targetUserId: string }) => 
+  initiateGroupWithdrawal: (groupId: string, data: { amountMinor: number; currency: 'NGN'; idempotencyKey: string; targetUserId: string }) =>
     apiClient.post(`/wallet/groups/${groupId}/withdraw`, data),
   
   castApprovalVote: (requestId: string) => 

@@ -10,6 +10,15 @@ import { logger } from '../utils/logger.js';
  */
 const checkPendingWithdrawals = async () => {
   try {
+    const { data: expiredReservations, error: expiryError } = await supabase.rpc(
+      'expire_wallet_reservations',
+      { p_organization_id: null },
+    );
+    if (expiryError) {
+      logger.error(`Failed to expire wallet reservations: ${expiryError.message}`);
+    } else if (Number(expiredReservations) > 0) {
+      logger.info(`Expired ${expiredReservations} wallet fund reservations`);
+    }
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
     
     const { data: pendingRequests } = await supabase

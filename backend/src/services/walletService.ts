@@ -5,6 +5,28 @@ import { logAudit } from '../utils/audit.js';
 import { sendEmail } from './emailService.js'; // Assuming basic email support
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'node:crypto';
+import { assertMinorUnits, formatNgnMinor, majorDecimalToMinor, minorToMajorDecimal } from '../domains/financial/money.js';
+
+const withdrawalResponse = (request: any) => {
+  const { amount, fee_amount, amount_minor, fee_amount_minor, account_number, ...identity } = request;
+  return {
+    ...identity,
+    ...(account_number ? { maskedAccountNumber: `******${String(account_number).slice(-4)}` } : {}),
+    amountMinor: Number(amount_minor ?? majorDecimalToMinor(amount)),
+    feeMinor: Number(fee_amount_minor ?? majorDecimalToMinor(fee_amount)),
+    currency: 'NGN',
+  };
+};
+
+const previewSigningSecret = (): string => {
+  if (!process.env.JWT_SECRET) throw new Error('Wallet preview signing is not configured');
+  return process.env.JWT_SECRET;
+};
+
+const groupRequestResponse = (request: any) => {
+  const { amount, ...identity } = request;
+  return { ...identity, amountMinor: majorDecimalToMinor(amount), currency: 'NGN' };
+};
 
 export class WalletService {
   /**
@@ -102,9 +124,22 @@ export class WalletService {
 
     if (txError) throw txError;
 
+    const balanceSummary = await ledgerService.getWalletBalanceSummary(wallet.id);
+    const { balance: _legacyBalance, ...walletIdentity } = wallet as any;
+    const minorTransactions = (transactions || []).map((transaction: any) => {
+      const { amount: legacyAmount, amount_minor: storedMinor, ...identity } = transaction;
+      return {
+        ...identity,
+        amountMinor: storedMinor === null || storedMinor === undefined
+          ? majorDecimalToMinor(legacyAmount)
+          : Number(storedMinor),
+        currency: 'NGN',
+      };
+    });
+
     return {
-      wallet,
-      transactions,
+      wallet: { ...walletIdentity, ...balanceSummary },
+      transactions: minorTransactions,
       pagination: {
         page,
         limit,
@@ -143,14 +178,17 @@ export class WalletService {
       .eq('group_id', groupId)
       .maybeSingle();
 
-    return { group, nuban };
+    const balanceSummary = await ledgerService.getGroupWalletBalanceSummary(group.id);
+    const { group_fund_balance: _legacyBalance, ...groupIdentity } = group as any;
+    return { group: { ...groupIdentity, ...balanceSummary }, nuban };
   }
 
   /**
    * Requirement 6.1-6.9: P2P Transfer
    */
-  async initiateP2PTransfer(senderId: string, recipientId: string, amount: number, ip: string, organizationId?: string) {
-    if (amount < 100) {
+  async initiateP2PTransfer(senderId: string, recipientId: string, amountMinor: number, idempotencyKey: string, ip: string, organizationId?: string) {
+    assertMinorUnits(amountMinor);
+    if (amountMinor < 10000) {
       throw new Error('Minimum P2P transfer amount is ₦100');
     }
 
@@ -169,14 +207,14 @@ export class WalletService {
     if (senderWallet.organization_id !== recipientWallet.organization_id) {
       throw new Error('Wallet transfer cannot cross organizations');
     }
-    await this.check24hrP2PLimit(senderWallet.id, amount, senderWallet.organization_id);
+    await this.check24hrP2PLimit(senderWallet.id, amountMinor, senderWallet.organization_id);
 
-    const reference = `P2P-${randomUUID()}`;
+    const reference = `P2P-${idempotencyKey}`;
 
     const result = await ledgerService.atomicP2PTransfer({
       senderWalletId: senderWallet.id,
       recipientWalletId: recipientWallet.id,
-      amount,
+      amountMinor,
       reference
     });
 
@@ -186,12 +224,12 @@ export class WalletService {
       resource_type: 'wallet',
       resource_id: senderWallet.id,
       ip_address: ip,
-      details: { recipientId, amount, reference }
+      details: { recipientId, amountMinor, currency: 'NGN', reference }
     });
 
     // Notify users
-    this.sendWalletNotification(senderId, `You sent ₦${amount.toLocaleString()} to another user.`);
-    this.sendWalletNotification(recipientId, `You received ₦${amount.toLocaleString()} from another user.`);
+    this.sendWalletNotification(senderId, `You sent ${formatNgnMinor(amountMinor)} to another user.`);
+    this.sendWalletNotification(recipientId, `You received ${formatNgnMinor(amountMinor)} from another user.`);
 
     return result;
   }
@@ -199,12 +237,12 @@ export class WalletService {
   /**
    * Requirement 5.4, 6.3: Limit checks
    */
-  private async check24hrP2PLimit(walletId: string, amount: number, organizationId: string) {
+  private async check24hrP2PLimit(walletId: string, amountMinor: number, organizationId: string) {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     const { data: txs } = await supabase
       .from('wallet_transactions')
-      .select('amount')
+      .select('amount, amount_minor')
       .eq('type', 'P2P_TRANSFER')
       .eq('direction', 'DEBIT')
       .eq('status', 'SUCCESS')
@@ -212,19 +250,23 @@ export class WalletService {
       .eq('organization_id', organizationId)
       .gte('created_at', twentyFourHoursAgo);
 
-    const total = (txs || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
+    const total = (txs || []).reduce((sum, tx: any) => sum + (
+      tx.amount_minor === null || tx.amount_minor === undefined
+        ? majorDecimalToMinor(tx.amount)
+        : Number(tx.amount_minor)
+    ), 0);
 
-    if (total + amount > 50000) {
+    if (total + amountMinor > 5000000) {
       throw new Error('24-hour P2P transfer limit of ₦50,000 exceeded');
     }
   }
 
-  private async check24hrWithdrawalLimit(userId: string, amount: number, organizationId?: string) {
+  private async check24hrWithdrawalLimit(userId: string, amountMinor: number, organizationId?: string) {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     let query = supabase
       .from('wallet_transactions')
-      .select('amount')
+      .select('amount, amount_minor')
       .eq('type', 'WITHDRAWAL')
       .eq('direction', 'DEBIT')
       .eq('status', 'SUCCESS')
@@ -232,9 +274,13 @@ export class WalletService {
     if (organizationId) query = query.eq('organization_id', organizationId);
     const { data: txs } = await query;
 
-    const total = (txs || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
+    const total = (txs || []).reduce((sum, tx: any) => sum + (
+      tx.amount_minor === null || tx.amount_minor === undefined
+        ? majorDecimalToMinor(tx.amount)
+        : Number(tx.amount_minor)
+    ), 0);
 
-    if (total + amount > 100000) {
+    if (total + amountMinor > 10000000) {
       throw new Error('24-hour withdrawal limit of ₦100,000 exceeded');
     }
   }
@@ -242,34 +288,47 @@ export class WalletService {
   /**
    * Requirement 5.1-5.6: Individual Withdrawal (Two-Step)
    */
-  async previewWithdrawal(userId: string, accountNumber: string, bankCode: string, amount: number, organizationId?: string) {
-    if (amount < 1000) throw new Error('Minimum withdrawal amount is ₦1,000');
+  async previewWithdrawal(
+    userId: string,
+    accountNumber: string,
+    bankCode: string,
+    amountMinor: number,
+    idempotencyKey: string,
+    organizationId?: string,
+  ) {
+    assertMinorUnits(amountMinor);
+    if (amountMinor < 100000) throw new Error('Minimum withdrawal amount is ₦1,000');
 
-    await this.check24hrWithdrawalLimit(userId, amount, organizationId);
+    await this.check24hrWithdrawalLimit(userId, amountMinor, organizationId);
 
     const { accountName } = await interswitchService.nameEnquiry(accountNumber, bankCode);
 
-    const feeKobo = Number(process.env.INTERSWITCH_TRANSFER_FEE) || 5000;
-    const feeNaira = feeKobo / 100;
+    const feeMinor = Number(process.env.INTERSWITCH_TRANSFER_FEE) || 5000;
+    assertMinorUnits(feeMinor, 'Transfer fee');
 
-    let walletQuery = supabase.from('user_wallets').select('balance').eq('user_id', userId);
+    let walletQuery = supabase.from('user_wallets').select('id').eq('user_id', userId);
     if (organizationId) walletQuery = walletQuery.eq('organization_id', organizationId);
     const { data: wallet } = await walletQuery.single();
-    if (!wallet || Number(wallet.balance) < amount + feeNaira) {
+    if (!wallet) throw new Error('Wallet not found');
+    const summary = await ledgerService.getWalletBalanceSummary(wallet.id);
+    if (summary.availableBalanceMinor < amountMinor + feeMinor) {
       throw new InsufficientFundsError('Insufficient funds for withdrawal and fee');
     }
 
     const previewToken = jwt.sign(
-      { userId, organizationId, accountNumber, bankCode, amount, fee: feeNaira, accountName },
-      process.env.JWT_SECRET || 'secret',
+      {
+        userId, organizationId, accountNumber, bankCode, amountMinor, feeMinor,
+        currency: 'NGN', accountName, idempotencyKey, correlationId: randomUUID(),
+      },
+      previewSigningSecret(),
       { expiresIn: '5m' }
     );
 
-    return { accountName, fee: feeNaira, previewToken };
+    return { accountName, feeMinor, currency: 'NGN', previewToken };
   }
 
   async confirmWithdrawal(userId: string, previewToken: string, ip: string, organizationId?: string) {
-    const decoded: any = jwt.verify(previewToken, process.env.JWT_SECRET || 'secret');
+    const decoded: any = jwt.verify(previewToken, previewSigningSecret());
     if (decoded.userId !== userId) throw new Error('Invalid preview token');
     if (organizationId && decoded.organizationId !== organizationId) throw new Error('Preview token belongs to another organization');
 
@@ -278,42 +337,54 @@ export class WalletService {
     const { data: wallet } = await walletQuery.single();
     if (!wallet) throw new Error('Wallet not found');
 
-    const internalRef = `WD-${randomUUID()}`;
-
-    // Debit wallet
-    await ledgerService.debitWallet({
+    if (decoded.currency !== 'NGN') throw new Error('Unsupported withdrawal currency');
+    assertMinorUnits(decoded.amountMinor);
+    assertMinorUnits(decoded.feeMinor, 'Transfer fee');
+    const internalRef = `WD-${decoded.idempotencyKey}`;
+    const totalMinor = decoded.amountMinor + decoded.feeMinor;
+    const reservation = await ledgerService.reserveWalletFunds({
       walletId: wallet.id,
-      amount: decoded.amount + decoded.fee,
-      type: 'WITHDRAWAL',
-      reference: internalRef
+      amountMinor: totalMinor,
+      sourceRecordId: internalRef,
+      idempotencyKey: decoded.idempotencyKey,
+      correlationId: decoded.correlationId,
+      actorId: userId,
+      expiresAt: new Date(decoded.exp * 1000).toISOString(),
     });
 
     // Create withdrawal request
     const { data: request, error: reqError } = await supabase
       .from('withdrawal_requests')
-      .insert({
+      .upsert({
         user_id: userId,
         organization_id: organizationId,
         wallet_id: wallet.id,
-        amount: decoded.amount,
-        fee_amount: decoded.fee,
-        account_number: decoded.account_number,
-        bank_code: decoded.bank_code,
-        account_name: decoded.account_name,
+        reservation_id: reservation.id,
+        amount: minorToMajorDecimal(decoded.amountMinor),
+        fee_amount: minorToMajorDecimal(decoded.feeMinor),
+        amount_minor: decoded.amountMinor,
+        fee_amount_minor: decoded.feeMinor,
+        account_number: decoded.accountNumber,
+        bank_code: decoded.bankCode,
+        account_name: decoded.accountName,
         internal_ref: internalRef,
         status: 'PENDING'
-      })
+      }, { onConflict: 'reservation_id' })
       .select()
       .single();
 
-    if (reqError) throw reqError;
+    if (reqError) {
+      throw reqError;
+    }
+    const consumed = await ledgerService.consumeWalletReservation(reservation.id, userId);
+    if (consumed.state !== 'consumed') throw new Error('Withdrawal reservation expired before submission');
 
     // Initiate Interswitch transfer
     try {
       const result = await interswitchService.singleTransfer({
-        accountNumber: decoded.account_number,
-        bankCode: decoded.bank_code,
-        amount: decoded.amount * 100, // to kobo
+        accountNumber: decoded.accountNumber,
+        bankCode: decoded.bankCode,
+        amount: decoded.amountMinor,
         reference: internalRef,
         narration: `Microfams Withdrawal ${internalRef}`
       });
@@ -337,10 +408,10 @@ export class WalletService {
       resource_type: 'withdrawal_request',
       resource_id: request.id,
       ip_address: ip,
-      details: { amount: decoded.amount, internalRef }
+      details: { amountMinor: decoded.amountMinor, feeMinor: decoded.feeMinor, currency: 'NGN', internalRef }
     });
 
-    return request;
+    return withdrawalResponse(request);
   }
 
   async handleWithdrawalStatusUpdate(internalRef: string, status: 'SUCCESS' | 'FAILED') {
@@ -358,30 +429,36 @@ export class WalletService {
         .update({ status: 'SUCCESS', updated_at: new Date().toISOString() })
         .eq('id', request.id);
 
-      this.sendWalletNotification(request.user_id, `Withdrawal of ₦${request.amount.toLocaleString()} was successful.`);
+      const amountMinor = Number(request.amount_minor ?? majorDecimalToMinor(request.amount));
+      this.sendWalletNotification(request.user_id, `Withdrawal of ${formatNgnMinor(amountMinor)} was successful.`);
     } else {
-      // REVERSAL
-      await ledgerService.creditWallet({
-        walletId: request.wallet_id,
-        amount: Number(request.amount) + Number(request.fee_amount),
-        type: 'WITHDRAWAL',
-        reference: `REV-${internalRef}`,
-        metadata: { original_ref: internalRef, reason: 'Transfer failed' }
-      });
+      if (request.reservation_id) {
+        await ledgerService.restoreWalletReservation(request.reservation_id, request.user_id, `REV-${internalRef}`);
+      } else {
+        await ledgerService.creditWallet({
+          walletId: request.wallet_id,
+          amount: Number(request.amount) + Number(request.fee_amount),
+          type: 'WITHDRAWAL',
+          reference: `REV-${internalRef}`,
+          metadata: { original_ref: internalRef, reason: 'Transfer failed' }
+        });
+      }
 
       await supabase
         .from('withdrawal_requests')
         .update({ status: 'FAILED', updated_at: new Date().toISOString() })
         .eq('id', request.id);
 
-      this.sendWalletNotification(request.user_id, `Withdrawal of ₦${request.amount.toLocaleString()} failed and was reversed to your wallet.`);
+      const amountMinor = Number(request.amount_minor ?? majorDecimalToMinor(request.amount));
+      this.sendWalletNotification(request.user_id, `Withdrawal of ${formatNgnMinor(amountMinor)} failed and was restored to your wallet.`);
     }
   }
 
   /**
    * Requirement 4.1-4.8: Group Withdrawal (Multi-sig)
    */
-  async initiateGroupWithdrawal(groupId: string, requestedBy: string, amount: number, targetUserId: string, ip: string, organizationId?: string) {
+  async initiateGroupWithdrawal(groupId: string, requestedBy: string, amountMinor: number, idempotencyKey: string, targetUserId: string, ip: string, organizationId?: string) {
+    assertMinorUnits(amountMinor);
     if (organizationId) {
       const { data: ownedGroup } = await supabase.from('groups').select('id')
         .eq('id', groupId).eq('organization_id', organizationId).maybeSingle();
@@ -399,13 +476,14 @@ export class WalletService {
 
     const { data: request, error } = await supabase
       .from('group_consensus_requests')
-      .insert({
+      .upsert({
         group_id: groupId,
         requested_by: requestedBy,
         target_user_id: targetUserId,
-        amount,
+        amount: minorToMajorDecimal(amountMinor),
+        idempotency_key: idempotencyKey,
         status: 'PENDING'
-      })
+      }, { onConflict: 'group_id,requested_by,idempotency_key' })
       .select()
       .single();
 
@@ -417,16 +495,16 @@ export class WalletService {
       resource_type: 'group_consensus_request',
       resource_id: request.id,
       ip_address: ip,
-      details: { groupId, amount, targetUserId }
+      details: { groupId, amountMinor, currency: 'NGN', idempotencyKey, targetUserId }
     });
 
     // Notify Group Admin
     const { data: group } = await supabase.from('groups').select('creator_id, name').eq('id', groupId).single();
     if (group) {
-      this.sendWalletNotification(group.creator_id, `A withdrawal request for ₦${amount.toLocaleString()} was initiated in group ${group.name}.`);
+      this.sendWalletNotification(group.creator_id, `A withdrawal request for ${formatNgnMinor(amountMinor)} was initiated in group ${group.name}.`);
     }
 
-    return request;
+    return groupRequestResponse(request);
   }
 
   async getGroupWithdrawalRequest(requestId: string, organizationId?: string) {
@@ -438,7 +516,7 @@ export class WalletService {
     const { data, error } = await query.single();
 
     if (error) throw error;
-    return data;
+    return groupRequestResponse(data);
   }
 
   async castApprovalVote(requestId: string, voterId: string, ip: string, organizationId?: string) {
@@ -502,7 +580,7 @@ export class WalletService {
       await ledgerService.atomicGroupTransfer({
         groupId: request.group_id,
         recipientWalletId: targetWallet.id,
-        amount: request.amount,
+        amountMinor: majorDecimalToMinor(request.amount),
         reference: `GWD-${requestId}`,
         approvalRequestId: requestId
       });
@@ -516,7 +594,7 @@ export class WalletService {
         details: { approvalCount, threshold }
       });
 
-      this.sendWalletNotification(request.target_user_id, `₦${request.amount.toLocaleString()} has been transferred to your wallet from your group fund.`);
+      this.sendWalletNotification(request.target_user_id, `${formatNgnMinor(majorDecimalToMinor(request.amount))} has been transferred to your wallet from your group fund.`);
 
       return { approved: true, status: 'EXECUTED' };
     }
@@ -546,7 +624,12 @@ export class WalletService {
     const { data: transaction, error } = await transactionQuery.single();
 
     if (error) throw error;
-    return transaction;
+    const { amount, amount_minor, ...identity } = transaction;
+    return {
+      ...identity,
+      amountMinor: Number(amount_minor ?? majorDecimalToMinor(amount)),
+      currency: 'NGN',
+    };
   }
 
   /**
@@ -562,7 +645,7 @@ export class WalletService {
     const { data: request } = await query.single();
 
     if (!request) throw new Error('Withdrawal request not found');
-    if (request.status !== 'PENDING') return request;
+    if (request.status !== 'PENDING') return withdrawalResponse(request);
 
     try {
       const statusResult = await interswitchService.queryTransactionStatus(request.internal_ref);
@@ -575,13 +658,25 @@ export class WalletService {
           .select('*')
           .eq('id', requestId)
           .single();
-        return updated;
+        return withdrawalResponse(updated);
       }
     } catch (error: any) {
       console.error(`Sync failed for withdrawal ${request.internal_ref}:`, error.message);
     }
 
-    return request;
+    return withdrawalResponse(request);
+  }
+
+  async getWithdrawalStatus(userId: string, requestId: string, organizationId: string) {
+    const { data, error } = await supabase
+      .from('withdrawal_requests')
+      .select('*')
+      .eq('id', requestId)
+      .eq('user_id', userId)
+      .eq('organization_id', organizationId)
+      .single();
+    if (error || !data) throw new Error('Withdrawal not found');
+    return withdrawalResponse(data);
   }
 
   /**
@@ -686,11 +781,12 @@ export class WalletService {
       return;
     }
 
-    const amountNaira = Number(amount) / 100;
+    const amountMinor = Number(amount);
+    assertMinorUnits(amountMinor, 'Webhook amount');
 
-    const { error: creditError } = await supabase.rpc('atomic_group_credit', {
+    const { error: creditError } = await supabase.rpc('atomic_group_credit_minor', {
       p_group_id: groupAccount.group_id,
-      p_amount: amountNaira,
+      p_amount_minor: String(amountMinor),
       p_reference: transactionReference
     });
 
@@ -699,7 +795,7 @@ export class WalletService {
     // Notify Admin
     const { data: group } = await supabase.from('groups').select('creator_id, name').eq('id', groupAccount.group_id).single();
     if (group) {
-      this.sendWalletNotification(group.creator_id, `Group fund ${group.name} was credited with ₦${amountNaira.toLocaleString()}.`);
+      this.sendWalletNotification(group.creator_id, `Group fund ${group.name} was credited with ${formatNgnMinor(amountMinor)}.`);
     }
   }
 

@@ -33,13 +33,16 @@ describe('Wallet System Integration Tests', () => {
     process.env.JWT_SECRET = 'test-secret';
     const userId = 'user-1';
     const walletId = 'wallet-1';
-    const amount = 5000;
-    const fee = 50;
+    const amountMinor = 500000;
 
     // 1. Preview
     jest.spyOn(interswitchService, 'nameEnquiry').mockResolvedValue({
       accountName: 'John Doe',
       bankCode: '044'
+    });
+    jest.spyOn(ledgerService, 'getWalletBalanceSummary').mockResolvedValue({
+      currency: 'NGN', ledgerBalanceMinor: 1000000, pendingDebitsMinor: 0,
+      pendingCreditsMinor: 0, availableBalanceMinor: 1000000,
     });
     
     (supabase.from as jest.Mock).mockImplementation(((table: string) => {
@@ -64,11 +67,20 @@ describe('Wallet System Integration Tests', () => {
       };
     }) as any);
 
-    const preview = await walletService.previewWithdrawal(userId, '1234567890', '044', amount);
+    const preview = await walletService.previewWithdrawal(
+      userId, '1234567890', '044', amountMinor, '00000000-0000-4000-8000-000000000111'
+    );
     expect(preview.previewToken).toBeDefined();
 
     // 2. Confirm
-    jest.spyOn(ledgerService, 'debitWallet').mockResolvedValue({ id: 'tx-debit' } as unknown as never);
+    jest.spyOn(ledgerService, 'reserveWalletFunds').mockResolvedValue({
+      id: 'reservation-1', organization_id: userId, wallet_id: walletId,
+      amount_minor: 505000, state: 'active', expires_at: new Date(Date.now() + 300000).toISOString(),
+    });
+    jest.spyOn(ledgerService, 'consumeWalletReservation').mockResolvedValue({
+      id: 'reservation-1', organization_id: userId, wallet_id: walletId,
+      amount_minor: 505000, state: 'consumed', expires_at: new Date(Date.now() + 300000).toISOString(),
+    });
     jest.spyOn(interswitchService, 'singleTransfer').mockResolvedValue({ transferRef: 'is-ref-1', status: 'PENDING' } as unknown as never);
     
     (supabase.from as jest.Mock).mockImplementation(((table: string) => {
@@ -81,9 +93,11 @@ describe('Wallet System Integration Tests', () => {
       }
       if (table === 'withdrawal_requests') {
         return {
-          insert: jest.fn().mockReturnValue({
+          upsert: jest.fn().mockReturnValue({
             select: jest.fn().mockReturnValue({
-              single: jest.fn().mockResolvedValue({ data: { id: 'wr-1', internal_ref: 'WD-ref' }, error: null } as unknown as never)
+              single: jest.fn().mockResolvedValue({ data: {
+                id: 'wr-1', internal_ref: 'WD-ref', amount_minor: amountMinor, fee_amount_minor: 5000,
+              }, error: null } as unknown as never)
             })
           }),
           update: jest.fn().mockReturnThis(),
@@ -109,7 +123,7 @@ describe('Wallet System Integration Tests', () => {
           select: jest.fn().mockReturnThis(),
           eq: jest.fn().mockReturnThis(),
           single: jest.fn().mockResolvedValue({ 
-            data: { id: 'wr-1', user_id: userId, wallet_id: walletId, amount: 5000, fee_amount: 50, status: 'PENDING' }, 
+            data: { id: 'wr-1', user_id: userId, wallet_id: walletId, amount_minor: amountMinor, fee_amount_minor: 5000, status: 'PENDING' },
             error: null 
           } as unknown as never),
           update: jest.fn().mockReturnThis()

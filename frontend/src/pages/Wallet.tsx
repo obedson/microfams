@@ -5,14 +5,16 @@ import { Wallet, Send, ArrowDownCircle, RefreshCw, Clock, ShieldAlert } from 'lu
 import toast from 'react-hot-toast';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
+import { formatNgnMinor, parseNgnMinor } from '../utils/walletMoney';
 
 export default function WalletPage() {
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const navigate = useNavigate();
-  const [p2pData, setP2pData] = useState({ recipientEmail: '', amount: 0 });
+  const [p2pData, setP2pData] = useState({ recipientEmail: '', amount: '' });
+  const [p2pCommandKey, setP2pCommandKey] = useState('');
   const [recipientInfo, setRecipientInfo] = useState<{name: string, nin_verified: boolean} | null>(null);
-  const [withdrawData, setWithdrawData] = useState({ accountNumber: '', bankCode: '044', amount: 0 });
+  const [withdrawData, setWithdrawData] = useState({ accountNumber: '', bankCode: '044', amount: '' });
   const [preview, setPreview] = useState<any>(null);
 
   const { data: walletData, isLoading } = useQuery({
@@ -32,11 +34,16 @@ export default function WalletPage() {
   });
 
   const p2pMutation = useMutation({
-    mutationFn: (data: typeof p2pData) => walletApi.initiateP2P(data.recipientEmail, data.amount),
+    mutationFn: (data: typeof p2pData) => walletApi.initiateP2P(
+      data.recipientEmail,
+      parseNgnMinor(data.amount),
+      p2pCommandKey,
+    ),
     onSuccess: () => {
       toast.success('P2P Transfer Successful');
       queryClient.invalidateQueries({ queryKey: ['wallet'] });
-      setP2pData({ recipientEmail: '', amount: 0 });
+      setP2pData({ recipientEmail: '', amount: '' });
+      setP2pCommandKey('');
       setRecipientInfo(null);
     },
     onError: (err: any) => {
@@ -52,9 +59,12 @@ export default function WalletPage() {
     if (!p2pData.recipientEmail) {
       return toast.error('Please enter a recipient email');
     }
-    if (p2pData.amount < 100) {
-      return toast.error('Minimum transfer amount is ₦100');
+    try {
+      if (parseNgnMinor(p2pData.amount) < 10000) return toast.error('Minimum transfer amount is ₦100');
+    } catch (error: any) {
+      return toast.error(error.message);
     }
+    setP2pCommandKey(crypto.randomUUID());
     lookupMutation.mutate(p2pData.recipientEmail);
   };
 
@@ -118,7 +128,8 @@ export default function WalletPage() {
               <Wallet size={24} />
               <span className="font-medium">Total Balance</span>
             </div>
-            <h2 className="text-4xl font-bold">₦{Number(wallet?.balance || 0).toLocaleString()}</h2>
+            <h2 className="text-4xl font-bold">{formatNgnMinor(Number(wallet?.availableBalanceMinor || 0))}</h2>
+            <p className="mt-2 text-green-100 text-xs">Ledger: {formatNgnMinor(Number(wallet?.ledgerBalanceMinor || 0))}</p>
             <p className="mt-2 text-green-100 text-sm">Status: {wallet?.status}</p>
           </div>
 
@@ -135,14 +146,22 @@ export default function WalletPage() {
                   type="email"
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                   value={p2pData.recipientEmail}
-                  onChange={e => setP2pData({...p2pData, recipientEmail: e.target.value})}
+                  onChange={e => {
+                    setP2pData({...p2pData, recipientEmail: e.target.value});
+                    setRecipientInfo(null);
+                    setP2pCommandKey('');
+                  }}
                 />
                 <input 
                   type="number" 
                   placeholder="Amount (Min ₦100)" 
                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
-                  value={p2pData.amount || ''}
-                  onChange={e => setP2pData({...p2pData, amount: Number(e.target.value)})}
+                  value={p2pData.amount}
+                  onChange={e => {
+                    setP2pData({...p2pData, amount: e.target.value});
+                    setRecipientInfo(null);
+                    setP2pCommandKey('');
+                  }}
                 />
                 <button 
                   className="w-full bg-blue-600 text-white py-2.5 rounded-lg font-medium hover:bg-blue-700 transition disabled:opacity-70"
@@ -166,7 +185,7 @@ export default function WalletPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-500">Amount:</span>
-                    <span className="font-bold text-lg">₦{p2pData.amount.toLocaleString()}</span>
+                    <span className="font-bold text-lg">{formatNgnMinor(parseNgnMinor(p2pData.amount))}</span>
                   </div>
                 </div>
                 
@@ -217,12 +236,26 @@ export default function WalletPage() {
                   type="number" 
                   placeholder="Amount (min ₦1,000)" 
                   className="w-full p-2 border rounded"
-                  value={withdrawData.amount || ''}
-                  onChange={e => setWithdrawData({...withdrawData, amount: Number(e.target.value)})}
+                  value={withdrawData.amount}
+                  onChange={e => setWithdrawData({...withdrawData, amount: e.target.value})}
                 />
                 <button 
                   className="w-full bg-orange-600 text-white py-2 rounded font-medium"
-                  onClick={() => previewMutation.mutate(withdrawData)}
+                  onClick={() => {
+                    try {
+                      const amountMinor = parseNgnMinor(withdrawData.amount);
+                      if (amountMinor < 100000) return toast.error('Minimum withdrawal amount is ₦1,000');
+                      previewMutation.mutate({
+                        accountNumber: withdrawData.accountNumber,
+                        bankCode: withdrawData.bankCode,
+                        amountMinor,
+                        currency: 'NGN',
+                        idempotencyKey: crypto.randomUUID(),
+                      });
+                    } catch (error: any) {
+                      toast.error(error.message);
+                    }
+                  }}
                   disabled={previewMutation.isPending}
                 >
                   {previewMutation.isPending ? 'Checking...' : 'Preview Withdrawal'}
@@ -236,7 +269,7 @@ export default function WalletPage() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-500 uppercase">Transfer Fee</p>
-                  <p className="font-bold text-gray-800">₦{preview.fee}</p>
+                  <p className="font-bold text-gray-800">{formatNgnMinor(preview.feeMinor)}</p>
                 </div>
                 <div className="flex gap-2">
                   <button 
@@ -300,7 +333,7 @@ export default function WalletPage() {
                     <p className={`text-lg font-bold ${
                       tx.direction === 'CREDIT' ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {tx.direction === 'CREDIT' ? '+' : '-'}₦{Number(tx.amount).toLocaleString()}
+                      {tx.direction === 'CREDIT' ? '+' : '-'}{formatNgnMinor(Number(tx.amountMinor))}
                     </p>
                     <p className={`text-xs px-2 py-0.5 rounded-full inline-block ${
                       tx.status === 'SUCCESS' ? 'bg-green-100 text-green-700' : 
