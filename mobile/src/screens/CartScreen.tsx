@@ -36,7 +36,7 @@ export default function CartScreen({ navigation }: any) {
         renderItem={({ item }) => (
           <View style={styles.item}>
             <Image
-              source={{ uri: item.image_url || 'https://via.placeholder.com/80' }}
+              source={{ uri: item.images?.[0] || 'https://via.placeholder.com/80' }}
               style={styles.image}
             />
             <View style={styles.details}>

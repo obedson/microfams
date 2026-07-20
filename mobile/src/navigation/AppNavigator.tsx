@@ -28,9 +28,11 @@ import GroupsScreen from '../screens/GroupsScreen';
 import GroupDetailScreen from '../screens/GroupDetailScreen';
 import ContributionDashboardScreen from '../screens/ContributionDashboardScreen';
 import MakeContributionScreen from '../screens/MakeContributionScreen';
+import AddProductScreen from '../screens/AddProductScreen';
+import { MainTabParamList, RootStackParamList } from './types';
 
-const Stack = createNativeStackNavigator();
-const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 function MainTabs() {
   return (
@@ -88,6 +90,7 @@ export default function AppNavigator() {
         <Stack.Screen name="Courses" component={CoursesScreen} />
         <Stack.Screen name="CourseDetail" component={CourseDetailScreen} />
         <Stack.Screen name="ProductDetail" component={ProductDetailScreen} />
+        <Stack.Screen name="AddProduct" component={AddProductScreen} options={{ title: 'Product' }} />
         <Stack.Screen name="Cart" component={CartScreen} />
         <Stack.Screen name="Checkout" component={CheckoutScreen} />
         <Stack.Screen name="FarmRecords" component={FarmRecordsScreen} />

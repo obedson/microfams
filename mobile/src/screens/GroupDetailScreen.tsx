@@ -1,14 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { useRoute } from '@react-navigation/native';
-import axios from 'axios';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import axios, { AxiosError } from 'axios';
 import { API_URL } from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { RootStackParamList } from '../navigation/types';
+
+interface Group {
+  id: string;
+  name: string;
+  category: string;
+  description: string;
+  state_name: string;
+  lga_name: string;
+  member_count: number;
+  entry_fee: number;
+}
+
+interface ApiError {
+  error?: string;
+}
 
 export default function GroupDetailScreen() {
-  const [group, setGroup] = useState(null);
+  const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(true);
-  const route = useRoute();
+  const route = useRoute<RouteProp<RootStackParamList, 'GroupDetail'>>();
   const { token } = useAuthStore();
   const { id } = route.params;
 
@@ -19,7 +35,7 @@ export default function GroupDetailScreen() {
   const fetchGroup = async () => {
     try {
       const { data } = await axios.get(`${API_URL}/groups/${id}`);
-      setGroup(data);
+      setGroup(data.data || data);
     } catch (error) {
       Alert.alert('Error', 'Failed to load group');
     } finally {
@@ -36,7 +52,10 @@ export default function GroupDetailScreen() {
       );
       Alert.alert('Success', 'Payment initiated. Complete payment to join.');
     } catch (error) {
-      Alert.alert('Error', error.response?.data?.error || 'Failed to join group');
+      const message = error instanceof AxiosError
+        ? (error.response?.data as ApiError | undefined)?.error
+        : undefined;
+      Alert.alert('Error', message || 'Failed to join group');
     }
   };
 

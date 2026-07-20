@@ -1,15 +1,30 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { RouteProp, useRoute } from '@react-navigation/native';
+import { ListRenderItem } from 'react-native';
 import axios from 'axios';
 import { API_URL } from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { RootStackParamList } from '../navigation/types';
+
+interface ContributionCycle {
+  cycle_year: number;
+  cycle_month: number;
+  due_date: string;
+}
+
+interface Contribution {
+  id: string;
+  user_name: string;
+  amount_due: number;
+  status: string;
+}
 
 export default function ContributionDashboardScreen() {
-  const [cycle, setCycle] = useState(null);
-  const [contributions, setContributions] = useState([]);
+  const [cycle, setCycle] = useState<ContributionCycle | null>(null);
+  const [contributions, setContributions] = useState<Contribution[]>([]);
   const [loading, setLoading] = useState(true);
-  const route = useRoute();
+  const route = useRoute<RouteProp<RootStackParamList, 'ContributionDashboard'>>();
   const { token } = useAuthStore();
   const { groupId } = route.params;
 
@@ -32,7 +47,7 @@ export default function ContributionDashboardScreen() {
     }
   };
 
-  const renderContribution = ({ item }) => (
+  const renderContribution: ListRenderItem<Contribution> = ({ item }) => (
     <View style={styles.card}>
       <Text style={styles.name}>{item.user_name}</Text>
       <View style={styles.row}>

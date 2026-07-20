@@ -1,12 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { ListRenderItem } from 'react-native';
 import apiClient from '../api/client';
+import { RootStackParamList } from '../navigation/types';
+
+interface GroupSummary {
+  id: string;
+  name: string;
+  description: string;
+  member_count: number;
+  entry_fee: number;
+}
 
 export default function GroupsScreen() {
-  const [groups, setGroups] = useState([]);
+  const [groups, setGroups] = useState<GroupSummary[]>([]);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   useEffect(() => {
     fetchGroups();
@@ -15,7 +26,7 @@ export default function GroupsScreen() {
   const fetchGroups = async () => {
     try {
       const { data } = await apiClient.get('/groups/search');
-      setGroups(data);
+      setGroups(data.data || data);
     } catch (error) {
       console.error('Error fetching groups:', error);
     } finally {
@@ -23,7 +34,7 @@ export default function GroupsScreen() {
     }
   };
 
-  const renderGroup = ({ item }) => (
+  const renderGroup: ListRenderItem<GroupSummary> = ({ item }) => (
     <TouchableOpacity
       style={styles.card}
       onPress={() => navigation.navigate('GroupDetail', { id: item.id })}
