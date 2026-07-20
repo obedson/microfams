@@ -53,7 +53,8 @@ BEGIN
     SELECT 1 FROM unnest(ARRAY[
       'users','properties','bookings','groups','group_members','courses','user_progress',
       'marketplace_products','orders','user_wallets','wallet_transactions','organizations',
-      'feature_flags','financial_accounts','journal_entries','journal_lines','wallet_ledger_migration_runs'
+      'feature_flags','financial_accounts','journal_entries','journal_lines',
+      'wallet_ledger_migration_runs','wallet_ledger_cutovers','wallet_ledger_migration_items'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -236,5 +237,8 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-wallet-ledger-cutover-readiness.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-wallet-ledger-cutover-activation.sql"
 
 echo "clean schema verification passed"
