@@ -1,3 +1,5 @@
+import { getTenantHeaders } from '../api/tenantHeaders';
+
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
 interface Product {
@@ -25,10 +27,7 @@ interface BulkDiscountResult {
 class ProductAPI {
   private getAuthHeaders() {
     const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
+    return getTenantHeaders(token, true);
   }
 
   async getProducts(params?: { category?: string; location?: string }): Promise<Product[]> {

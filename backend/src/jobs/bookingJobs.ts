@@ -4,6 +4,7 @@ import { sendEmail } from '../services/emailService.js';
 
 interface ExpiredBooking {
   id: string;
+  organization_id: string;
   farmer_id: string;
   property_id: string;
   farmer: { email: string; name: string } | null;
@@ -21,7 +22,7 @@ export const startBookingJobs = () => {
       const { data: expiredBookings, error } = await supabase
         .from('bookings')
         .select(`
-          id, 
+          id, organization_id,
           farmer_id,
           property_id,
           farmer:users!farmer_id(email, name),
@@ -34,15 +35,17 @@ export const startBookingJobs = () => {
       if (error) throw error;
       if (!expiredBookings?.length) return;
 
-      const ids = expiredBookings.map(b => b.id);
-      
-      await supabase
-        .from('bookings')
-        .update({ 
+      const organizations = new Map<string, string[]>();
+      for (const booking of expiredBookings) {
+        organizations.set(booking.organization_id, [...(organizations.get(booking.organization_id) || []), booking.id]);
+      }
+      for (const [organizationId, ids] of organizations) {
+        const { error: updateError } = await supabase.from('bookings').update({
           status: 'cancelled',
-          rejection_reason: 'Booking expired - no response from owner within 48 hours'
-        })
-        .in('id', ids);
+          rejection_reason: 'Booking expired - no response from owner within 48 hours',
+        }).eq('organization_id', organizationId).in('id', ids);
+        if (updateError) throw updateError;
+      }
 
       // Notify farmers
       for (const booking of expiredBookings) {
@@ -55,7 +58,7 @@ export const startBookingJobs = () => {
         }
       }
       
-      logger.info(`Expired ${ids.length} bookings`);
+      logger.info(`Expired ${expiredBookings.length} bookings across ${organizations.size} organizations`);
     } catch (error) {
       logger.error('Error expiring bookings', { error });
     }

@@ -46,7 +46,9 @@ describe('Platform Integrations Property Tests', () => {
       if (table === 'courses') {
         return {
           select: jest.fn().mockReturnThis(),
+          or: jest.fn().mockReturnThis(),
           in: jest.fn().mockReturnThis(),
+          order: jest.fn().mockReturnThis(),
           limit: jest.fn().mockResolvedValue({ data: mockCourses, error: null })
         };
       }

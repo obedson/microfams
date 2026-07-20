@@ -40,6 +40,7 @@ export const useAuthStore = create<AuthState>()(
         localStorage.removeItem('token');
         localStorage.removeItem('refreshToken');
         localStorage.removeItem('user');
+        localStorage.removeItem('organization-storage');
         set({ user: null, token: null, refreshToken: null, isAuthenticated: false });
       },
       updateUser: (data) => {

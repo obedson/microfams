@@ -1,3 +1,5 @@
+import { getTenantHeaders } from '../api/tenantHeaders';
+
 const API_BASE = process.env.REACT_APP_API_URL || 'http://localhost:3000/api';
 
 interface Course {
@@ -24,14 +26,11 @@ interface UserProgress {
 class CourseAPI {
   private getAuthHeaders() {
     const token = localStorage.getItem('token');
-    return {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    };
+    return getTenantHeaders(token, true);
   }
 
   async getCourses(): Promise<Course[]> {
-    const response = await fetch(`${API_BASE}/courses`, {
+    const response = await fetch(`${API_BASE}/courses/organization`, {
       headers: this.getAuthHeaders()
     });
     if (!response.ok) throw new Error('Failed to fetch courses');
