@@ -10,17 +10,19 @@ import {
   getFarmerRecommendations
 } from '../controllers/farmRecordController.js';
 import { authenticateToken } from '../middleware/auth.js';
+import { resolveTenant } from '../middleware/tenant.js';
 
 const router = Router();
 
-router.get('/', authenticateToken, getMyRecords);
-router.post('/', authenticateToken, createRecord);
-router.get('/my-records', authenticateToken, getMyRecords);
-router.get('/analytics', authenticateToken, getAnalytics);
-router.get('/recommendations', authenticateToken, getFarmerRecommendations);
-router.put('/:id', authenticateToken, updateRecord);
-router.delete('/:id', authenticateToken, deleteRecord);
-router.patch('/:id/link-booking', authenticateToken, linkToBooking);
-router.get('/property/:propertyId/productivity', authenticateToken, getPropertyProductivity);
+router.use(authenticateToken, resolveTenant);
+router.get('/', getMyRecords);
+router.post('/', createRecord);
+router.get('/my-records', getMyRecords);
+router.get('/analytics', getAnalytics);
+router.get('/recommendations', getFarmerRecommendations);
+router.put('/:id', updateRecord);
+router.delete('/:id', deleteRecord);
+router.patch('/:id/link-booking', linkToBooking);
+router.get('/property/:propertyId/productivity', getPropertyProductivity);
 
 export default router;

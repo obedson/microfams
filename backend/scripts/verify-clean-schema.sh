@@ -122,6 +122,13 @@ BEGIN
     10000, 'pending_payment', 'pending'
   );
 
+  INSERT INTO farm_records (
+    farmer_id, organization_id, property_id, livestock_type, livestock_count,
+    feed_consumption, mortality_count, expenses, expense_category, record_date
+  ) VALUES (
+    owner_id, owner_id, property_id, 'poultry', 50, 10, 1, 5000, 'feed', CURRENT_DATE
+  );
+
   INSERT INTO user_wallets (user_id) VALUES (recipient_id) RETURNING id INTO recipient_wallet_id;
   INSERT INTO group_consensus_requests (
     group_id, requested_by, target_user_id, amount, status, request_type
@@ -150,7 +157,7 @@ BEGIN
   END IF;
 END $$;
 
-GRANT SELECT ON properties, bookings TO authenticated;
+GRANT SELECT ON properties, bookings, farm_records TO authenticated;
 
 SET ROLE authenticated;
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000101', FALSE);
@@ -160,6 +167,9 @@ DO $$ BEGIN
   END IF;
   IF (SELECT count(*) FROM bookings) <> 1 THEN
     RAISE EXCEPTION 'provider organization cannot read its booking';
+  END IF;
+  IF (SELECT count(*) FROM farm_records) <> 1 THEN
+    RAISE EXCEPTION 'farm organization cannot read its farm records';
   END IF;
 END $$;
 
@@ -171,11 +181,16 @@ DO $$ BEGIN
   IF (SELECT count(*) FROM bookings) <> 1 THEN
     RAISE EXCEPTION 'customer organization cannot read its cross-tenant booking';
   END IF;
+  IF (SELECT count(*) FROM farm_records) <> 0 THEN
+    RAISE EXCEPTION 'customer organization leaked provider farm records';
+  END IF;
 END $$;
 
 SELECT set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000103', FALSE);
 DO $$ BEGIN
-  IF (SELECT count(*) FROM properties) <> 0 OR (SELECT count(*) FROM bookings) <> 0 THEN
+  IF (SELECT count(*) FROM properties) <> 0
+    OR (SELECT count(*) FROM bookings) <> 0
+    OR (SELECT count(*) FROM farm_records) <> 0 THEN
     RAISE EXCEPTION 'unrelated organization can read tenant data';
   END IF;
 END $$;
