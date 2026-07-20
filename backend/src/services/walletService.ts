@@ -11,9 +11,10 @@ export class WalletService {
    * Requirement 7.1, 7.2: Provision User Wallet
    */
   async provisionUserWallet(userId: string, organizationId?: string) {
+    const tenantId = organizationId ?? userId;
     const { data, error } = await supabase
       .from('user_wallets')
-      .upsert({ user_id: userId, ...(organizationId ? { organization_id: organizationId } : {}) }, { onConflict: 'user_id' })
+      .upsert({ user_id: userId, organization_id: tenantId }, { onConflict: 'organization_id,user_id' })
       .select()
       .single();
 
@@ -153,12 +154,9 @@ export class WalletService {
       throw new Error('Minimum P2P transfer amount is ₦100');
     }
 
-    // Check 24hr limit
-    await this.check24hrP2PLimit(senderId, amount);
-
     // Get wallets
-    let senderQuery = supabase.from('user_wallets').select('id').eq('user_id', senderId);
-    let recipientQuery = supabase.from('user_wallets').select('id, status').eq('user_id', recipientId);
+    let senderQuery = supabase.from('user_wallets').select('id, organization_id').eq('user_id', senderId);
+    let recipientQuery = supabase.from('user_wallets').select('id, status, organization_id').eq('user_id', recipientId);
     if (organizationId) {
       senderQuery = senderQuery.eq('organization_id', organizationId);
       recipientQuery = recipientQuery.eq('organization_id', organizationId);
@@ -168,6 +166,10 @@ export class WalletService {
 
     if (!senderWallet || !recipientWallet) throw new Error('Wallet not found');
     if (recipientWallet.status !== 'ACTIVE') throw new Error('Recipient wallet is not active');
+    if (senderWallet.organization_id !== recipientWallet.organization_id) {
+      throw new Error('Wallet transfer cannot cross organizations');
+    }
+    await this.check24hrP2PLimit(senderWallet.id, amount, senderWallet.organization_id);
 
     const reference = `P2P-${randomUUID()}`;
 
@@ -197,7 +199,7 @@ export class WalletService {
   /**
    * Requirement 5.4, 6.3: Limit checks
    */
-  private async check24hrP2PLimit(userId: string, amount: number) {
+  private async check24hrP2PLimit(walletId: string, amount: number, organizationId: string) {
     const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
 
     const { data: txs } = await supabase
@@ -206,6 +208,8 @@ export class WalletService {
       .eq('type', 'P2P_TRANSFER')
       .eq('direction', 'DEBIT')
       .eq('status', 'SUCCESS')
+      .eq('wallet_id', walletId)
+      .eq('organization_id', organizationId)
       .gte('created_at', twentyFourHoursAgo);
 
     const total = (txs || []).reduce((sum, tx) => sum + Number(tx.amount), 0);
@@ -490,6 +494,7 @@ export class WalletService {
         .from('user_wallets')
         .select('id')
         .eq('user_id', request.target_user_id)
+        .eq('organization_id', (request.groups as any).organization_id)
         .single();
 
       if (!targetWallet) throw new Error('Target user wallet not found');
