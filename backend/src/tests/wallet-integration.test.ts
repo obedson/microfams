@@ -5,11 +5,6 @@ import { ledgerService } from '../services/ledgerService.js';
 import { supabase } from '../utils/supabase.js';
 import jwt from 'jsonwebtoken';
 
-// Mock uuid
-jest.mock('uuid', () => ({
-  v4: jest.fn().mockReturnValue('mock-uuid'),
-}));
-
 // Mock Supabase
 jest.mock('../utils/supabase.js', () => ({
   supabase: {

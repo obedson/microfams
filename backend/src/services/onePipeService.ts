@@ -1,7 +1,7 @@
 import axios from 'axios';
 import crypto from 'crypto';
 import dotenv from 'dotenv';
-import { v4 as uuidv4 } from 'uuid';
+import { randomUUID } from 'node:crypto';
 
 dotenv.config();
 
@@ -44,7 +44,7 @@ class OnePipeService {
   async transact(body: any): Promise<any> {
     try {
       const signature = this.generateSignature(body.request_ref);
-      
+
       const response = await axios.post(
         `${this.baseUrl}/transact`,
         body,
@@ -82,7 +82,7 @@ class OnePipeService {
     dob: string;
   }) {
     const body = {
-      request_ref: uuidv4(),
+      request_ref: randomUUID(),
       request_type: 'lookup_nin_mid',
       auth: {
         type: 'nin',
@@ -92,11 +92,11 @@ class OnePipeService {
       },
       transaction: {
         mock_mode: process.env.NODE_ENV === 'production' ? 'live' : 'mock',
-        transaction_ref: uuidv4(),
+        transaction_ref: randomUUID(),
         transaction_desc: 'NIN Verification',
         amount: 0,
         customer: {
-          customer_ref: `CUST_${uuidv4().slice(0, 8)}`,
+          customer_ref: `CUST_${randomUUID().slice(0, 8)}`,
           firstname: params.firstName,
           surname: params.lastName,
           email: params.email,
@@ -116,7 +116,7 @@ class OnePipeService {
    */
   async validateOTP(requestRef: string, otp: string) {
     const body = {
-      request_ref: uuidv4(),
+      request_ref: randomUUID(),
       request_type: 'validate_otp',
       auth: {
         type: 'otp',
@@ -138,11 +138,11 @@ class OnePipeService {
    */
   async nameEnquiry(accountNumber: string, bankCode: string) {
     const body = {
-      request_ref: uuidv4(),
+      request_ref: randomUUID(),
       request_type: 'account_lookup',
       transaction: {
         mock_mode: process.env.NODE_ENV === 'production' ? 'live' : 'mock',
-        transaction_ref: uuidv4(),
+        transaction_ref: randomUUID(),
         details: {
           account_number: accountNumber,
           bank_code: bankCode
@@ -162,7 +162,7 @@ class OnePipeService {
    */
   async provisionVirtualAccount(groupId: string, groupName: string) {
     const body = {
-      request_ref: uuidv4(),
+      request_ref: randomUUID(),
       request_type: 'virtual_account',
       transaction: {
         mock_mode: process.env.NODE_ENV === 'production' ? 'live' : 'mock',
@@ -195,7 +195,7 @@ class OnePipeService {
     narration: string;
   }) {
     const body = {
-      request_ref: uuidv4(),
+      request_ref: randomUUID(),
       request_type: 'disburse',
       transaction: {
         mock_mode: process.env.NODE_ENV === 'production' ? 'live' : 'mock',
@@ -224,7 +224,7 @@ class OnePipeService {
     amount: number;
   }> {
     const body = {
-      request_ref: uuidv4(),
+      request_ref: randomUUID(),
       request_type: 'transaction_query',
       transaction: {
         transaction_ref: reference

@@ -1,12 +1,12 @@
 import { supabase } from '../utils/supabase.js';
 import s3Client from '../config/s3.js';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
-import { v4 as uuidv4 } from 'uuid';
-import { 
-  NINProvider, 
-  InterswitchNINProvider, 
-  MockNINProvider, 
-  NINVerifyResult 
+import { randomUUID } from 'node:crypto';
+import {
+  NINProvider,
+  InterswitchNINProvider,
+  MockNINProvider,
+  NINVerifyResult
 } from './ninProviders.js';
 import { interswitchService } from './interswitchService.js';
 
@@ -14,12 +14,12 @@ class NINService {
   private provider: NINProvider;
 
   constructor() {
-    const useMock = process.env.USE_MOCK_KYC === 'true' || 
+    const useMock = process.env.USE_MOCK_KYC === 'true' ||
                     process.env.NODE_ENV === 'test' ||
                     (!process.env.INTERSWITCH_CLIENT_ID && process.env.NODE_ENV !== 'production');
 
     this.provider = useMock ? new MockNINProvider() : new InterswitchNINProvider();
-    
+
     if (useMock) {
       console.info('NINService: Initialized with Mock Provider');
     } else {
@@ -34,14 +34,14 @@ class NINService {
     try {
       console.log(`NINService: Calling provider for ${firstName} ${lastName} (Consent: ${consent})`);
       const result = await this.provider.verify(nin, firstName, lastName, consent);
-      
+
       if (!result || result.status === 'FAILED') {
         throw new Error(result?.message || 'NIN provider returned an error');
       }
 
-      const requestRef = uuidv4();
+      const requestRef = randomUUID();
       console.log(`NINService: NIN found, caching with ref ${requestRef}`);
-      
+
       const { error: cacheError } = await supabase
         .from('analytics_cache')
         .insert({
@@ -91,7 +91,7 @@ class NINService {
 
     // 3. Send OTP via Interswitch
     const otpResponse = await interswitchService.sendOTP(fullPhone, requestRef);
-    
+
     // 4. Update cache with OTP reference
     await supabase
       .from('analytics_cache')
@@ -181,7 +181,7 @@ class NINService {
   }
 
   async uploadProfilePicture(userId: string, buffer: Buffer, contentType: string) {
-    const fileName = `profiles/${userId}/${uuidv4()}`;
+    const fileName = `profiles/${userId}/${randomUUID()}`;
     const command = new PutObjectCommand({
       Bucket: process.env.S3_BUCKET_NAME,
       Key: fileName,

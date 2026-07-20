@@ -24,6 +24,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
     // Test confirmed booking
     const { rerender } = render(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="farmer"
         bookingStatus="confirmed"
         recipientName="John Owner"
@@ -40,6 +44,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
     // Test pending booking
     rerender(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="farmer"
         bookingStatus="pending"
         recipientName="John Owner"
@@ -56,6 +64,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
     // Test that button is NOT available for other statuses
     rerender(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="farmer"
         bookingStatus="pending_payment"
         recipientName="John Owner"
@@ -79,6 +91,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
     // Test pending_payment booking
     const { rerender } = render(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="owner"
         bookingStatus="pending_payment"
         recipientName="Jane Farmer"
@@ -95,6 +111,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
     // Test pending booking
     rerender(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="owner"
         bookingStatus="pending"
         recipientName="Jane Farmer"
@@ -111,6 +131,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
     // Test confirmed booking
     rerender(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="owner"
         bookingStatus="confirmed"
         recipientName="Jane Farmer"
@@ -127,6 +151,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
     // Test that button is NOT available for completed bookings
     rerender(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="owner"
         bookingStatus="completed"
         recipientName="Jane Farmer"
@@ -149,6 +177,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
   test('Property 47: Email client integration generates correct mailto links', () => {
     render(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="farmer"
         bookingStatus="confirmed"
         recipientName="John Owner"
@@ -166,7 +198,7 @@ describe('Communication System Properties Tests - Task 7.2', () => {
 
     // Property: Email button generates correct mailto link with pre-filled subject
     fireEvent.click(emailButton);
-    
+
     const expectedSubject = 'Booking #ABCD1234 - Green Valley Farm';
     const expectedMailto = `mailto:owner@example.com?subject=${encodeURIComponent(expectedSubject)}`;
     expect(window.location.href).toBe(expectedMailto);
@@ -180,6 +212,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
   test('Property 48: Phone contact links are displayed when available', () => {
     render(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="farmer"
         bookingStatus="confirmed"
         recipientName="John Owner"
@@ -208,6 +244,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
     // Test with no contact information
     const { rerender } = render(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="farmer"
         bookingStatus="confirmed"
         recipientName="John Owner"
@@ -224,6 +264,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
     // Test with only email
     rerender(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="farmer"
         bookingStatus="confirmed"
         recipientName="John Owner"
@@ -246,6 +290,10 @@ describe('Communication System Properties Tests - Task 7.2', () => {
   test('Property: Message button click handler is called correctly', () => {
     render(
       <MessageButton
+        bookingId="booking-1"
+        currentUserId="user-1"
+        currentUserName="Test User"
+        recipientId="recipient-1"
         userType="farmer"
         bookingStatus="confirmed"
         recipientName="John Owner"

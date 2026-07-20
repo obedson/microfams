@@ -5,11 +5,6 @@ import { walletService } from '../services/walletService.js';
 import { interswitchService } from '../services/interswitchService.js';
 import { supabase } from '../utils/supabase.js';
 
-// Mock uuid
-jest.mock('uuid', () => ({
-  v4: jest.fn().mockReturnValue('mock-uuid'),
-}));
-
 // Mock Supabase
 jest.mock('../utils/supabase.js', () => ({
   supabase: {
