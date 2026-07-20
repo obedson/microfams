@@ -35,6 +35,7 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('financial.accounting.read', 'accounting', 'Read journals, statements, reconciliations, and reports.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('integration.paystack.live', 'payments', 'Route Paystack operations to live mode.', { risk: 'provider' }),
   flag('integration.interswitch.live', 'payments', 'Route Interswitch operations to live mode.', { risk: 'provider' }),
+  flag('integration.organization_verification', 'identity', 'Submit organization registration evidence to an approved verification provider.', { risk: 'provider' }),
   flag('integration.identity_verification', 'identity', 'Use a government or licensed identity verification provider.', { risk: 'provider' }),
   flag('integration.sms', 'communications', 'Send messages through the configured SMS provider.', { risk: 'provider' }),
   flag('integration.weather', 'intelligence', 'Retrieve provider weather observations and forecasts.', { risk: 'provider' }),
