@@ -23,7 +23,6 @@ export class InterswitchNINProvider implements NINProvider {
   async verify(nin: string, firstName: string, lastName: string, consent: boolean): Promise<NINVerifyResult> {
     try {
       const response = await interswitchService.getNINFullDetails(nin, consent);
-      console.log('Interswitch NIN Raw Response:', JSON.stringify(response, null, 2));
 
       // Check for error response
       if (response.responseCode === 'ERROR' || !response.data) {

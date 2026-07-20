@@ -253,5 +253,8 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-financial-rules.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-identity-verification.sql"
 
 echo "clean schema verification passed"
