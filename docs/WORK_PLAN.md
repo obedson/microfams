@@ -64,7 +64,7 @@ Exit gate: clean builds, deterministic tests, secret scan, dependency gate, and 
 - [ ] Organization/tenant model and migration.
 - [ ] Tenant context propagation and database isolation.
 - [ ] Organization roles, permissions, branding, settings, and reporting scopes.
-- [ ] Global platform administration separated from tenant administration.
+- [x] Global platform administration separated from tenant administration.
 - [ ] Domain-event outbox and durable job processing.
 - [ ] Audit, metrics, tracing, health checks, and correlation IDs.
 

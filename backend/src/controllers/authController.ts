@@ -10,7 +10,7 @@ const registerSchema = Joi.object({
   email: Joi.string().email().required(),
   password: Joi.string().min(6).required(),
   name: Joi.string().min(2).required(),
-  role: Joi.string().valid('farmer', 'owner', 'admin').required(),
+  role: Joi.string().valid('farmer', 'owner').required(),
   phone: Joi.string().optional().allow('').pattern(/^[0-9+\-\s()]{10,}$/),
   referral_code: Joi.string().optional().allow('').trim(),
 });
@@ -80,6 +80,10 @@ export const login = async (req: Request, res: Response) => {
     const isValidPassword = await UserModel.verifyPassword(value.password, (user as any).password);
     if (!isValidPassword) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' });
+    }
+
+    if ((user as any).is_suspended) {
+      return res.status(403).json({ success: false, error: 'ACCOUNT_SUSPENDED' });
     }
 
     const token = generateToken({ id: user.id, email: user.email, role: user.role });
