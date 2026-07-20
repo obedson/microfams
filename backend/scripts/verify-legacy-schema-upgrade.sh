@@ -51,7 +51,7 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
   --command "INSERT INTO bookings(start_date, end_date, total_amount, status, payment_status) VALUES (CURRENT_DATE, CURRENT_DATE + 30, 1000, 'confirmed', 'paid');" \
   >/dev/null
 
-for migration in create_organizations.sql repair_group_wallet_ledger.sql add_domain_tenant_ownership.sql add_marketplace_order_workflow.sql add_education_reporting_tenancy.sql add_atomic_group_creation.sql create_feature_flags.sql; do
+for migration in create_organizations.sql repair_group_wallet_ledger.sql add_domain_tenant_ownership.sql add_marketplace_order_workflow.sql add_education_reporting_tenancy.sql add_atomic_group_creation.sql create_feature_flags.sql create_financial_ledger.sql; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
     --set ON_ERROR_STOP=1 < "$repo_root/backend/migrations/$migration" >/dev/null

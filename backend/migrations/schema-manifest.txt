@@ -33,6 +33,7 @@ add_domain_tenant_ownership.sql
 add_marketplace_order_workflow.sql
 add_education_reporting_tenancy.sql
 create_feature_flags.sql
+create_financial_ledger.sql
 fix_function_security.sql
 enable_rls_policies.sql
 fix_courses_rls.sql
