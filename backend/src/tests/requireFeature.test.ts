@@ -1,5 +1,5 @@
 import { NextFunction, Response } from 'express';
-import { AuthRequest } from '../middleware/auth.js';
+import { TenantRequest } from '../middleware/tenant.js';
 import { createRequireFeature } from '../middleware/requireFeature.js';
 import { FeatureFlagDecision } from '../types/featureFlags.js';
 
@@ -31,7 +31,10 @@ describe('requireFeature middleware', () => {
       key: 'integration.weather', enabled: false, config: {}, source: 'default', reason: 'disabled',
     });
     const middleware = createRequireFeature(featureService)('integration.weather');
-    const req = { user: { id: 'user-1', tenant_id: 'tenant-1', jurisdiction: 'NG' } } as AuthRequest;
+    const req = {
+      user: { id: 'user-1' },
+      tenant: { id: 'tenant-1', jurisdiction: 'NG' },
+    } as unknown as TenantRequest;
     const res = response();
     const next = jest.fn() as NextFunction;
 
@@ -53,7 +56,7 @@ describe('requireFeature middleware', () => {
     const res = response();
     const next = jest.fn() as NextFunction;
 
-    await middleware({ user: { id: 'user-1' } } as AuthRequest, res, next);
+    await middleware({ user: { id: 'user-1' } } as TenantRequest, res, next);
 
     expect(res.locals.feature).toEqual(decision);
     expect(next).toHaveBeenCalledTimes(1);
