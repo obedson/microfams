@@ -40,6 +40,7 @@ install_wallet_posting_engine.sql
 create_wallet_fund_reservations.sql
 create_payout_orchestration.sql
 create_payment_orchestration.sql
+create_financial_rules.sql
 install_payment_engine.sql
 install_payment_servicing.sql
 install_payment_settlement.sql

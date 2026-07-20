@@ -4,9 +4,10 @@ import { ledgerService, InsufficientFundsError } from './ledgerService.js';
 import { logAudit } from '../utils/audit.js';
 import { sendEmail } from './emailService.js'; // Assuming basic email support
 import jwt from 'jsonwebtoken';
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { assertMinorUnits, formatNgnMinor, majorDecimalToMinor, minorToMajorDecimal } from '../domains/financial/money.js';
 import { payoutService } from '../domains/financial/payoutService.js';
+import { financialRuleService } from '../domains/financial/financialRuleService.js';
 
 const withdrawalResponse = (request: any) => {
   const { amount, fee_amount, amount_minor, fee_amount_minor, account_number, ...identity } = request;
@@ -208,7 +209,17 @@ export class WalletService {
     if (senderWallet.organization_id !== recipientWallet.organization_id) {
       throw new Error('Wallet transfer cannot cross organizations');
     }
-    await this.check24hrP2PLimit(senderWallet.id, amountMinor, senderWallet.organization_id);
+    await financialRuleService.enforce({
+      organizationId: senderWallet.organization_id,
+      actorId: senderId,
+      commandType: 'wallet.p2p',
+      commandId: idempotencyKey,
+      product: 'wallet',
+      channel: 'p2p',
+      amountMinor,
+      currency: 'NGN',
+      beneficiaryFingerprint: createHash('sha256').update(recipientWallet.id).digest('hex'),
+    });
 
     const reference = `P2P-${idempotencyKey}`;
 
@@ -236,57 +247,6 @@ export class WalletService {
   }
 
   /**
-   * Requirement 5.4, 6.3: Limit checks
-   */
-  private async check24hrP2PLimit(walletId: string, amountMinor: number, organizationId: string) {
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-    const { data: txs } = await supabase
-      .from('wallet_transactions')
-      .select('amount, amount_minor')
-      .eq('type', 'P2P_TRANSFER')
-      .eq('direction', 'DEBIT')
-      .eq('status', 'SUCCESS')
-      .eq('wallet_id', walletId)
-      .eq('organization_id', organizationId)
-      .gte('created_at', twentyFourHoursAgo);
-
-    const total = (txs || []).reduce((sum, tx: any) => sum + (
-      tx.amount_minor === null || tx.amount_minor === undefined
-        ? majorDecimalToMinor(tx.amount)
-        : Number(tx.amount_minor)
-    ), 0);
-
-    if (total + amountMinor > 5000000) {
-      throw new Error('24-hour P2P transfer limit of ₦50,000 exceeded');
-    }
-  }
-
-  private async check24hrWithdrawalLimit(userId: string, amountMinor: number, organizationId?: string) {
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-
-    let query = supabase
-      .from('wallet_transactions')
-      .select('amount, amount_minor')
-      .eq('type', 'WITHDRAWAL')
-      .eq('direction', 'DEBIT')
-      .eq('status', 'SUCCESS')
-      .gte('created_at', twentyFourHoursAgo);
-    if (organizationId) query = query.eq('organization_id', organizationId);
-    const { data: txs } = await query;
-
-    const total = (txs || []).reduce((sum, tx: any) => sum + (
-      tx.amount_minor === null || tx.amount_minor === undefined
-        ? majorDecimalToMinor(tx.amount)
-        : Number(tx.amount_minor)
-    ), 0);
-
-    if (total + amountMinor > 10000000) {
-      throw new Error('24-hour withdrawal limit of ₦100,000 exceeded');
-    }
-  }
-
-  /**
    * Requirement 5.1-5.6: Individual Withdrawal (Two-Step)
    */
   async previewWithdrawal(
@@ -300,7 +260,6 @@ export class WalletService {
     assertMinorUnits(amountMinor);
     if (amountMinor < 100000) throw new Error('Minimum withdrawal amount is ₦1,000');
 
-    await this.check24hrWithdrawalLimit(userId, amountMinor, organizationId);
 
     const { accountName } = await payoutService.validateDestination(
       organizationId ?? userId, userId, accountNumber, bankCode,
@@ -317,6 +276,18 @@ export class WalletService {
     if (summary.availableBalanceMinor < amountMinor + feeMinor) {
       throw new InsufficientFundsError('Insufficient funds for withdrawal and fee');
     }
+    await financialRuleService.enforce({
+      organizationId: organizationId ?? userId,
+      actorId: userId,
+      commandType: 'wallet.withdrawal.preview',
+      commandId: idempotencyKey,
+      product: 'wallet',
+      channel: 'withdrawal',
+      amountMinor,
+      currency: 'NGN',
+      balanceMinor: summary.availableBalanceMinor,
+      beneficiaryFingerprint: createHash('sha256').update(bankCode + ':' + accountNumber).digest('hex'),
+    });
 
     const previewToken = jwt.sign(
       {

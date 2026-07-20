@@ -4,6 +4,7 @@ import { FeatureFlagService } from '../../services/featureFlagService.js';
 import { supabase } from '../../utils/supabase.js';
 import { assertLivePayoutActivationConfigured, configuredPayoutAdapter } from './payoutAdapters.js';
 import { PayoutAdapter, PayoutSubmissionCommand, ProviderPayoutResult } from './payoutTypes.js';
+import { financialRuleService } from './financialRuleService.js';
 
 interface CreatePayoutInput {
   withdrawalRequestId: string;
@@ -68,6 +69,17 @@ export class PayoutService {
     const adapter = this.adapterFactory();
     await this.assertLiveRoutingEnabled(adapter, input.organizationId, input.actorId);
     const beneficiaryFingerprint = sha256(`${input.bankCode}:${input.accountNumber}`);
+    await financialRuleService.enforce({
+      organizationId: input.organizationId,
+      actorId: input.actorId,
+      commandType: 'payout.submit',
+      commandId: input.internalReference,
+      product: 'payouts',
+      channel: 'bank_transfer',
+      amountMinor: input.amountMinor,
+      currency: 'NGN',
+      beneficiaryFingerprint,
+    });
     const { data: payout, error } = await supabase.rpc('create_wallet_payout', {
       p_withdrawal_request_id: input.withdrawalRequestId,
       p_provider_name: adapter.name,
