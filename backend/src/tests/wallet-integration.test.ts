@@ -4,6 +4,7 @@ import { interswitchService } from '../services/interswitchService.js';
 import { ledgerService } from '../services/ledgerService.js';
 import { supabase } from '../utils/supabase.js';
 import jwt from 'jsonwebtoken';
+import { payoutService } from '../domains/financial/payoutService.js';
 
 // Mock Supabase
 jest.mock('../utils/supabase.js', () => ({
@@ -22,6 +23,14 @@ jest.mock('../services/emailService.js', () => ({
   sendEmail: jest.fn().mockResolvedValue(undefined as unknown as never),
 }));
 
+jest.mock('../domains/financial/payoutService.js', () => ({
+  payoutService: {
+    validateDestination: jest.fn(),
+    createAndSubmit: jest.fn(),
+    queryAndApply: jest.fn(),
+  },
+}));
+
 describe('Wallet System Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -36,10 +45,10 @@ describe('Wallet System Integration Tests', () => {
     const amountMinor = 500000;
 
     // 1. Preview
-    jest.spyOn(interswitchService, 'nameEnquiry').mockResolvedValue({
+    (payoutService.validateDestination as jest.Mock).mockResolvedValue({
       accountName: 'John Doe',
       bankCode: '044'
-    });
+    } as never);
     jest.spyOn(ledgerService, 'getWalletBalanceSummary').mockResolvedValue({
       currency: 'NGN', ledgerBalanceMinor: 1000000, pendingDebitsMinor: 0,
       pendingCreditsMinor: 0, availableBalanceMinor: 1000000,
@@ -81,7 +90,9 @@ describe('Wallet System Integration Tests', () => {
       id: 'reservation-1', organization_id: userId, wallet_id: walletId,
       amount_minor: 505000, state: 'consumed', expires_at: new Date(Date.now() + 300000).toISOString(),
     });
-    jest.spyOn(interswitchService, 'singleTransfer').mockResolvedValue({ transferRef: 'is-ref-1', status: 'PENDING' } as unknown as never);
+    (payoutService.createAndSubmit as jest.Mock).mockResolvedValue({
+      id: 'payout-1', state: 'processing', amountMinor, feeAmountMinor: 5000, currency: 'NGN',
+    } as never);
     
     (supabase.from as jest.Mock).mockImplementation(((table: string) => {
       if (table === 'user_wallets') {
@@ -114,7 +125,9 @@ describe('Wallet System Integration Tests', () => {
 
     const confirmation = await walletService.confirmWithdrawal(userId, preview.previewToken, '127.0.0.1');
     expect(confirmation.id).toBe('wr-1');
-    expect(interswitchService.singleTransfer).toHaveBeenCalled();
+    expect(payoutService.createAndSubmit).toHaveBeenCalledWith(expect.objectContaining({
+      withdrawalRequestId: 'wr-1', amountMinor, feeAmountMinor: 5000,
+    }));
 
     // 3. Webhook SUCCESS
     (supabase.from as jest.Mock).mockImplementation(((table: string) => {

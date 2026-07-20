@@ -116,11 +116,10 @@ router.post('/paystack', async (req: Request, res: Response) => {
   }
 });
 
+router.post('/interswitch/payout', walletController.payoutWebhook.bind(walletController));
+
 router.post('/interswitch', async (req: Request, res: Response) => {
   try {
-    if (Buffer.isBuffer(req.body)) {
-      req.body = JSON.parse(req.body.toString('utf8'));
-    }
     await walletController.interswitchWebhook(req, res);
   } catch (error) {
     logger.error('Interswitch webhook processing failed', { error });

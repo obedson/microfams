@@ -6,6 +6,7 @@ import { sendEmail } from './emailService.js'; // Assuming basic email support
 import jwt from 'jsonwebtoken';
 import { randomUUID } from 'node:crypto';
 import { assertMinorUnits, formatNgnMinor, majorDecimalToMinor, minorToMajorDecimal } from '../domains/financial/money.js';
+import { payoutService } from '../domains/financial/payoutService.js';
 
 const withdrawalResponse = (request: any) => {
   const { amount, fee_amount, amount_minor, fee_amount_minor, account_number, ...identity } = request;
@@ -301,7 +302,9 @@ export class WalletService {
 
     await this.check24hrWithdrawalLimit(userId, amountMinor, organizationId);
 
-    const { accountName } = await interswitchService.nameEnquiry(accountNumber, bankCode);
+    const { accountName } = await payoutService.validateDestination(
+      organizationId ?? userId, userId, accountNumber, bankCode,
+    );
 
     const feeMinor = Number(process.env.INTERSWITCH_TRANSFER_FEE) || 5000;
     assertMinorUnits(feeMinor, 'Transfer fee');
@@ -379,28 +382,18 @@ export class WalletService {
     const consumed = await ledgerService.consumeWalletReservation(reservation.id, userId);
     if (consumed.state !== 'consumed') throw new Error('Withdrawal reservation expired before submission');
 
-    // Initiate Interswitch transfer
-    try {
-      const result = await interswitchService.singleTransfer({
-        accountNumber: decoded.accountNumber,
-        bankCode: decoded.bankCode,
-        amount: decoded.amountMinor,
-        reference: internalRef,
-        narration: `Microfams Withdrawal ${internalRef}`
-      });
-
-      await supabase
-        .from('withdrawal_requests')
-        .update({ interswitch_ref: result.transferRef })
-        .eq('id', request.id);
-
-      if (result.status === 'SUCCESS' || result.status === 'FAILED') {
-        await this.handleWithdrawalStatusUpdate(internalRef, result.status);
-      }
-    } catch (error: any) {
-      console.error(`Interswitch transfer initiation failed for ${internalRef}:`, error.message);
-      // Leave as PENDING for cron to resolve
-    }
+    const payout = await payoutService.createAndSubmit({
+      withdrawalRequestId: request.id,
+      organizationId: organizationId ?? decoded.organizationId,
+      actorId: userId,
+      correlationId: decoded.correlationId,
+      internalReference: internalRef,
+      amountMinor: decoded.amountMinor,
+      feeAmountMinor: decoded.feeMinor,
+      accountNumber: decoded.accountNumber,
+      bankCode: decoded.bankCode,
+      accountName: decoded.accountName,
+    });
 
     await logAudit({
       user_id: userId,
@@ -411,7 +404,7 @@ export class WalletService {
       details: { amountMinor: decoded.amountMinor, feeMinor: decoded.feeMinor, currency: 'NGN', internalRef }
     });
 
-    return withdrawalResponse(request);
+    return { ...withdrawalResponse(request), payout };
   }
 
   async handleWithdrawalStatusUpdate(internalRef: string, status: 'SUCCESS' | 'FAILED') {
@@ -647,24 +640,13 @@ export class WalletService {
     if (!request) throw new Error('Withdrawal request not found');
     if (request.status !== 'PENDING') return withdrawalResponse(request);
 
-    try {
-      const statusResult = await interswitchService.queryTransactionStatus(request.internal_ref);
-
-      if (statusResult.status !== 'PENDING') {
-        await this.handleWithdrawalStatusUpdate(request.internal_ref, statusResult.status);
-
-        const { data: updated } = await supabase
-          .from('withdrawal_requests')
-          .select('*')
-          .eq('id', requestId)
-          .single();
-        return withdrawalResponse(updated);
-      }
-    } catch (error: any) {
-      console.error(`Sync failed for withdrawal ${request.internal_ref}:`, error.message);
-    }
-
-    return withdrawalResponse(request);
+    const { data: payout, error: payoutError } = await supabase
+      .from('payouts').select('id').eq('withdrawal_request_id', request.id).single();
+    if (payoutError || !payout) throw new Error('Payout orchestration record not found');
+    const result = await payoutService.queryAndApply(payout.id);
+    const { data: updated } = await supabase
+      .from('withdrawal_requests').select('*').eq('id', requestId).single();
+    return { ...withdrawalResponse(updated ?? request), payout: result };
   }
 
   async getWithdrawalStatus(userId: string, requestId: string, organizationId: string) {
@@ -754,12 +736,13 @@ export class WalletService {
    * Requirement 3.1-3.6: Webhook Ingress
    */
   async handleInterswitchWebhook(payload: any, signature: string) {
-    const rawPayload = JSON.stringify(payload);
-    if (!interswitchService.verifyWebhookSignature(rawPayload, signature)) {
+    const rawPayload = Buffer.isBuffer(payload) ? payload : Buffer.from(JSON.stringify(payload));
+    if (!interswitchService.verifyWebhookSignature(rawPayload.toString('utf8'), signature)) {
       throw new Error('Invalid webhook signature');
     }
 
-    const { accountNumber, amount, transactionReference } = payload;
+    const event = Buffer.isBuffer(payload) ? JSON.parse(rawPayload.toString('utf8')) : payload;
+    const { accountNumber, amount, transactionReference } = event;
 
     // Deduplicate
     const { data: existing } = await supabase
