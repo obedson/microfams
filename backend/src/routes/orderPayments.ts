@@ -1,98 +1,101 @@
-import { Router } from 'express';
-import { authenticateToken, AuthRequest } from '../middleware/auth.js';
+import { Router, Response } from 'express';
+import { authenticateToken } from '../middleware/auth.js';
+import { resolveTenant, TenantRequest } from '../middleware/tenant.js';
+import { requireFeature } from '../middleware/requireFeature.js';
 import { supabase } from '../utils/supabase.js';
-import axios from 'axios';
+import { PaystackService } from '../services/paystackService.js';
+import { expectedPaymentAmountInMinorUnits } from '../services/marketplaceOrderPolicy.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();
 
-// Initialize payment for marketplace order
-router.post('/orders/:orderId/pay', authenticateToken, async (req: AuthRequest, res) => {
-  try {
-    const { orderId } = req.params;
+export const initializeMarketplaceOrderPayment = async (req: TenantRequest, res: Response) => {
+  const orderId = req.params.orderId || req.body.order_id;
+  const userId = req.user?.id;
+  const organizationId = req.tenant?.id;
 
-    // Get order details
-    const { data: order, error } = await supabase
-      .from('orders')
-      .select('*, marketplace_products(name)')
-      .eq('id', orderId)
-      .eq('buyer_id', req.user?.id)
-      .single();
-
-    if (error || !order) {
-      logger.error('Order not found', { orderId, buyer_id: req.user?.id });
-      return res.status(404).json({ success: false, error: 'Order not found' });
-    }
-
-    if (order.status === 'paid') {
-      return res.status(400).json({ success: false, error: 'Order already paid' });
-    }
-
-    // Initialize Paystack payment
-    const paystackResponse = await axios.post(
-      'https://api.paystack.co/transaction/initialize',
-      {
-        email: req.user?.email,
-        amount: Math.round(order.total_amount * 100), // Convert to kobo
-        reference: `order_${orderId}_${Date.now()}`,
-        metadata: {
-          order_id: orderId,
-          buyer_id: req.user?.id,
-          product_id: order.product_id,
-          type: 'marketplace_order'
-        },
-        callback_url: `${process.env.FRONTEND_URL}/payment/callback`
-      },
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
-          'Content-Type': 'application/json'
-        }
-      }
-    );
-
-    logger.info('Payment initialized', { 
-      orderId, 
-      reference: paystackResponse.data.data.reference 
-    });
-
-    res.json({
-      success: true,
-      authorization_url: paystackResponse.data.data.authorization_url,
-      reference: paystackResponse.data.data.reference
-    });
-  } catch (error: any) {
-    logger.error('Payment initialization error', { 
-      orderId: req.params.orderId,
-      error: error.message 
-    });
-    res.status(500).json({ success: false, error: 'Failed to initialize payment' });
+  if (!orderId || !userId || !organizationId) {
+    return res.status(400).json({ success: false, error: 'Order and tenant context are required' });
   }
-});
 
-// Get order status
-router.get('/orders/:orderId/status', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const { orderId } = req.params;
-
     const { data: order, error } = await supabase
       .from('orders')
-      .select('id, status, total_amount, created_at')
+      .select('id, buyer_id, organization_id, supplier_organization_id, product_id, total_amount, status, payment_status')
       .eq('id', orderId)
-      .eq('buyer_id', req.user?.id)
+      .eq('buyer_id', userId)
+      .eq('organization_id', organizationId)
       .single();
 
-    if (error || !order) {
-      return res.status(404).json({ success: false, error: 'Order not found' });
+    if (error || !order) return res.status(404).json({ success: false, error: 'Order not found' });
+    if (order.payment_status === 'paid') return res.status(409).json({ success: false, error: 'Order already paid' });
+    if (order.status === 'cancelled' || order.status === 'delivered') {
+      return res.status(409).json({ success: false, error: `Payment cannot be initialized for a ${order.status} order` });
     }
 
-    res.json({ success: true, data: order });
-  } catch (error: any) {
-    logger.error('Failed to fetch order status', { 
-      orderId: req.params.orderId,
-      error: error.message 
+    const reference = `ORDER-${order.id.slice(0, 8)}-${Date.now()}`;
+    const { error: intentError } = await supabase
+      .from('orders')
+      .update({ payment_reference: reference, payment_status: 'pending', updated_at: new Date().toISOString() })
+      .eq('id', order.id)
+      .eq('buyer_id', userId)
+      .eq('organization_id', organizationId);
+
+    if (intentError) throw new Error('Could not persist marketplace payment intent');
+
+    const providerResponse = await PaystackService.initializeTransaction({
+      email: req.user!.email,
+      amount: expectedPaymentAmountInMinorUnits(order.total_amount),
+      currency: 'NGN',
+      reference,
+      callback_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback`,
+      metadata: { type: 'marketplace_order', order_id: order.id },
     });
-    res.status(500).json({ success: false, error: 'Failed to fetch order status' });
+
+    logger.info('Marketplace payment initialized', { order_id: order.id, organization_id: organizationId, reference });
+    return res.json({
+      success: true,
+      authorization_url: providerResponse.data.authorization_url,
+      access_code: providerResponse.data.access_code,
+      reference,
+    });
+  } catch (error) {
+    logger.error('Marketplace payment initialization error', {
+      order_id: orderId,
+      organization_id: organizationId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return res.status(502).json({ success: false, error: 'Failed to initialize marketplace payment' });
+  }
+};
+
+router.post(
+  '/orders/:orderId/pay',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('financial.payments.accept_new'),
+  initializeMarketplaceOrderPayment,
+);
+
+router.get('/orders/:orderId/status', authenticateToken, resolveTenant, async (req: TenantRequest, res: Response) => {
+  try {
+    const { data: order, error } = await supabase
+      .from('orders')
+      .select('id, status, payment_status, total_amount, payment_reference, paid_at, created_at')
+      .eq('id', req.params.orderId)
+      .eq('buyer_id', req.user?.id)
+      .eq('organization_id', req.tenant!.id)
+      .single();
+
+    if (error || !order) return res.status(404).json({ success: false, error: 'Order not found' });
+    return res.json({ success: true, data: order });
+  } catch (error) {
+    logger.error('Failed to fetch marketplace order status', {
+      order_id: req.params.orderId,
+      organization_id: req.tenant?.id,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return res.status(500).json({ success: false, error: 'Failed to fetch order status' });
   }
 });
 

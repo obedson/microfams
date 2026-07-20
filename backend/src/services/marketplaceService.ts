@@ -5,7 +5,7 @@ export class MarketplaceService {
   /**
    * Get recommended products based on upcoming bookings
    */
-  static async getRecommendedProducts(userId: string) {
+  static async getRecommendedProducts(userId: string, organizationId: string = userId) {
     try {
       // Get user's upcoming bookings
       const { data: bookings, error: bookingsError } = await supabase
@@ -19,6 +19,7 @@ export class MarketplaceService {
           )
         `)
         .eq('farmer_id', userId)
+        .eq('organization_id', organizationId)
         .gte('end_date', new Date().toISOString())
         .order('start_date', { ascending: true })
         .limit(3);
