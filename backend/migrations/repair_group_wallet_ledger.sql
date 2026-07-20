@@ -1,6 +1,47 @@
 -- Repair existing installations where group credits changed the balance but
 -- could not create a wallet_transactions row because wallet_id was mandatory.
 
+-- Legacy group memberships predate the explicit lifecycle columns now used by
+-- group consensus and tenant policies. Preserve role/member_status while
+-- deriving compatible active-state and audit fields.
+ALTER TABLE group_members ADD COLUMN IF NOT EXISTS status VARCHAR(20) DEFAULT 'active';
+ALTER TABLE group_members ADD COLUMN IF NOT EXISTS is_active BOOLEAN DEFAULT TRUE;
+ALTER TABLE group_members ADD COLUMN IF NOT EXISTS created_at TIMESTAMPTZ DEFAULT NOW();
+ALTER TABLE group_members ADD COLUMN IF NOT EXISTS updated_at TIMESTAMPTZ DEFAULT NOW();
+
+UPDATE group_members
+SET status = CASE
+      WHEN member_status IN ('suspended', 'expelled') THEN member_status
+      ELSE COALESCE(status, 'active')
+    END,
+    is_active = CASE
+      WHEN member_status IN ('suspended', 'expelled') THEN FALSE
+      ELSE COALESCE(is_active, TRUE)
+    END,
+    created_at = COALESCE(created_at, joined_at, NOW()),
+    updated_at = COALESCE(updated_at, joined_at, NOW());
+
+ALTER TABLE group_members ALTER COLUMN status SET DEFAULT 'active';
+ALTER TABLE group_members ALTER COLUMN status SET NOT NULL;
+ALTER TABLE group_members ALTER COLUMN is_active SET DEFAULT TRUE;
+ALTER TABLE group_members ALTER COLUMN is_active SET NOT NULL;
+ALTER TABLE group_members ALTER COLUMN created_at SET DEFAULT NOW();
+ALTER TABLE group_members ALTER COLUMN created_at SET NOT NULL;
+ALTER TABLE group_members ALTER COLUMN updated_at SET DEFAULT NOW();
+ALTER TABLE group_members ALTER COLUMN updated_at SET NOT NULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'group_members_status_check'
+      AND conrelid = 'group_members'::regclass
+  ) THEN
+    ALTER TABLE group_members ADD CONSTRAINT group_members_status_check
+      CHECK (status IN ('active', 'suspended', 'expelled'));
+  END IF;
+END $$;
+
 ALTER TABLE wallet_transactions ADD COLUMN IF NOT EXISTS group_id UUID REFERENCES groups(id);
 ALTER TABLE wallet_transactions ALTER COLUMN wallet_id DROP NOT NULL;
 

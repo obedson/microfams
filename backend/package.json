@@ -13,7 +13,8 @@
     "test:ci": "npm run test:unit",
     "test:unit": "jest --runInBand --ci --forceExit --testPathIgnorePatterns=analytics-properties\\|contribution.test\\|receipt-minimal\\|/tests/auth.test\\|/tests/api.test",
     "test:integration:db": "jest --runInBand --ci --forceExit tests/auth.test.ts tests/api.test.ts src/tests/analytics-properties.test.ts src/tests/contribution.test.ts src/tests/receipt-minimal.test.ts",
-    "test:schema": "bash scripts/verify-clean-schema.sh"
+    "test:schema": "bash scripts/verify-clean-schema.sh",
+    "test:schema:legacy": "bash scripts/verify-legacy-schema-upgrade.sh"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1008.0",
