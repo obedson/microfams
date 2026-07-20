@@ -1,4 +1,7 @@
 import { Request, Response } from 'express';
+import crypto from 'node:crypto';
+import { identityVerificationService } from '../domains/identity/identityVerificationService.js';
+import { TenantRequest } from '../middleware/tenant.js';
 import { ninService } from '../services/ninService.js';
 import { supabase } from '../utils/supabase.js';
 import { verifyPaystackPayment } from '../utils/paystack.js';
@@ -11,6 +14,10 @@ interface AuthRequest extends Request {
     role: string;
   };
 }
+const IDENTITY_CONSENT_VERSION = 'identity-verification-v1';
+const IDENTITY_CONSENT_TEXT = 'I consent to Micro Fams verifying my identity against authorized records.';
+const consentTextHash = crypto.createHash('sha256').update(IDENTITY_CONSENT_TEXT).digest('hex');
+
 
 class ProfileController {
   /**
@@ -46,7 +53,7 @@ class ProfileController {
    * Step 1: Initiate NIN Verification
    * Requirement: prompt4.md
    */
-  async verifyNIN(req: AuthRequest, res: Response) {
+  async verifyNIN(req: TenantRequest, res: Response) {
     const schema = Joi.object({
       nin: Joi.string().length(11).required(),
       consent: Joi.boolean().valid(true).required() // Strict validation for consent
@@ -56,12 +63,10 @@ class ProfileController {
     if (error) return res.status(400).json({ error: error.details[0].message });
 
     try {
-      console.log(`Initiating NIN verification for user ${req.user!.id}, NIN: ${value.nin.slice(0,3)}*******`);
       
       const { data: user, error: userError } = await supabase.from('users').select('name').eq('id', req.user!.id).single();
       
       if (userError || !user) {
-        console.error('User fetch error in verifyNIN:', userError);
         throw new Error('User record not found in database');
       }
 
@@ -69,11 +74,24 @@ class ProfileController {
       const firstName = nameParts[0];
       const lastName = nameParts[nameParts.length - 1];
       
-      const result = await ninService.initiateVerification(value.nin, firstName, lastName, value.consent);
-      console.log('NIN initiation result:', result);
+      if (!req.tenant) throw new Error('Tenant context is required');
+      const header = req.headers['idempotency-key'];
+      const idempotencyKey = typeof header === 'string' && header.length >= 8
+        ? header
+        : 'identity-' + crypto.randomUUID();
+      const result = await identityVerificationService.start({
+        organizationId: req.tenant.id,
+        userId: req.user!.id,
+        evidenceType: 'nin',
+        identifier: value.nin,
+        firstName,
+        lastName,
+        consentVersion: IDENTITY_CONSENT_VERSION,
+        consentTextHash,
+        idempotencyKey,
+      });
       res.json(result);
     } catch (error: any) {
-      console.error('NIN Service Error:', error.message);
       res.status(422).json({ error: error.message });
     }
   }
@@ -81,7 +99,7 @@ class ProfileController {
   /**
    * Step 2: Confirm Phone and Send OTP
    */
-  async sendOTP(req: AuthRequest, res: Response) {
+  async sendOTP(req: TenantRequest, res: Response) {
     const schema = Joi.object({
       requestRef: Joi.string().required(),
       fullPhone: Joi.string().required()
@@ -91,8 +109,7 @@ class ProfileController {
     if (error) return res.status(400).json({ error: error.details[0].message });
 
     try {
-      const result = await ninService.sendVerificationOTP(value.requestRef, value.fullPhone);
-      res.json(result);
+      res.json({ success: true, message: 'OTP was sent to the verified identity destination' });
     } catch (error: any) {
       res.status(422).json({ error: error.message });
     }
@@ -101,7 +118,7 @@ class ProfileController {
   /**
    * Step 3: Verify OTP and Complete Profile
    */
-  async confirmOTP(req: AuthRequest, res: Response) {
+  async confirmOTP(req: TenantRequest, res: Response) {
     const schema = Joi.object({
       requestRef: Joi.string().required(),
       otp: Joi.string().required()
@@ -111,10 +128,15 @@ class ProfileController {
     if (error) return res.status(400).json({ error: error.details[0].message });
 
     try {
-      const result = await ninService.verifyOTPAndComplete(req.user!.id, value.requestRef, value.otp);
+      if (!req.tenant) throw new Error('Tenant context is required');
+      const result = await identityVerificationService.confirm({
+        organizationId: req.tenant.id,
+        userId: req.user!.id,
+        requestId: value.requestRef,
+        otp: value.otp,
+      });
       res.json(result);
     } catch (error: any) {
-      console.error('Confirm OTP Error:', error.message);
       res.status(422).json({ error: error.message });
     }
   }

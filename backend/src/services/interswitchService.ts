@@ -116,28 +116,7 @@ class InterswitchService {
 
       return response.data;
     } catch (error: any) {
-      console.error('Interswitch NIN API Error:', JSON.stringify(error.response?.data || error.message, null, 2));
-      
-      // DEVELOPMENT FALLBACK: Provide mock responses for known test NINs or any NIN if USE_MOCK_KYC is true
-      const isMockEnabled = process.env.USE_MOCK_KYC === 'true' || ['11111111111', '12345678901', '00000000000'].includes(nin);
-      
-      if (process.env.NODE_ENV !== 'production' && isMockEnabled) {
-        console.warn(`⚠️ Interswitch NIN API failed, but providing DEV MOCK response for ${nin}`);
-        return {
-          responseCode: '00',
-          message: 'SUCCESS',
-          data: {
-            firstName: 'Sarah',
-            lastName: 'Jane Doe',
-            middleName: 'NIN-Test',
-            mobile: '08031234123',
-            gender: 'FEMALE',
-            dateOfBirth: '1995-05-15',
-            address: '123 NIN Sandbox Avenue, Lagos',
-            image: null
-          }
-        };
-      }
+      console.error('Interswitch NIN API request failed');
       
       // Provide more specific error messages
       const errorData = error.response?.data;
@@ -181,11 +160,7 @@ class InterswitchService {
 
       return response.data;
     } catch (error: any) {
-      console.error('Interswitch OTP Send Error:', error.response?.data || error.message);
-      if (process.env.NODE_ENV !== 'production') {
-        console.warn(`⚠️ Interswitch OTP Send failed, providing DEV MOCK response`);
-        return { reference: 'MOCK-OTP-REF-' + requestRef, otpreferenece: 'MOCK-OTP-REF-' + requestRef };
-      }
+      console.error('Interswitch OTP send request failed');
       throw new Error('Failed to send verification code');
     }
   }
@@ -213,8 +188,7 @@ class InterswitchService {
 
       return response.data.status === 'SUCCESS' || response.data.responseCode === '00';
     } catch (error: any) {
-      console.error('Interswitch OTP Validation Error:', error.response?.data || error.message);
-      if (process.env.NODE_ENV !== 'production' && (otp === '111111' || otp === '123456' || process.env.USE_MOCK_KYC === 'true')) return true;
+      console.error('Interswitch OTP validation request failed');
       return false;
     }
   }
