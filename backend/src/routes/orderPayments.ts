@@ -3,9 +3,10 @@ import { authenticateToken } from '../middleware/auth.js';
 import { resolveTenant, TenantRequest } from '../middleware/tenant.js';
 import { requireFeature } from '../middleware/requireFeature.js';
 import { supabase } from '../utils/supabase.js';
-import { PaystackService } from '../services/paystackService.js';
+import crypto from 'crypto';
 import { expectedPaymentAmountInMinorUnits } from '../services/marketplaceOrderPolicy.js';
 import { logger } from '../utils/logger.js';
+import { paymentService } from '../domains/financial/paymentService.js';
 
 const router = Router();
 
@@ -43,21 +44,28 @@ export const initializeMarketplaceOrderPayment = async (req: TenantRequest, res:
 
     if (intentError) throw new Error('Could not persist marketplace payment intent');
 
-    const providerResponse = await PaystackService.initializeTransaction({
-      email: req.user!.email,
-      amount: expectedPaymentAmountInMinorUnits(order.total_amount),
-      currency: 'NGN',
-      reference,
-      callback_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback`,
+    const payment = await paymentService.createAndInitialize({
+      organizationId,
+      sourceType: 'marketplace_order',
+      sourceId: order.id,
+      payerId: userId,
+      actorId: userId,
+      correlationId: crypto.randomUUID(),
+      internalReference: reference,
+      idempotencyKey: String(req.headers['idempotency-key'] || `order:${order.id}:${reference}`),
+      amountMinor: expectedPaymentAmountInMinorUnits(order.total_amount),
+      customerEmail: req.user!.email,
+      callbackUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback`,
       metadata: { type: 'marketplace_order', order_id: order.id },
     });
 
     logger.info('Marketplace payment initialized', { order_id: order.id, organization_id: organizationId, reference });
     return res.json({
       success: true,
-      authorization_url: providerResponse.data.authorization_url,
-      access_code: providerResponse.data.access_code,
-      reference,
+      authorization_url: payment.authorizationUrl,
+      access_code: payment.accessCode,
+      reference: payment.internalReference,
+      state: payment.state,
     });
   } catch (error) {
     logger.error('Marketplace payment initialization error', {
