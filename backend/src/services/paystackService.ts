@@ -9,6 +9,12 @@ interface InitializeTransactionInput {
   metadata?: Record<string, string | number | boolean>;
 }
 
+interface CreateRefundInput {
+  transaction: string;
+  amount: number;
+  merchant_note: string;
+}
+
 export class PaystackService {
   private static readonly BASE_URL = 'https://api.paystack.co';
 
@@ -33,6 +39,23 @@ export class PaystackService {
   static async verifyTransaction(reference: string) {
     const response = await axios.get(
       `${this.BASE_URL}/transaction/verify/${encodeURIComponent(reference)}`,
+      { headers: this.getHeaders(), timeout: 15000 },
+    );
+    return response.data;
+  }
+
+  static async createRefund(data: CreateRefundInput) {
+    const response = await axios.post(
+      `${this.BASE_URL}/refund`,
+      data,
+      { headers: this.getHeaders(), timeout: 15000 },
+    );
+    return response.data;
+  }
+
+  static async fetchRefund(reference: string) {
+    const response = await axios.get(
+      `${this.BASE_URL}/refund/${encodeURIComponent(reference)}`,
       { headers: this.getHeaders(), timeout: 15000 },
     );
     return response.data;

@@ -14,12 +14,17 @@ export interface InternalPayoutCandidate extends ReconciliationCandidate {
   payoutId: string;
 }
 
+export interface InternalPaymentCandidate extends ReconciliationCandidate {
+  paymentId: string;
+}
+
 export type ReconciliationMatchState = 'matched' | 'unmatched' | 'mismatch' | 'duplicate' | 'late';
 
 export interface ReconciliationMatch {
   source: ReconciliationCandidate;
   payoutId?: string;
   state: ReconciliationMatchState;
+  paymentId?: string;
   reason?: string;
 }
 
@@ -27,7 +32,7 @@ const exactIdentity = (item: ReconciliationCandidate): string =>
   `${item.providerReference}|${item.internalReference}|${item.currency}|${item.direction}`;
 
 export const reconcilePayoutCandidates = (
-  internal: readonly InternalPayoutCandidate[],
+  internal: readonly (InternalPayoutCandidate | InternalPaymentCandidate)[],
   provider: readonly ReconciliationCandidate[],
   dateWindowHours: number,
 ): ReconciliationMatch[] => {
@@ -41,13 +46,19 @@ export const reconcilePayoutCandidates = (
     const candidate = internalByIdentity.get(identity);
     if (!candidate) return { source, state: 'unmatched', reason: 'No exact internal reference match' };
     if (candidate.amountMinor !== source.amountMinor) {
-      return { source, payoutId: candidate.payoutId, state: 'mismatch', reason: 'Amount mismatch' };
+      return { source, payoutId: 'payoutId' in candidate ? candidate.payoutId : undefined,
+        paymentId: 'paymentId' in candidate ? candidate.paymentId : undefined,
+        state: 'mismatch', reason: 'Amount mismatch' };
     }
     const distance = Math.abs(new Date(candidate.occurredAt).getTime() - new Date(source.occurredAt).getTime());
     if (!Number.isFinite(distance) || distance > dateWindowHours * 60 * 60 * 1000) {
-      return { source, payoutId: candidate.payoutId, state: 'late', reason: 'Outside approved date window' };
+      return { source, payoutId: 'payoutId' in candidate ? candidate.payoutId : undefined,
+        paymentId: 'paymentId' in candidate ? candidate.paymentId : undefined,
+        state: 'late', reason: 'Outside approved date window' };
     }
-    return { source, payoutId: candidate.payoutId, state: 'matched' };
+    return { source, payoutId: 'payoutId' in candidate ? candidate.payoutId : undefined,
+      paymentId: 'paymentId' in candidate ? candidate.paymentId : undefined,
+      state: 'matched' };
   });
 };
 
@@ -71,6 +82,21 @@ export class ReconciliationService {
       .eq('enabled', true)
       .single();
     if (configError || !configuration) throw new Error('Reconciliation configuration is unavailable');
+    const { data: payments, error: paymentError } = await supabase
+      .from('payments')
+      .select('id, provider_reference, internal_reference, amount_minor, currency, terminal_at')
+      .eq('organization_id', input.organizationId)
+      .eq('provider_name', configuration.provider_name)
+      .eq('provider_environment', configuration.provider_environment)
+      .in('state', ['succeeded', 'partially_refunded', 'refunded'])
+      .gte('terminal_at', input.periodStart)
+      .lte('terminal_at', input.periodEnd);
+    if (paymentError) throw paymentError;
+    const inbound: InternalPaymentCandidate[] = (payments ?? []).map((payment: any) => ({
+      paymentId: payment.id, providerReference: payment.provider_reference,
+      internalReference: payment.internal_reference, amountMinor: Number(payment.amount_minor),
+      currency: payment.currency, direction: 'inbound', occurredAt: payment.terminal_at,
+    }));
 
     const { data: payouts, error: payoutError } = await supabase
       .from('payouts')
@@ -91,8 +117,8 @@ export class ReconciliationService {
       direction: 'outbound',
       occurredAt: payout.terminal_at,
     }));
-    const matches = reconcilePayoutCandidates(internal, input.providerItems, configuration.date_window_hours);
-    const movementMinor = -internal.reduce((sum, item) => sum + item.amountMinor, 0);
+    const matches = reconcilePayoutCandidates([...internal, ...inbound], input.providerItems, configuration.date_window_hours);
+    const movementMinor = inbound.reduce((sum, item) => sum + item.amountMinor, 0) - internal.reduce((sum, item) => sum + item.amountMinor, 0);
     const closingBalanceMinor = input.openingBalanceMinor + movementMinor;
     const matchedValueMinor = matches.filter((item) => item.state === 'matched')
       .reduce((sum, item) => sum + item.source.amountMinor, 0);
@@ -123,6 +149,7 @@ export class ReconciliationService {
         run_id: run.id,
         payout_id: match.payoutId,
         provider_reference: match.source.providerReference,
+        payment_id: match.paymentId,
         internal_reference: match.source.internalReference,
         direction: match.source.direction,
         currency: match.source.currency,
