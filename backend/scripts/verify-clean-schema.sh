@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+repo_root="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/../.." && pwd)"
+container="microfams-schema-$RANDOM-$RANDOM"
+port="${MICROFAMS_SCHEMA_TEST_PORT:-55432}"
+
+cleanup() {
+  docker rm --force "$container" >/dev/null 2>&1 || true
+}
+trap cleanup EXIT
+
+docker run --detach --name "$container" \
+  --publish "127.0.0.1:${port}:5432" \
+  --env POSTGRES_PASSWORD=postgres \
+  --env POSTGRES_DB=microfams \
+  postgres:16-alpine >/dev/null
+
+for _ in $(seq 1 30); do
+  if docker exec "$container" pg_isready --username postgres --dbname microfams >/dev/null 2>&1; then
+    break
+  fi
+  sleep 1
+done
+
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-schema-bootstrap.sql" >/dev/null
+
+while IFS= read -r migration || [[ -n "$migration" ]]; do
+  [[ -z "$migration" || "$migration" == \#* ]] && continue
+  echo "applying $migration"
+  docker exec --interactive "$container" psql --username postgres --dbname microfams \
+    --set ON_ERROR_STOP=1 < "$repo_root/backend/migrations/$migration" >/dev/null
+done < "$repo_root/backend/migrations/schema-manifest.txt"
+
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 <<'SQL'
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM unnest(ARRAY[
+      'users','properties','bookings','groups','group_members','courses','user_progress',
+      'marketplace_products','orders','user_wallets','wallet_transactions','organizations',
+      'feature_flags'
+    ]) AS required(name)
+    WHERE to_regclass('public.' || required.name) IS NULL
+  ) THEN
+    RAISE EXCEPTION 'one or more required tables are missing';
+  END IF;
+END $$;
+
+DO $$
+DECLARE
+  owner_id UUID;
+  recipient_id UUID;
+  recipient_wallet_id UUID;
+  test_group_id UUID;
+  request_id UUID;
+  credit_transaction_id UUID;
+  state_key INTEGER;
+  lga_key INTEGER;
+  result JSON;
+  transfer_result JSONB;
+  actual_amount NUMERIC;
+BEGIN
+  INSERT INTO users (email, password, name, role)
+  VALUES ('schema-owner@example.test', 'not-a-real-password', 'Schema Owner', 'owner')
+  RETURNING id INTO owner_id;
+
+  SELECT id INTO state_key FROM states ORDER BY id LIMIT 1;
+  SELECT id INTO lga_key FROM lgas WHERE state_id = state_key ORDER BY id LIMIT 1;
+
+  SELECT create_group_with_creator(
+    'Schema Test Group', 'Clean install contract', 'mixed', owner_id,
+    state_key, lga_key, 1000, 50, 'schema-test-payment', 1000
+  ) INTO result;
+
+  IF result->>'group_id' IS NULL THEN
+    RAISE EXCEPTION 'group creation RPC returned no group id';
+  END IF;
+
+  test_group_id := (result->>'group_id')::UUID;
+  credit_transaction_id := atomic_group_credit(test_group_id, 2500, 'schema-group-credit');
+
+  IF NOT EXISTS (
+    SELECT 1 FROM wallet_transactions
+    WHERE id = credit_transaction_id
+      AND group_id = test_group_id
+      AND wallet_id IS NULL
+      AND direction = 'CREDIT'
+      AND amount = 2500
+  ) THEN
+    RAISE EXCEPTION 'group credit did not create its ledger transaction';
+  END IF;
+
+  SELECT group_fund_balance INTO actual_amount FROM groups WHERE id = test_group_id;
+  IF actual_amount <> 2500 THEN
+    RAISE EXCEPTION 'group credit balance mismatch: %', actual_amount;
+  END IF;
+
+  INSERT INTO users (email, password, name, role)
+  VALUES ('schema-recipient@example.test', 'not-a-real-password', 'Schema Recipient', 'farmer')
+  RETURNING id INTO recipient_id;
+
+  INSERT INTO user_wallets (user_id) VALUES (recipient_id) RETURNING id INTO recipient_wallet_id;
+  INSERT INTO group_consensus_requests (
+    group_id, requested_by, target_user_id, amount, status, request_type
+  ) VALUES (
+    test_group_id, owner_id, recipient_id, 1000, 'APPROVED', 'WITHDRAWAL'
+  ) RETURNING id INTO request_id;
+
+  transfer_result := atomic_group_transfer(
+    test_group_id, recipient_wallet_id, 1000, 'schema-group-transfer', request_id
+  );
+
+  SELECT balance INTO actual_amount FROM user_wallets WHERE id = recipient_wallet_id;
+  IF actual_amount <> 1000 THEN
+    RAISE EXCEPTION 'recipient wallet balance mismatch: %', actual_amount;
+  END IF;
+
+  SELECT group_fund_balance INTO actual_amount FROM groups WHERE id = test_group_id;
+  IF actual_amount <> 1500 THEN
+    RAISE EXCEPTION 'group transfer balance mismatch: %', actual_amount;
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM group_consensus_requests WHERE id = request_id AND status = 'EXECUTED'
+  ) THEN
+    RAISE EXCEPTION 'group transfer did not execute its consensus request';
+  END IF;
+END $$;
+SQL
+
+echo "clean schema verification passed"

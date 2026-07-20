@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS user_wallets (
 -- Wallet Transactions table (Append-only)
 CREATE TABLE IF NOT EXISTS wallet_transactions (
   id             UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  wallet_id      UUID NOT NULL REFERENCES user_wallets(id),
+  wallet_id      UUID REFERENCES user_wallets(id),
+  group_id       UUID REFERENCES groups(id),
   source_id      UUID,   -- wallet_id or group_id depending on type
   destination_id UUID,   -- wallet_id or group_id depending on type
   amount         NUMERIC(15,2) NOT NULL CHECK (amount > 0),
@@ -25,7 +26,9 @@ CREATE TABLE IF NOT EXISTS wallet_transactions (
   status         VARCHAR(20) NOT NULL CHECK (status IN ('PENDING','SUCCESS','FAILED')),
   reference      VARCHAR(100) NOT NULL,
   metadata       JSONB,
-  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT wallet_transactions_single_ledger_owner
+    CHECK (num_nonnulls(wallet_id, group_id) = 1)
 );
 
 -- Group Virtual Accounts (Interswitch NUBANs)
@@ -231,7 +234,9 @@ BEGIN
   WHERE id = p_group_id;
 
   -- Update request status
-  UPDATE group_withdrawal_requests
+  -- add_group_consensus.sql renames the request table after this function is
+  -- defined. PL/pgSQL resolves the relation when the function is executed.
+  UPDATE group_consensus_requests
   SET status = 'EXECUTED',
       updated_at = NOW()
   WHERE id = p_approval_request_id;
@@ -259,31 +264,27 @@ BEGIN
       updated_at = NOW()
   WHERE id = p_group_id;
 
-  -- Insert ledger record
-  -- Note: We use a system-level transaction here. 
-  -- In a production environment, you might link this to a 'system' wallet.
+  -- Insert the group-owned ledger record. Group funds are not attached to a
+  -- fictitious user wallet; every successful balance change has a durable row.
   INSERT INTO wallet_transactions (
-    wallet_id, 
-    source_id, 
+    group_id,
+    source_id,
     amount, 
     type, 
     direction, 
     status, 
     reference
-  ) 
-  SELECT 
-    id, 
-    p_group_id, 
+  ) VALUES (
+    p_group_id,
+    p_group_id,
     p_amount, 
     'COLLECTION', 
     'CREDIT', 
     'SUCCESS', 
-    p_reference 
-  FROM user_wallets 
-  WHERE user_id IS NULL -- Hypothetical system wallet or adjust schema to allow NULL wallet_id
-  LIMIT 1;
+    p_reference
+  ) RETURNING id INTO v_tx_id;
 
-  RETURN gen_random_uuid(); 
+  RETURN v_tx_id;
 END;
 $$ LANGUAGE plpgsql;
 
