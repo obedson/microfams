@@ -55,6 +55,12 @@ Provider selection is still required for any capability not covered by Interswit
 - organization/CAC verification credentials
 - any government programme API client IDs, secrets, signing certificates, or allowlisted IP information
 
+Organization verification also requires:
+
+- `ORGANIZATION_REGISTRATION_FINGERPRINT_KEY`
+- `ORGANIZATION_VERIFICATION_PROVIDER`
+- the selected provider environment, endpoint, client identifier, secret or certificate, and webhook/signature settings
+
 ## Email, SMS, and push
 
 Current email:

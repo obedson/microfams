@@ -1,6 +1,8 @@
 import { Response } from 'express';
+import crypto from 'node:crypto';
 import Joi from 'joi';
 import { TenantRequest } from '../middleware/tenant.js';
+import { organizationVerificationService } from '../domains/organizations/organizationVerificationService.js';
 import { SupabaseOrganizationRepository } from '../repositories/organizationRepository.js';
 import { OrganizationService } from '../services/organizationService.js';
 
@@ -26,6 +28,18 @@ const brandingSchema = Joi.object({
   customDomain: Joi.string().hostname().allow(null),
 }).min(1);
 
+const verificationSchema = Joi.object({
+  registrationType: Joi.string().valid(
+    'cac_rc', 'cac_bn', 'ngo_registration', 'government_program', 'other',
+  ).required(),
+  registrationNumber: Joi.string().trim().uppercase()
+    .pattern(/^[A-Z0-9][A-Z0-9\/-]{3,63}$/).required(),
+  authorityAttested: Joi.boolean().valid(true).required(),
+});
+
+const ORGANIZATION_ATTESTATION_VERSION = 'organization-verification-v1';
+const ORGANIZATION_ATTESTATION_TEXT = 'I confirm that I am authorized to represent this organization and consent to verification of its registration.';
+const organizationAttestationHash = crypto.createHash('sha256').update(ORGANIZATION_ATTESTATION_TEXT).digest('hex');
 export const organizationController = {
   async list(req: TenantRequest, res: Response) {
     try {
@@ -64,6 +78,60 @@ export const organizationController = {
       return res.json({ success: true, data: branding });
     } catch {
       return res.status(503).json({ success: false, error: 'ORGANIZATION_SERVICE_UNAVAILABLE' });
+    }
+  },
+
+  async getVerification(req: TenantRequest, res: Response) {
+    try {
+      const verification = await organizationVerificationService.getCurrent(
+        req.tenant!.id,
+        req.user!.id,
+      );
+      return res.json({ success: true, data: verification });
+    } catch {
+      return res.status(503).json({
+        success: false,
+        error: 'ORGANIZATION_VERIFICATION_UNAVAILABLE',
+      });
+    }
+  },
+
+  async submitVerification(req: TenantRequest, res: Response) {
+    const { error, value } = verificationSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        details: error.details.map((item) => item.message),
+      });
+    }
+    try {
+      const header = req.headers['idempotency-key'];
+      const idempotencyKey = typeof header === 'string' && header.length >= 8
+        ? header
+        : 'organization-verification-' + crypto.randomUUID();
+      const verification = await organizationVerificationService.start({
+        organizationId: req.tenant!.id,
+        userId: req.user!.id,
+        organizationName: req.tenant!.name,
+        organizationType: req.tenant!.type,
+        jurisdiction: req.tenant!.jurisdiction,
+        registrationType: value.registrationType,
+        registrationNumber: value.registrationNumber,
+        attestationVersion: ORGANIZATION_ATTESTATION_VERSION,
+        attestationTextHash: organizationAttestationHash,
+        idempotencyKey,
+      });
+      return res.status(202).json({ success: true, data: verification });
+    } catch {
+      return res.status(422).json({
+        success: false,
+        error: 'ORGANIZATION_VERIFICATION_FAILED',
+        message: 'Organization verification could not be completed',
+      });
     }
   },
 };
