@@ -44,6 +44,7 @@ BEGIN
  INSERT INTO trust_review_decisions(case_id,organization_id,reviewer_id,outcome,reason_code,rationale,decided_at) VALUES(c2,o,a,'warning','TEST_DECISION','Schema test decision rationale.',NOW()-INTERVAL '98 days') RETURNING id INTO d2;
  INSERT INTO trust_appeals(case_id,decision_id,organization_id,appellant_id,grounds,filed_at,idempotency_key,request_hash) VALUES(c2,d2,o,a,'Another schema test appeal.',NOW()-INTERVAL '80 days','ret-appeal-002',repeat('a',64)) RETURNING id INTO appeal2;
  INSERT INTO data_legal_holds(organization_id,subject_type,subject_id,reason_code,placed_by) VALUES(o,'case',c1::TEXT,'LITIGATION_NOTICE',a);
+ RAISE NOTICE 'appeal policy id %, scope %, match %',p,o,(SELECT count(*) FROM data_retention_policies rp WHERE rp.id=p AND rp.enabled AND rp.organization_id IS NOT DISTINCT FROM o);
  result:=create_retention_dry_run(a,o,p,'ret-appeal-run1',repeat('b',64)); run:=(result->>'runId')::UUID;
  result:=select_retention_dry_run_items(a,run,'ret-appeal-select1',repeat('c',64));
  IF result#>>'{summary,total}'<>'2' OR result#>>'{summary,held}'<>'1' OR result#>>'{summary,wouldAnonymize}'<>'1' THEN RAISE EXCEPTION 'unexpected appeal summary: %',result; END IF;
