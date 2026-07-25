@@ -71,7 +71,7 @@ export interface RetentionDryRun {
 
 export const trustAPI = {
   createRetentionDryRun: async (input: { policyId: string; organizationId?: string }) => data<RetentionDryRun>(await apiClient.post('/admin/trust/retention/dry-runs', input, { headers: commandHeaders('retention-dry-run') })),
-  selectRetentionItems: async (runId: string) => data<RetentionDryRun>(await apiClient.post(/admin/trust/retention/dry-runs//select-items, {}, { headers: commandHeaders(etention-select:) })),
+  selectRetentionItems: async (runId: string) => data<RetentionDryRun>(await apiClient.post(`/admin/trust/retention/dry-runs/${runId}/select-items`, {}, { headers: commandHeaders(`retention-select:${runId}`) })),
   listLegalHolds: async () => data<LegalHold[]>(await apiClient.get('/admin/trust/legal-holds')),
   placeLegalHold: async (input: {organizationId?:string;subjectType:LegalHold['subjectType'];subjectId:string;reasonCode:string;note?:string}) => data<LegalHold>(await apiClient.post('/admin/trust/legal-holds', input, {headers:commandHeaders('legal-hold-place')})),
   releaseLegalHold: async (holdId:string,reasonCode:string,note?:string) => data<LegalHold>(await apiClient.post(`/admin/trust/legal-holds/${holdId}/release`, {reasonCode,note}, {headers:commandHeaders(`legal-hold-release:${holdId}`)})),
