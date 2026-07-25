@@ -83,8 +83,8 @@ BEGIN
   IF (SELECT status FROM organization_memberships WHERE id = v_membership) <> 'active'
   THEN RAISE EXCEPTION 'membership was not resumed'; END IF;
 
-  INSERT INTO data_retention_policies(organization_id, data_class, retention_days, created_by)
-  VALUES (v_org, 'trust.case_metadata', 365, v_admin) RETURNING id INTO v_case;
+  INSERT INTO data_retention_policies(organization_id, data_class, retention_days, enabled, created_by)
+  VALUES (v_org, 'trust.case_metadata', 365, TRUE, v_admin) RETURNING id INTO v_case;
   v_result := create_retention_dry_run(v_admin, v_org, v_case, 'retention-run-01', repeat('6', 64));
   IF v_result->>'mode' <> 'dry_run' THEN RAISE EXCEPTION 'retention run is not dry-run'; END IF;
   v_failed := FALSE;
