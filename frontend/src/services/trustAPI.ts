@@ -56,7 +56,7 @@ export interface SuspendedRecoveryStatus { caseId: string; suspended: boolean; e
 export const trustAPI = {
   listLegalHolds: async () => data<LegalHold[]>(await apiClient.get('/admin/trust/legal-holds')),
   placeLegalHold: async (input: {organizationId?:string;subjectType:LegalHold['subjectType'];subjectId:string;reasonCode:string;note?:string}) => data<LegalHold>(await apiClient.post('/admin/trust/legal-holds', input, {headers:commandHeaders('legal-hold-place')})),
-  releaseLegalHold: async (holdId:string,reasonCode:string,note?:string) => data<LegalHold>(await apiClient.post(/admin/trust/legal-holds/${holdId}/release, {reasonCode,note}, {headers:commandHeaders(legal-hold-release:${holdId})})),
+  releaseLegalHold: async (holdId:string,reasonCode:string,note?:string) => data<LegalHold>(await apiClient.post(`/admin/trust/legal-holds/${holdId}/release`, {reasonCode,note}, {headers:commandHeaders(`legal-hold-release:${holdId}`)})),
   requestSuspendedRecovery: async (email: string) => apiClient.post('/trust/recovery/request', { email }),
   inspectSuspendedRecovery: async (token: string) => data<SuspendedRecoveryStatus>(await apiClient.get('/trust/recovery/status', { params: { token } })),
   submitSuspendedRecoveryAppeal: async (token: string, grounds: string) => data<TrustAppeal>(await apiClient.post('/trust/recovery/appeals', { token, grounds }, { headers: commandHeaders('suspended-recovery-appeal') })),
