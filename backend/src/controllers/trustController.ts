@@ -332,6 +332,19 @@ export const trustController = {
     }
   },
 
+  async selectRetentionItems(req: TenantRequest, res: Response) {
+    const key = commandKey(req, res);
+    if (!key) return;
+    try {
+      const data = await trustReviewService.selectRetentionItems(actorContext(req, true), {
+        runId: req.params.runId,
+        idempotencyKey: key,
+      });
+      return res.json({ success: true, data });
+    } catch (error) {
+      return commandFailure(res, error);
+    }
+  },
   async suspendOrganization(req: TenantRequest, res: Response) {
     const value = parse(organizationSuspensionSchema, req.body, res);
     if (!value) return;
