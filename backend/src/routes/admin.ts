@@ -5,6 +5,8 @@ import { logAudit } from '../utils/audit.js';
 import { getSecurityAlerts, setupMFA, verifyMFA } from '../controllers/adminController.js';
 import { platformAdministrationController } from '../controllers/platformAdministrationController.js';
 import { requirePlatformAdministrator } from '../middleware/platformAdministrator.js';
+import { trustController } from '../controllers/trustController.js';
+import { requireFeature } from '../middleware/requireFeature.js';
 
 const router = Router();
 
@@ -20,6 +22,16 @@ router.post('/platform-administrators', platformAdministrationController.grant);
 router.delete('/platform-administrators/:userId', platformAdministrationController.revoke);
 router.post('/users/:id/suspend', platformAdministrationController.suspend);
 router.post('/users/:id/resume', platformAdministrationController.resume);
+router.get('/trust/reviews', trustController.listReviews);
+router.post('/trust/reviews', requireFeature('trust.review_cases'), trustController.openReview);
+router.post('/trust/reviews/:caseId/assign', trustController.assignReview);
+router.post('/trust/reviews/:caseId/conflicts', trustController.declareConflict);
+router.post('/trust/reviews/:caseId/decision', trustController.decideReview);
+router.get('/trust/appeals', trustController.listAppeals);
+router.post('/trust/appeals/:appealId/decision', trustController.decideAppeal);
+router.post('/trust/retention/dry-runs', requireFeature('trust.retention.dry_run'), trustController.createRetentionDryRun);
+router.post('/trust/organizations/:organizationId/suspend', requireFeature('trust.suspensions'), trustController.suspendOrganization);
+router.post('/trust/organizations/:organizationId/resume', trustController.resumeOrganization);
 
 // Get dashboard stats
 router.get('/stats', async (req: AuthRequest, res) => {

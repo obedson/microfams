@@ -76,6 +76,8 @@ Exit gate: automated tenant-isolation tests across database, API, exports, jobs,
 - [ ] Implement provider-neutral KYC contracts, OTP, consent, retries, and redaction.
 - [ ] Add organization verification and optional BVN/face-verification adapters.
 - [ ] Add identity review, suspension, appeal, retention, and audit workflows.
+  - [x] Trust review cases, independent appeals, tenant/platform suspension boundaries, audit evidence, and retention dry-run foundation.
+  - [ ] Add suspended-account recovery tokens, legal-hold command history, retention item selection worker, and negative-path E2E coverage.
 
 Exit gate: sandbox and live-contract tests, privacy review, replay protection, and negative-path E2E tests.
 
