@@ -11,6 +11,7 @@ import {
   ResumeMembershipInput,
   ResumeOrganizationInput,
   RetentionDryRunInput,
+  SelectRetentionItemsInput,
   SuspendMembershipInput,
   SuspendOrganizationInput,
   TrustActorContext,
@@ -195,6 +196,13 @@ export class TrustReviewService {
     return this.command(() => this.repository.createRetentionDryRun(context.actorId, input, hash(input)));
   }
 
+  selectRetentionItems(context: TrustActorContext, raw: SelectRetentionItemsInput) {
+    const input = normalizeBase({
+      ...raw,
+      runId: identifier(raw.runId, 'run_id'),
+    });
+    return this.command(() => this.repository.selectRetentionItems(context.actorId, input, hash(input)));
+  }
   private organizationCommand<T extends SuspendOrganizationInput | ResumeOrganizationInput>(raw: T): T {
     return normalizeBase({
       ...raw,
