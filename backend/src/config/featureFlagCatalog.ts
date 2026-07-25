@@ -41,6 +41,7 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('trust.appeals', 'trust', 'File and decide independent trust appeals.'),
   flag('trust.suspended_account_recovery', 'trust', 'Issue single-purpose recovery links for suspended users to file appeals.', { risk: 'regulated' }),
   flag('trust.suspensions', 'trust', 'Apply decision-backed organization and membership suspensions.', { risk: 'regulated' }),
+  flag('trust.legal_holds', 'trust', 'Place new legal holds; existing holds can always be released.', { risk: 'regulated' }),
   flag('trust.retention.dry_run', 'trust', 'Plan retention effects without changing source records.'),
   flag('trust.retention.execute', 'trust', 'Reserved destructive retention switch; no execution workflow is available.', { risk: 'regulated' }),
   flag('integration.sms', 'communications', 'Send messages through the configured SMS provider.', { risk: 'provider' }),
