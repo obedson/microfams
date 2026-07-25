@@ -21,7 +21,7 @@ describe('AdminRetentionDryRuns', () => {
     fireEvent.change(screen.getByLabelText('Organization ID'), { target: { value: 'org-1' } });
     fireEvent.click(screen.getByRole('button', { name: 'Run safe preview' }));
     await waitFor(() => expect(trustAPI.createRetentionDryRun).toHaveBeenCalledWith({ policyId: 'policy-1', organizationId: 'org-1' }));
-    expect(trustAPI.selectRetentionItems).toHaveBeenCalledWith('run-1');
+    await waitFor(() => expect(trustAPI.selectRetentionItems).toHaveBeenCalledWith('run-1'));
     expect(await screen.findByText('Completed preview')).toBeInTheDocument();
     expect(screen.getByText('trust.case_metadata')).toBeInTheDocument();
     expect(screen.getByText(/never anonymizes or deletes/i)).toBeInTheDocument();
