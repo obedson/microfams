@@ -20,6 +20,7 @@ const repository = (): jest.Mocked<TrustRepository> => ({
   suspendMembership: jest.fn(),
   resumeMembership: jest.fn(),
   createRetentionDryRun: jest.fn(),
+  selectRetentionItems: jest.fn(),
 });
 
 const gate = (): jest.Mocked<TrustFeatureGate> => ({
@@ -96,6 +97,7 @@ describe('trust review service', () => {
     const flags = gate();
     repo.fileAppeal.mockResolvedValue({ id: 'appeal-1' });
     repo.createRetentionDryRun.mockResolvedValue({ id: 'run-1', dryRun: true });
+    repo.selectRetentionItems.mockResolvedValue({ runId: 'run-1', status: 'completed' });
     const service = new TrustReviewService(repo, flags);
 
     await service.fileAppeal(context, {
@@ -116,6 +118,16 @@ describe('trust review service', () => {
       2, { ...context, capability: 'retention' },
     );
     expect(repo.createRetentionDryRun).toHaveBeenCalled();
+    await service.selectRetentionItems(context, {
+      runId: 'run-1',
+      idempotencyKey: 'retain-select-001',
+    });
+    expect(flags.assertNewOperationEnabled).toHaveBeenCalledTimes(2);
+    expect(repo.selectRetentionItems).toHaveBeenCalledWith(
+      'actor-1',
+      { runId: 'run-1', idempotencyKey: 'retain-select-001' },
+      expect.stringMatching(/^[a-f0-9]{64}$/),
+    );
     expect((service as unknown as Record<string, unknown>).executeRetention).toBeUndefined();
   });
 
