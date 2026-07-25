@@ -28,6 +28,7 @@ export const suspendedAccountRecoveryController = {
     const { error, value } = appealSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
     if (error) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR' });
     const key = req.header('Idempotency-Key') || '';
+    if (key.trim().length < 8 || key.length > 160) return res.status(400).json({ success: false, error: 'IDEMPOTENCY_KEY_REQUIRED' });
     try { return res.status(202).json({ success: true, data: await suspendedAccountRecoveryService.fileAppeal(value.token, value.grounds, key) }); }
     catch (commandError) { return failure(res, commandError); }
   },
