@@ -43,6 +43,7 @@ create_payment_orchestration.sql
 create_financial_rules.sql
 create_identity_verification.sql
 create_organization_verification.sql
+create_platform_administration.sql
 install_payment_engine.sql
 install_payment_servicing.sql
 install_payment_settlement.sql

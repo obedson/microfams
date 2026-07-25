@@ -2,7 +2,20 @@ import { describe, it, expect } from '@jest/globals';
 import { supabase } from '../utils/supabase.js';
 
 describe('Receipt System - Database Only Tests', () => {
+  const bookingId = '83517c07-8cfe-464d-b84f-797c5386d8b6';
   let testReceiptId: string;
+  let organizationId: string;
+
+  beforeAll(async () => {
+    const { data: booking, error } = await supabase
+      .from('bookings')
+      .select('organization_id')
+      .eq('id', bookingId)
+      .single();
+
+    if (error) throw error;
+    organizationId = booking.organization_id;
+  });
 
   describe('Property 52: Receipt Generation on Payment', () => {
     it('should create receipt record in database', async () => {
@@ -11,11 +24,12 @@ describe('Receipt System - Database Only Tests', () => {
       const { data: receipt, error } = await supabase
         .from('payment_receipts')
         .insert({
-          booking_id: '83517c07-8cfe-464d-b84f-797c5386d8b6', // Real booking ID with paid status
+          booking_id: bookingId, // Real booking ID with paid status
+          organization_id: organizationId,
           payment_reference: paymentRef,
           amount: 50000,
           currency: 'NGN',
-          qr_code: `FARMLE-RECEIPT:${paymentRef}:83517c07-8cfe-464d-b84f-797c5386d8b6`
+          qr_code: `FARMLE-RECEIPT:${paymentRef}:${bookingId}`
         })
         .select()
         .single();
@@ -68,7 +82,8 @@ describe('Receipt System - Database Only Tests', () => {
       const { data: receipt, error } = await supabase
         .from('payment_receipts')
         .insert({
-          booking_id: '83517c07-8cfe-464d-b84f-797c5386d8b6',
+          booking_id: bookingId,
+          organization_id: organizationId,
           payment_reference: 'test_auto_number',
           amount: 25000,
           currency: 'NGN'

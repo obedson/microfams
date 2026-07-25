@@ -69,5 +69,24 @@ describe('API Endpoints', () => {
 
       expect(response.body.success).toBe(false);
     });
+
+    it('should return 404 for unknown nested API routes', async () => {
+      const response = await request(app)
+        .get('/api/contributions/non-existent/path')
+        .expect(404);
+
+      expect(response.body.success).toBe(false);
+    });
+
+    it('should keep known contribution routes protected', async () => {
+      const response = await request(app)
+        .get('/api/groups/test-id/contributions/settings')
+        .expect(401);
+
+      expect(response.body).toEqual({
+        success: false,
+        error: 'Access token required'
+      });
+    });
   });
 });

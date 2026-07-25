@@ -8,7 +8,7 @@ describe('Contribution System', () => {
 
   beforeAll(async () => {
     // Create a test user first
-    const { data: user } = await supabase
+    const { data: user, error: userError } = await supabase
       .from('users')
       .insert({
         email: 'test-contribution@example.com',
@@ -19,15 +19,18 @@ describe('Contribution System', () => {
       .select()
       .single();
 
+    if (userError) throw userError;
     testUserId = user!.id;
 
     // Create test group with valid creator_id
-    const { data: group } = await supabase
+    const { data: group, error: groupError } = await supabase
       .from('groups')
       .insert({
         name: 'Test Group',
         description: 'Test',
+        category: 'general',
         creator_id: testUserId,
+        organization_id: testUserId,
         contribution_enabled: true,
         contribution_amount: 5000,
         payment_day: 15,
@@ -38,6 +41,7 @@ describe('Contribution System', () => {
       .select()
       .single();
     
+    if (groupError) throw groupError;
     testGroupId = group!.id;
   });
 
@@ -52,7 +56,7 @@ describe('Contribution System', () => {
   });
 
   test('should create contribution cycle', async () => {
-    const cycle = await ContributionModel.createCycle(testGroupId, 2, 2026);
+    const cycle = await ContributionModel.createCycle(testGroupId, 2, 2026, testUserId);
     expect(cycle).toBeDefined();
     expect(cycle.cycle_month).toBe(2);
     expect(cycle.cycle_year).toBe(2026);
@@ -60,7 +64,7 @@ describe('Contribution System', () => {
   });
 
   test('should get current cycle', async () => {
-    const cycle = await ContributionModel.getCurrentCycle(testGroupId);
+    const cycle = await ContributionModel.getCurrentCycle(testGroupId, testUserId);
     expect(cycle).toBeDefined();
     expect(cycle.id).toBe(testCycleId);
   });
@@ -80,7 +84,7 @@ describe('Contribution System', () => {
   });
 
   test('should get cycle details with contributions', async () => {
-    const details = await ContributionModel.getCycleDetails(testCycleId);
+    const details = await ContributionModel.getCycleDetails(testCycleId, testUserId);
     expect(details).toBeDefined();
     expect(details.contributions).toBeDefined();
   });

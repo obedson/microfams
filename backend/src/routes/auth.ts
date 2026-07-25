@@ -29,7 +29,7 @@ router.post('/refresh-token', async (req, res) => {
 
     const { data: dbToken, error } = await supabase
       .from('refresh_tokens')
-      .select('*, users(id, email, role)')
+      .select('*, users(id, email, role, is_suspended)')
       .eq('token', refreshToken)
       .single();
 
@@ -39,6 +39,10 @@ router.post('/refresh-token', async (req, res) => {
 
     if (dbToken.revoked || new Date(dbToken.expires_at) < new Date()) {
       return res.status(401).json({ success: false, error: 'Token expired or revoked' });
+    }
+
+    if (dbToken.users.is_suspended) {
+      return res.status(403).json({ success: false, error: 'ACCOUNT_SUSPENDED' });
     }
 
     const token = generateToken({ 
