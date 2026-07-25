@@ -6,7 +6,7 @@ A globally suspended user may receive a single-purpose link through a verified a
 
 - Tokens contain 256 bits of cryptographic randomness; only a SHA-256 digest is stored.
 - Tokens expire after 15 minutes, are single-use, and a newer token invalidates prior unused tokens.
-- Issuance requires an active account suspension and a decided user trust case with outcome `suspend_user`.
+- Global suspension itself requires an idempotent `suspend_user` trust decision command. Issuance requires the active suspension to be linked to that exact case and immutable decision.
 - Inspection and consumption re-check that the account remains suspended.
 - Submission consumes the token atomically and is idempotent for safe retries.
 - Token and event tables deny `anon` and `authenticated`; only service-role functions operate on them.
