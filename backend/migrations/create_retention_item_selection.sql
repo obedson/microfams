@@ -42,7 +42,7 @@ BEGIN
  IF r.status<>'planned' THEN RAISE EXCEPTION 'Retention dry run is already terminal'; END IF;
  SELECT * INTO p FROM data_retention_policies WHERE id=r.policy_id;
  IF p.id IS NULL OR NOT p.enabled OR p.organization_id IS DISTINCT FROM r.organization_id THEN RAISE EXCEPTION 'Enabled retention policy not found for scope'; END IF;
- IF v_policy.data_class NOT IN('trust.case_metadata','trust.appeal_metadata') THEN RAISE EXCEPTION 'Unsupported retention data class'; END IF;
+ IF p.data_class NOT IN('trust.case_metadata','trust.appeal_metadata') THEN RAISE EXCEPTION 'Unsupported retention data class'; END IF;
  cutoff:=NOW()-make_interval(days=>p.retention_days);
  IF p.data_class='trust.case_metadata' THEN
   INSERT INTO data_retention_run_items(run_id,organization_id,resource_type,resource_id,proposed_action,reason_code,policy_id,data_class,source_created_at,legal_hold_id)
