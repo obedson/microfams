@@ -78,7 +78,7 @@ Exit gate: automated tenant-isolation tests across database, API, exports, jobs,
 - [ ] Add identity review, suspension, appeal, retention, and audit workflows.
   - [x] Trust review cases, independent appeals, tenant/platform suspension boundaries, audit evidence, and retention dry-run foundation.
   - [x] Add single-purpose suspended-account recovery and appeal tokens.
-  - [ ] Add legal-hold placement/release command history.
+  - [x] Add legal-hold placement/release command history.
   - [ ] Add the retention item-selection worker.
   - [ ] Add negative-path trust and recovery E2E coverage.
 
