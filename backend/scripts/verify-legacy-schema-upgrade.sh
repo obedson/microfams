@@ -69,13 +69,13 @@ if [[ "$tenant_ownership_present" == "f" ]]; then
     activate_wallet_ledger_cutover.sql install_wallet_posting_engine.sql create_wallet_fund_reservations.sql
     create_payout_orchestration.sql create_payment_orchestration.sql create_financial_rules.sql
     create_identity_verification.sql create_organization_verification.sql create_platform_administration.sql
-    create_trust_review_appeals.sql install_payment_engine.sql install_payment_servicing.sql install_payment_settlement.sql
+    create_trust_review_appeals.sql create_suspended_account_recovery.sql install_payment_engine.sql install_payment_servicing.sql install_payment_settlement.sql
   )
 else
   trust_schema_present="$(docker exec "$container" psql --username postgres --dbname microfams \
     --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.trust_review_cases') IS NOT NULL")"
   if [[ "$trust_schema_present" == "f" ]]; then
-    migrations=(create_trust_review_appeals.sql)
+    migrations=(create_trust_review_appeals.sql create_suspended_account_recovery.sql)
   fi
 fi
 
