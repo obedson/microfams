@@ -37,7 +37,7 @@ BEGIN
  IF NOT failed THEN RAISE EXCEPTION 'decision suspended a different user'; END IF;
 
  PERFORM suspend_trust_user(admin_id,user_id,case_id,'ACCOUNT_RISK','Decision-backed negative-path test.','neg-suspend-main',repeat('b',64));
- SELECT id INTO suspension_id FROM user_account_suspensions WHERE user_id=user_id AND status='active';
+ SELECT s.id INTO suspension_id FROM user_account_suspensions s WHERE s.user_id=user_id AND s.status='active';
  failed:=FALSE; BEGIN PERFORM issue_suspended_account_recovery(user_id,self_case_id,repeat('c',64),'email',NOW()+INTERVAL '15 minutes'); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
  IF NOT failed THEN RAISE EXCEPTION 'recovery token issued for an unrelated case'; END IF;
 
@@ -66,7 +66,7 @@ BEGIN
  failed:=FALSE; BEGIN PERFORM issue_suspended_account_recovery(user_id,case_id,repeat('5',64),'email',NOW()+INTERVAL '15 minutes'); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
  IF NOT failed THEN RAISE EXCEPTION 'recovery token issued after account resumption'; END IF;
 
- failed:=FALSE; BEGIN DELETE FROM suspended_account_recovery_events WHERE user_id=user_id; EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
+ failed:=FALSE; BEGIN DELETE FROM suspended_account_recovery_events e WHERE e.user_id=user_id; EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
  IF NOT failed THEN RAISE EXCEPTION 'recovery event history was mutable'; END IF;
  IF has_function_privilege('authenticated','inspect_suspended_account_recovery(text)','EXECUTE')
   OR has_function_privilege('anon','file_suspended_account_recovery_appeal(text,text,text,text)','EXECUTE') THEN RAISE EXCEPTION 'client role can execute recovery RPC directly'; END IF;
