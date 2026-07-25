@@ -20,7 +20,7 @@ router.use(requirePlatformAdministrator);
 router.get('/platform-administrators', platformAdministrationController.list);
 router.post('/platform-administrators', platformAdministrationController.grant);
 router.delete('/platform-administrators/:userId', platformAdministrationController.revoke);
-router.post('/users/:id/suspend', platformAdministrationController.suspend);
+router.post('/users/:id/suspend', requireFeature('trust.suspensions'), platformAdministrationController.suspend);
 router.post('/users/:id/resume', platformAdministrationController.resume);
 router.get('/trust/reviews', trustController.listReviews);
 router.post('/trust/reviews', requireFeature('trust.review_cases'), trustController.openReview);
