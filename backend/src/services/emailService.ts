@@ -43,8 +43,7 @@ export const sendPasswordResetEmail = async (email: string, resetToken: string) 
     console.log(`✅ Password reset email sent to: ${email}`);
   } catch (error: any) {
     console.error('❌ Email sending failed:', error?.response?.body || error.message);
-    if (throwOnFailure) throw error;
-    // Existing notification callers remain best-effort by default
+    // Password reset delivery remains best-effort for compatibility.
   }
 };
 
