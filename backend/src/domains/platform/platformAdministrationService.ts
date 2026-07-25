@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { SupabasePlatformAdministrationRepository } from './platformAdministrationRepository.js';
 import { PlatformAdministrationRepository } from './platformAdministrationTypes.js';
 
@@ -64,9 +65,14 @@ export class PlatformAdministrationService {
   async suspend(
     actorId: string,
     userId: string,
+    caseId: string,
     reasonCode: string,
+    idempotencyKey: string,
     reasonNote?: string,
   ) {
+    if (idempotencyKey.trim().length < 8 || idempotencyKey.length > 160) {
+      throw new PlatformAdministrationError('IDEMPOTENCY_KEY_REQUIRED', 400);
+    }
     const note = reasonNote?.trim();
     if (note && note.length > 1000) {
       throw new PlatformAdministrationError('INVALID_REASON_NOTE', 400);
@@ -75,7 +81,10 @@ export class PlatformAdministrationService {
       return await this.repository.suspend(
         actorId,
         userId,
+        caseId,
         validateReasonCode(reasonCode),
+        idempotencyKey.trim(),
+        crypto.createHash('sha256').update(JSON.stringify({ userId, caseId, reasonCode: validateReasonCode(reasonCode), note })).digest('hex'),
         note || undefined,
       );
     } catch (error) {
