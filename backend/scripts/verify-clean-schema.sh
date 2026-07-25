@@ -267,4 +267,7 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-trust-review-appeals.sql"
 
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-suspended-account-recovery.sql"
 echo "clean schema verification passed"

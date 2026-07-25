@@ -62,12 +62,10 @@ export class SupabasePlatformAdministrationRepository implements PlatformAdminis
     });
   }
 
-  suspend(actorId: string, userId: string, reasonCode: string, reasonNote?: string) {
-    return rpc('suspend_platform_user', {
-      p_actor_id: actorId,
-      p_user_id: userId,
-      p_reason_code: reasonCode,
-      p_reason_note: reasonNote ?? null,
+  suspend(actorId: string, userId: string, caseId: string, reasonCode: string, idempotencyKey: string, requestHash: string, reasonNote?: string) {
+    return rpc('suspend_trust_user', {
+      p_actor: actorId, p_user: userId, p_case: caseId, p_reason_code: reasonCode,
+      p_reason_note: reasonNote ?? null, p_idempotency_key: idempotencyKey, p_request_hash: requestHash,
     });
   }
 

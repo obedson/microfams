@@ -144,13 +144,15 @@ export const sendEmail = async ({
   subject, 
   html, 
   template, 
-  data 
+  data,
+  throwOnFailure = false
 }: { 
   to: string; 
   subject: string; 
   html?: string;
   template?: string;
   data?: any;
+  throwOnFailure?: boolean;
 }) => {
   // Skip email if API key not configured
   if (!process.env.BREVO_API_KEY) {
@@ -178,6 +180,7 @@ export const sendEmail = async ({
     console.log(`✅ Email sent to: ${to} - ${subject}`);
   } catch (error: any) {
     console.error('❌ Email sending failed:', error?.response?.body || error.message);
-    // Don't throw - just log the error
+    if (throwOnFailure) throw error;
+    // Existing notification callers remain best-effort by default.
   }
 };
