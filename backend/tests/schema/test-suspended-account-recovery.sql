@@ -7,7 +7,7 @@ BEGIN
  result:=open_trust_review_case(a,NULL,'user',u,'ACCOUNT_RISK','high','recovery-open-01',repeat('1',64)); c:=(result->>'caseId')::UUID;
  PERFORM assign_trust_review_case(a,c,r,'recovery-assign1',repeat('2',64));
  PERFORM decide_trust_review_case(r,c,'suspend_user','ACCOUNT_RISK','Evidence supports temporary account suspension.','recovery-decide1',repeat('3',64));
- PERFORM suspend_platform_user(a,u,'ACCOUNT_RISK','Decision-backed test');
+ PERFORM suspend_trust_user(a,u,c,'ACCOUNT_RISK','Decision-backed test','recovery-suspend1',repeat('9',64));
  result:=issue_suspended_account_recovery(u,c,repeat('a',64),'email',NOW()+INTERVAL '15 minutes');
  IF result->>'tokenId' IS NULL OR inspect_suspended_account_recovery(repeat('a',64))->>'caseId'<>c::TEXT THEN RAISE EXCEPTION 'token unavailable'; END IF;
  result:=file_suspended_account_recovery_appeal(repeat('a',64),'The decision omitted material evidence.','recovery-appeal1',repeat('4',64));
