@@ -7,7 +7,6 @@ import * as contributionController from '../controllers/contributionController.j
 import { resolveTenant } from '../middleware/tenant.js';
 
 const router = Router();
-router.use(authenticateToken, resolveTenant);
 
 // Rate limiters
 const paymentLimiter = rateLimit({
@@ -17,29 +16,29 @@ const paymentLimiter = rateLimit({
 });
 
 // Settings
-router.post('/groups/:id/contributions/settings', validate(contributionSettingsSchema), contributionController.updateSettings);
-router.get('/groups/:id/contributions/settings', contributionController.getSettings);
+router.post('/groups/:id/contributions/settings', authenticateToken, resolveTenant, validate(contributionSettingsSchema), contributionController.updateSettings);
+router.get('/groups/:id/contributions/settings', authenticateToken, resolveTenant, contributionController.getSettings);
 
 // Cycles
-router.post('/groups/:id/contributions/cycles', contributionController.createCycle);
-router.get('/groups/:id/contributions/cycles/current', contributionController.getCurrentCycle);
-router.get('/groups/:id/contributions/cycles/:cycleId', contributionController.getCycleDetails);
+router.post('/groups/:id/contributions/cycles', authenticateToken, resolveTenant, contributionController.createCycle);
+router.get('/groups/:id/contributions/cycles/current', authenticateToken, resolveTenant, contributionController.getCurrentCycle);
+router.get('/groups/:id/contributions/cycles/:cycleId', authenticateToken, resolveTenant, contributionController.getCycleDetails);
 
 // Payments
-router.post('/contributions/:id/pay', paymentLimiter, validate(makePaymentSchema), contributionController.makePayment);
-router.get('/contributions/:id', contributionController.getContributionById);
-router.get('/contributions/:id/penalty', contributionController.getPenalty);
-router.get('/contributions/my-history', contributionController.getMyHistory);
+router.post('/contributions/:id/pay', authenticateToken, resolveTenant, paymentLimiter, validate(makePaymentSchema), contributionController.makePayment);
+router.get('/contributions/:id', authenticateToken, resolveTenant, contributionController.getContributionById);
+router.get('/contributions/:id/penalty', authenticateToken, resolveTenant, contributionController.getPenalty);
+router.get('/contributions/my-history', authenticateToken, resolveTenant, contributionController.getMyHistory);
 
 // Admin actions
-router.post('/contributions/members/:memberId/suspend', contributionController.suspendMember);
-router.post('/contributions/members/:memberId/expel', contributionController.expelMember);
+router.post('/contributions/members/:memberId/suspend', authenticateToken, resolveTenant, contributionController.suspendMember);
+router.post('/contributions/members/:memberId/expel', authenticateToken, resolveTenant, contributionController.expelMember);
 
 // Group Booking Integration
-router.get('/user/group-funds', contributionController.getUserGroupFunds);
-router.get('/groups/:groupId/booking-discount', contributionController.calculateGroupDiscount);
-router.post('/bookings/pay-with-group-funds', contributionController.processGroupFundPayment);
-router.post('/groups/propose-admin-change', contributionController.proposeAdminChange);
-router.post('/groups/consensus-requests/:requestId/vote', contributionController.voteOnConsensusRequest);
+router.get('/user/group-funds', authenticateToken, resolveTenant, contributionController.getUserGroupFunds);
+router.get('/groups/:groupId/booking-discount', authenticateToken, resolveTenant, contributionController.calculateGroupDiscount);
+router.post('/bookings/pay-with-group-funds', authenticateToken, resolveTenant, contributionController.processGroupFundPayment);
+router.post('/groups/propose-admin-change', authenticateToken, resolveTenant, contributionController.proposeAdminChange);
+router.post('/groups/consensus-requests/:requestId/vote', authenticateToken, resolveTenant, contributionController.voteOnConsensusRequest);
 
 export default router;
