@@ -17,16 +17,16 @@ END; $$;
 CREATE TRIGGER data_retention_runs_terminal_history BEFORE UPDATE OR DELETE ON data_retention_runs FOR EACH ROW EXECUTE FUNCTION protect_data_retention_run();
 CREATE OR REPLACE FUNCTION create_retention_dry_run(p_actor UUID,p_organization UUID,p_policy UUID,p_idempotency_key TEXT,p_request_hash TEXT)
 RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-DECLARE p data_retention_policies; r data_retention_runs; result JSONB;
+DECLARE v_policy data_retention_policies; v_run data_retention_runs; result JSONB;
 BEGIN
  PERFORM trust_require_platform_admin(p_actor);
  PERFORM pg_advisory_xact_lock(hashtextextended(p_actor::TEXT||':retention:'||p_idempotency_key,0));
  result:=trust_existing_result(p_actor,'retention.dry_run',p_idempotency_key,p_request_hash); IF result IS NOT NULL THEN RETURN result; END IF;
- SELECT rp.* INTO p FROM data_retention_policies rp WHERE rp.id=p_policy AND rp.enabled AND rp.organization_id IS NOT DISTINCT FROM p_organization;
+ SELECT rp.* INTO v_policy FROM data_retention_policies rp WHERE rp.id=$3 AND rp.enabled AND rp.organization_id IS NOT DISTINCT FROM $2;
  IF NOT FOUND THEN RAISE EXCEPTION 'Enabled retention policy not found for scope'; END IF;
- IF p.data_class NOT IN('trust.case_metadata','trust.appeal_metadata') THEN RAISE EXCEPTION 'Unsupported retention data class'; END IF;
- INSERT INTO data_retention_runs(organization_id,policy_id,requested_by,idempotency_key,request_hash) VALUES(p_organization,p_policy,p_actor,p_idempotency_key,p_request_hash) RETURNING * INTO r;
- result:=jsonb_build_object('runId',r.id,'mode','dry_run','status','planned');
+ IF v_policy.data_class NOT IN('trust.case_metadata','trust.appeal_metadata') THEN RAISE EXCEPTION 'Unsupported retention data class'; END IF;
+ INSERT INTO data_retention_runs(organization_id,policy_id,requested_by,idempotency_key,request_hash) VALUES($2,$3,$1,$4,$5) RETURNING * INTO v_run;
+ result:=jsonb_build_object('runId',v_run.id,'mode','dry_run','status','planned');
  RETURN trust_store_result(p_actor,'retention.dry_run',p_idempotency_key,p_request_hash,result);
 END; $$;
 
@@ -42,7 +42,7 @@ BEGIN
  IF r.status<>'planned' THEN RAISE EXCEPTION 'Retention dry run is already terminal'; END IF;
  SELECT * INTO p FROM data_retention_policies WHERE id=r.policy_id;
  IF p.id IS NULL OR NOT p.enabled OR p.organization_id IS DISTINCT FROM r.organization_id THEN RAISE EXCEPTION 'Enabled retention policy not found for scope'; END IF;
- IF p.data_class NOT IN('trust.case_metadata','trust.appeal_metadata') THEN RAISE EXCEPTION 'Unsupported retention data class'; END IF;
+ IF v_policy.data_class NOT IN('trust.case_metadata','trust.appeal_metadata') THEN RAISE EXCEPTION 'Unsupported retention data class'; END IF;
  cutoff:=NOW()-make_interval(days=>p.retention_days);
  IF p.data_class='trust.case_metadata' THEN
   INSERT INTO data_retention_run_items(run_id,organization_id,resource_type,resource_id,proposed_action,reason_code,policy_id,data_class,source_created_at,legal_hold_id)
