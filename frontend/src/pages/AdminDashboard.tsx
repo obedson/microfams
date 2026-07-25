@@ -82,6 +82,7 @@ export default function AdminDashboard() {
               <QuickAction icon={<Activity size={20} />} title="Audit Logs" onClick={() => navigate('/admin/audit-logs')} />
               <QuickAction icon={<ShieldAlert size={20} />} title="Trust Reviews" onClick={() => navigate('/admin/trust/reviews')} />
               <QuickAction icon={<ShieldAlert size={20} />} title="Legal Holds" onClick={() => navigate('/admin/trust/legal-holds')} />
+              <QuickAction icon={<ShieldAlert size={20} />} title="Retention Dry Runs" onClick={() => navigate('/admin/trust/retention')} />
             </div>
           </div>
         </div>
