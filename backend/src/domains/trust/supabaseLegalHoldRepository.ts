@@ -1,0 +1,9 @@
+import { supabase } from '../../utils/supabase.js';
+import { LegalHold,LegalHoldFilter,LegalHoldRepository,PlaceLegalHoldInput,ReleaseLegalHoldInput } from './legalHoldTypes.js';
+const rpc=async(name:string,args:Record<string,unknown>)=>{const {data,error}=await supabase.rpc(name,args);if(error||data===null)throw error??new Error('Legal hold command failed');return data;};
+const map=(row:any):LegalHold=>({id:row.id,organizationId:row.organization_id??null,subjectType:row.subject_type,subjectId:row.subject_id,reasonCode:row.reason_code,status:row.status,placedAt:row.placed_at,releasedAt:row.released_at??null});
+export class SupabaseLegalHoldRepository implements LegalHoldRepository {
+ async list(filter:LegalHoldFilter){let q=supabase.from('data_legal_holds').select('*').order('placed_at',{ascending:false}).limit(filter.limit??50);if(filter.organizationId)q=q.eq('organization_id',filter.organizationId);if(filter.status)q=q.eq('status',filter.status);if(filter.subjectType)q=q.eq('subject_type',filter.subjectType);const {data,error}=await q;if(error)throw error;return(data??[]).map(map);}
+ place(actorId:string,input:PlaceLegalHoldInput,requestHash:string){return rpc('place_data_legal_hold',{p_actor:actorId,p_organization:input.organizationId??null,p_type:input.subjectType,p_subject:input.subjectId,p_reason_code:input.reasonCode,p_note:input.note??null,p_idempotency_key:input.idempotencyKey,p_request_hash:requestHash});}
+ release(actorId:string,input:ReleaseLegalHoldInput,requestHash:string){return rpc('release_data_legal_hold',{p_actor:actorId,p_hold:input.holdId,p_reason_code:input.reasonCode,p_note:input.note??null,p_idempotency_key:input.idempotencyKey,p_request_hash:requestHash});}
+}

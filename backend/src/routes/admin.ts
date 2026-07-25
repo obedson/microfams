@@ -6,6 +6,7 @@ import { getSecurityAlerts, setupMFA, verifyMFA } from '../controllers/adminCont
 import { platformAdministrationController } from '../controllers/platformAdministrationController.js';
 import { requirePlatformAdministrator } from '../middleware/platformAdministrator.js';
 import { trustController } from '../controllers/trustController.js';
+import { legalHoldController } from '../controllers/legalHoldController.js';
 import { requireFeature } from '../middleware/requireFeature.js';
 
 const router = Router();
@@ -30,6 +31,9 @@ router.post('/trust/reviews/:caseId/decision', trustController.decideReview);
 router.get('/trust/appeals', trustController.listAppeals);
 router.post('/trust/appeals/:appealId/decision', trustController.decideAppeal);
 router.post('/trust/retention/dry-runs', requireFeature('trust.retention.dry_run'), trustController.createRetentionDryRun);
+router.get('/trust/legal-holds', legalHoldController.list);
+router.post('/trust/legal-holds', requireFeature('trust.legal_holds'), legalHoldController.place);
+router.post('/trust/legal-holds/:holdId/release', legalHoldController.release);
 router.post('/trust/organizations/:organizationId/suspend', requireFeature('trust.suspensions'), trustController.suspendOrganization);
 router.post('/trust/organizations/:organizationId/resume', trustController.resumeOrganization);
 
