@@ -38,11 +38,11 @@ BEGIN
 
  PERFORM suspend_trust_user(admin_id,target_user_id,case_id,'ACCOUNT_RISK','Decision-backed negative-path test.','neg-suspend-main',repeat('b',64));
  SELECT s.id INTO suspension_id FROM user_account_suspensions s WHERE s.user_id=target_user_id AND s.status='active';
- failed:=FALSE; BEGIN PERFORM issue_suspended_account_recovery(user_id,self_case_id,repeat('c',64),'email',NOW()+INTERVAL '15 minutes'); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
+ failed:=FALSE; BEGIN PERFORM issue_suspended_account_recovery(target_user_id,self_case_id,repeat('c',64),'email',NOW()+INTERVAL '15 minutes'); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
  IF NOT failed THEN RAISE EXCEPTION 'recovery token issued for an unrelated case'; END IF;
 
- PERFORM issue_suspended_account_recovery(user_id,case_id,repeat('d',64),'email',NOW()+INTERVAL '15 minutes');
- result:=issue_suspended_account_recovery(user_id,case_id,repeat('e',64),'email',NOW()+INTERVAL '15 minutes'); token_b:=(result->>'tokenId')::UUID;
+ PERFORM issue_suspended_account_recovery(target_user_id,case_id,repeat('d',64),'email',NOW()+INTERVAL '15 minutes');
+ result:=issue_suspended_account_recovery(target_user_id,case_id,repeat('e',64),'email',NOW()+INTERVAL '15 minutes'); token_b:=(result->>'tokenId')::UUID;
  failed:=FALSE; BEGIN PERFORM inspect_suspended_account_recovery(repeat('d',64)); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
  IF NOT failed THEN RAISE EXCEPTION 'superseded recovery token remained usable'; END IF;
  PERFORM invalidate_suspended_account_recovery(token_b,'DELIVERY_FAILED');
@@ -54,7 +54,7 @@ BEGIN
  failed:=FALSE; BEGIN PERFORM inspect_suspended_account_recovery(repeat('f',64)); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
  IF NOT failed THEN RAISE EXCEPTION 'expired recovery token remained usable'; END IF;
 
- PERFORM issue_suspended_account_recovery(user_id,case_id,repeat('0',64),'email',NOW()+INTERVAL '15 minutes');
+ PERFORM issue_suspended_account_recovery(target_user_id,case_id,repeat('0',64),'email',NOW()+INTERVAL '15 minutes');
  result:=file_suspended_account_recovery_appeal(repeat('0',64),'Material evidence was omitted from the decision.','neg-recovery-app1',repeat('1',64)); appeal_id:=(result->>'appealId')::UUID;
  IF file_suspended_account_recovery_appeal(repeat('0',64),'Material evidence was omitted from the decision.','neg-recovery-app1',repeat('1',64))->>'appealId'<>appeal_id::TEXT THEN RAISE EXCEPTION 'safe appeal retry was not idempotent'; END IF;
  failed:=FALSE; BEGIN PERFORM file_suspended_account_recovery_appeal(repeat('0',64),'Different facts after token consumption.','neg-recovery-app2',repeat('2',64)); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
@@ -63,7 +63,7 @@ BEGIN
  IF NOT failed THEN RAISE EXCEPTION 'original reviewer decided recovery appeal'; END IF;
  PERFORM decide_trust_appeal(appeal_reviewer_id,appeal_id,'overturned','NEW_EVIDENCE','Independent review found material evidence.','neg-appeal-dec02',repeat('4',64));
  PERFORM resume_platform_user(admin_id,target_user_id,'APPEAL_OVERTURNED');
- failed:=FALSE; BEGIN PERFORM issue_suspended_account_recovery(user_id,case_id,repeat('5',64),'email',NOW()+INTERVAL '15 minutes'); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
+ failed:=FALSE; BEGIN PERFORM issue_suspended_account_recovery(target_user_id,case_id,repeat('5',64),'email',NOW()+INTERVAL '15 minutes'); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
  IF NOT failed THEN RAISE EXCEPTION 'recovery token issued after account resumption'; END IF;
 
  failed:=FALSE; BEGIN DELETE FROM suspended_account_recovery_events e WHERE e.user_id=target_user_id; EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
