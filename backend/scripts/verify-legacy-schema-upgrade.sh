@@ -77,7 +77,7 @@ else
   if [[ "$trust_schema_present" == "f" ]]; then
     migrations=(create_trust_review_appeals.sql create_suspended_account_recovery.sql)
   else
-    recovery_schema_present="$(docker exec "$container" psql --username postgres --dbname microfams \\
+    recovery_schema_present="$(docker exec "$container" psql --username postgres --dbname microfams \
       --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.suspended_account_recovery_tokens') IS NOT NULL")"
     if [[ "$recovery_schema_present" == "f" ]]; then migrations=(create_suspended_account_recovery.sql); fi
   fi
