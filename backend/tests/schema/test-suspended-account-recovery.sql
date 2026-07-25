@@ -16,6 +16,8 @@ BEGIN
  BEGIN PERFORM inspect_suspended_account_recovery(repeat('a',64)); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
  IF NOT failed THEN RAISE EXCEPTION 'consumed token remained usable'; END IF;
  IF has_table_privilege('authenticated','suspended_account_recovery_tokens','SELECT') THEN RAISE EXCEPTION 'authenticated can read tokens'; END IF;
+ failed:=FALSE; BEGIN UPDATE user_account_suspension_trust_links SET linked_at=linked_at WHERE case_id=c; EXCEPTION WHEN OTHERS THEN failed:=TRUE; END;
+ IF NOT failed THEN RAISE EXCEPTION 'suspension decision link was mutable'; END IF;
 END; $$;
 ROLLBACK;
 SELECT 'suspended recovery schema tests passed' AS result;
