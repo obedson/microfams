@@ -15,6 +15,7 @@ const grantSchema = Joi.object({
 });
 
 const suspendSchema = Joi.object({
+  caseId: Joi.string().uuid().required(),
   reasonCode: reasonCode.required(),
   reasonNote: Joi.string().trim().max(1000).optional(),
 });
@@ -102,11 +103,15 @@ export const platformAdministrationController = {
     });
     if (error) return validationFailure(res, error);
 
+    const key = req.header('Idempotency-Key') || '';
+    if (key.trim().length < 8 || key.length > 160) return res.status(400).json({ success: false, error: 'IDEMPOTENCY_KEY_REQUIRED' });
     try {
       const data = await platformAdministrationService.suspend(
         req.user!.id,
         req.params.id,
+        value.caseId,
         value.reasonCode,
+        key,
         value.reasonNote,
       );
       return res.json({ success: true, data });
