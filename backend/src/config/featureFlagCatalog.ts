@@ -39,6 +39,7 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('integration.identity_verification', 'identity', 'Use a government or licensed identity verification provider.', { risk: 'provider' }),
   flag('trust.review_cases', 'trust', 'Open, assign, and decide trust review cases.'),
   flag('trust.appeals', 'trust', 'File and decide independent trust appeals.'),
+  flag('trust.suspended_account_recovery', 'trust', 'Issue single-purpose recovery links for suspended users to file appeals.', { risk: 'regulated' }),
   flag('trust.suspensions', 'trust', 'Apply decision-backed organization and membership suspensions.', { risk: 'regulated' }),
   flag('trust.retention.dry_run', 'trust', 'Plan retention effects without changing source records.'),
   flag('trust.retention.execute', 'trust', 'Reserved destructive retention switch; no execution workflow is available.', { risk: 'regulated' }),
