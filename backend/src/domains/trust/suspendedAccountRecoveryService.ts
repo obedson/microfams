@@ -59,7 +59,7 @@ export class EmailRecoveryDelivery implements RecoveryDelivery {
     const base = process.env.FRONTEND_URL || 'http://localhost:3001';
     const url = `${base}/trust/recovery?token=${encodeURIComponent(input.token)}`;
     await sendEmail({ to: input.destination, subject: 'Review your Micro Fams account suspension', html:
-      `<p>Hello ${escapeHtml(input.name)},</p><p>Use this single-purpose link to review and appeal your account suspension.</p><p><a href="${url}">Review suspension</a></p><p>The link expires at ${escapeHtml(input.expiresAt)} and cannot be used to sign in.</p>` });
+      `<p>Hello ${escapeHtml(input.name)},</p><p>Use this single-purpose link to review and appeal your account suspension.</p><p><a href="${url}">Review suspension</a></p><p>The link expires at ${escapeHtml(input.expiresAt)} and cannot be used to sign in.</p>`, throwOnFailure: true });
   }
 }
 
