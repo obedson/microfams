@@ -15,7 +15,7 @@ export const suspendedAccountRecoveryController = {
   async request(req: Request, res: Response) {
     const { error, value } = requestSchema.validate(req.body, { stripUnknown: true });
     if (error) return res.status(400).json({ success: false, error: 'VALIDATION_ERROR' });
-    await suspendedAccountRecoveryService.request(value.email);
+    void suspendedAccountRecoveryService.request(value.email);
     return res.status(202).json({ success: true, message: genericMessage });
   },
   async inspect(req: Request, res: Response) {
