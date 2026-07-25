@@ -12,7 +12,7 @@ Placement requires a structured reason code, optional bounded note, and idempote
 
 ## Retention interaction
 
-An active matching hold must cause the retention item-selection worker to classify data as `held`; it must never be proposed for anonymization or deletion. This increment establishes authoritative hold state and history. The separate retention selection worker remains the next follow-up, and destructive retention remains unavailable.
+An active matching hold must cause the retention item-selection worker to classify data as `held`; it must never be proposed for anonymization or deletion. The retention selection worker applies this override for trust case and appeal metadata as specified in [`RETENTION_ITEM_SELECTION.md`](RETENTION_ITEM_SELECTION.md). Destructive retention remains unavailable.
 
 ## Security and recovery
 

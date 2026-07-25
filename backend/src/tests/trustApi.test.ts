@@ -18,6 +18,7 @@ jest.mock('../domains/trust/trustReviewService.js', () => ({
     listAppealQueue: jest.fn(),
     decideAppeal: jest.fn(),
     createRetentionDryRun: jest.fn(),
+    selectRetentionItems: jest.fn(),
     suspendOrganization: jest.fn(),
     resumeOrganization: jest.fn(),
   },
@@ -230,4 +231,26 @@ describe('trust API contract', () => {
     expect(res.status).toHaveBeenCalledWith(202);
   });
 
+  it('selects dry-run items without reopening the feature gate', async () => {
+    (trustReviewService.selectRetentionItems as jest.Mock).mockResolvedValue({
+      runId: CASE_ID,
+      status: 'completed',
+    } as never);
+    const res = response();
+
+    await trustController.selectRetentionItems({
+      user: { id: USER_ID },
+      params: { runId: CASE_ID },
+      headers: { 'idempotency-key': 'retention-select-101' },
+    } as any, res);
+
+    expect(trustReviewService.selectRetentionItems).toHaveBeenCalledWith(
+      expect.objectContaining({ actorId: USER_ID, platformAdministrator: true }),
+      { runId: CASE_ID, idempotencyKey: 'retention-select-101' },
+    );
+    expect(res.json).toHaveBeenCalledWith({
+      success: true,
+      data: { runId: CASE_ID, status: 'completed' },
+    });
+  });
 });

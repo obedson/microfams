@@ -87,6 +87,7 @@ export interface ResumeOrganizationInput { organizationId: string; reasonCode: s
 export interface SuspendMembershipInput { membershipId: string; caseId: string; reasonCode: string; idempotencyKey: string; }
 export interface ResumeMembershipInput { membershipId: string; reasonCode: string; idempotencyKey: string; }
 export interface RetentionDryRunInput { organizationId?: string; policyId: string; idempotencyKey: string; }
+export interface SelectRetentionItemsInput { runId: string; idempotencyKey: string; }
 
 export interface TrustQueueFilter { organizationId?: string; state?: TrustReviewState; limit?: number; }
 export interface TrustAppealQueueFilter { organizationId?: string; state?: TrustAppealState; limit?: number; }
@@ -130,4 +131,5 @@ export interface TrustRepository {
   suspendMembership(actorId: string, input: SuspendMembershipInput, requestHash: string): Promise<unknown>;
   resumeMembership(actorId: string, input: ResumeMembershipInput, requestHash: string): Promise<unknown>;
   createRetentionDryRun(actorId: string, input: RetentionDryRunInput, requestHash: string): Promise<unknown>;
+  selectRetentionItems(actorId: string, input: SelectRetentionItemsInput, requestHash: string): Promise<unknown>;
 }

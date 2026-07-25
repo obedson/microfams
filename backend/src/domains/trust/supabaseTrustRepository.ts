@@ -9,6 +9,7 @@ import {
   ResumeMembershipInput,
   ResumeOrganizationInput,
   RetentionDryRunInput,
+  SelectRetentionItemsInput,
   SuspendMembershipInput,
   SuspendOrganizationInput,
   TrustAppeal,
@@ -238,6 +239,12 @@ export class SupabaseTrustRepository implements TrustRepository {
   createRetentionDryRun(actorId: string, input: RetentionDryRunInput, requestHash: string) {
     return rpc('create_retention_dry_run', {
       p_actor: actorId, p_organization: input.organizationId ?? null, p_policy: input.policyId,
+      p_idempotency_key: input.idempotencyKey, p_request_hash: requestHash,
+    });
+  }
+  selectRetentionItems(actorId: string, input: SelectRetentionItemsInput, requestHash: string) {
+    return rpc('select_retention_dry_run_items', {
+      p_actor: actorId, p_run: input.runId,
       p_idempotency_key: input.idempotencyKey, p_request_hash: requestHash,
     });
   }
