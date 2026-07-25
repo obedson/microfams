@@ -50,6 +50,7 @@ import AuditLogs from './pages/AuditLogs';
 import TrustStatus from './pages/TrustStatus';
 import TrustAppeal from './pages/TrustAppeal';
 import TrustReviewQueue from './pages/TrustReviewQueue';
+import AdminLegalHolds from './pages/AdminLegalHolds';
 import SuspendedAccountRecovery from './pages/SuspendedAccountRecovery';
 
 function App() {
@@ -106,6 +107,7 @@ function App() {
         <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
         <Route path="/admin/audit-logs" element={<ProtectedRoute><AuditLogs /></ProtectedRoute>} />
         <Route path="/admin/trust/reviews" element={<ProtectedRoute><TrustReviewQueue /></ProtectedRoute>} />
+        <Route path="/admin/trust/legal-holds" element={<ProtectedRoute><AdminLegalHolds /></ProtectedRoute>} />
       </Routes>
     </Layout>
   );
