@@ -32,11 +32,13 @@ CREATE OR REPLACE FUNCTION protect_suspended_recovery_event() RETURNS TRIGGER LA
 BEGIN RAISE EXCEPTION 'Suspended-account recovery event history is immutable'; END; $$;
 CREATE TRIGGER suspended_recovery_token_history BEFORE UPDATE OR DELETE ON suspended_account_recovery_tokens FOR EACH ROW EXECUTE FUNCTION protect_suspended_recovery_token();
 CREATE TRIGGER suspended_recovery_events_append_only BEFORE UPDATE OR DELETE ON suspended_account_recovery_events FOR EACH ROW EXECUTE FUNCTION protect_suspended_recovery_event();
+CREATE TRIGGER user_suspension_trust_links_immutable BEFORE UPDATE OR DELETE ON user_account_suspension_trust_links FOR EACH ROW EXECUTE FUNCTION protect_suspended_recovery_event();
 CREATE OR REPLACE FUNCTION suspend_trust_user(p_actor UUID,p_user UUID,p_case UUID,p_reason_code TEXT,p_reason_note TEXT,p_idempotency_key TEXT,p_request_hash TEXT)
 RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE d trust_review_decisions; s user_account_suspensions; result JSONB;
 BEGIN
  PERFORM trust_require_platform_admin(p_actor);
+ PERFORM pg_advisory_xact_lock(hashtextextended(p_actor::TEXT||':user.suspend:'||p_idempotency_key,0));
  result:=trust_existing_result(p_actor,'user.suspend',p_idempotency_key,p_request_hash); IF result IS NOT NULL THEN RETURN result; END IF;
  SELECT decision.* INTO d FROM trust_review_decisions decision JOIN trust_review_cases c ON c.id=decision.case_id WHERE c.id=p_case AND c.subject_type='user' AND c.subject_id=p_user AND c.status='decided' AND decision.outcome='suspend_user';
  IF d.id IS NULL THEN RAISE EXCEPTION 'Eligible user suspension decision not found'; END IF;
