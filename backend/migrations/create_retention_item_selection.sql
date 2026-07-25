@@ -22,8 +22,8 @@ BEGIN
  PERFORM trust_require_platform_admin(p_actor);
  PERFORM pg_advisory_xact_lock(hashtextextended(p_actor::TEXT||':retention:'||p_idempotency_key,0));
  result:=trust_existing_result(p_actor,'retention.dry_run',p_idempotency_key,p_request_hash); IF result IS NOT NULL THEN RETURN result; END IF;
- SELECT * INTO p FROM data_retention_policies WHERE id=p_policy;
- IF p.id IS NULL OR NOT p.enabled OR p.organization_id IS DISTINCT FROM p_organization THEN RAISE EXCEPTION 'Enabled retention policy not found for scope'; END IF;
+ SELECT rp.* INTO p FROM data_retention_policies rp WHERE rp.id=p_policy AND rp.enabled AND rp.organization_id IS NOT DISTINCT FROM p_organization;
+ IF NOT FOUND THEN RAISE EXCEPTION 'Enabled retention policy not found for scope'; END IF;
  IF p.data_class NOT IN('trust.case_metadata','trust.appeal_metadata') THEN RAISE EXCEPTION 'Unsupported retention data class'; END IF;
  INSERT INTO data_retention_runs(organization_id,policy_id,requested_by,idempotency_key,request_hash) VALUES(p_organization,p_policy,p_actor,p_idempotency_key,p_request_hash) RETURNING * INTO r;
  result:=jsonb_build_object('runId',r.id,'mode','dry_run','status','planned');
