@@ -47,6 +47,9 @@ import MessagesPage from './pages/MessagesPage';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import AuditLogs from './pages/AuditLogs';
+import TrustStatus from './pages/TrustStatus';
+import TrustAppeal from './pages/TrustAppeal';
+import TrustReviewQueue from './pages/TrustReviewQueue';
 
 function App() {
   return (
@@ -95,6 +98,12 @@ function App() {
         <Route path="/become-a-member" element={<ProtectedRoute><BecomeAMember /></ProtectedRoute>} />
         <Route path="/groups/:id/admin" element={<ProtectedRoute><GroupAdminDashboard /></ProtectedRoute>} />
         <Route path="/groups/:id/member" element={<ProtectedRoute><GroupMemberDashboard /></ProtectedRoute>} />
+        <Route path="/trust/status" element={<ProtectedRoute><TrustStatus /></ProtectedRoute>} />
+        <Route path="/trust/cases/:caseId/appeal" element={<ProtectedRoute><TrustAppeal /></ProtectedRoute>} />
+        <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin" element={<ProtectedRoute><AdminDashboard /></ProtectedRoute>} />
+        <Route path="/admin/audit-logs" element={<ProtectedRoute><AuditLogs /></ProtectedRoute>} />
+        <Route path="/admin/trust/reviews" element={<ProtectedRoute><TrustReviewQueue /></ProtectedRoute>} />
       </Routes>
     </Layout>
   );

@@ -80,6 +80,7 @@ export default function AdminDashboard() {
               <QuickAction icon={<Home size={20} />} title="Manage Properties" onClick={() => navigate('/admin/properties')} />
               <QuickAction icon={<Calendar size={20} />} title="View Bookings" onClick={() => navigate('/admin/bookings')} />
               <QuickAction icon={<Activity size={20} />} title="Audit Logs" onClick={() => navigate('/admin/audit-logs')} />
+              <QuickAction icon={<ShieldAlert size={20} />} title="Trust Reviews" onClick={() => navigate('/admin/trust/reviews')} />
             </div>
           </div>
         </div>
