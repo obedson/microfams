@@ -52,8 +52,26 @@ const commandHeaders = (scope: string) => ({
 export interface LegalHold { id:string; organizationId:string|null; subjectType:'user'|'organization'|'membership'|'case'|'data_class'; subjectId:string; reasonCode:string; status:'active'|'released'; placedAt:string; releasedAt:string|null; }
 
 export interface SuspendedRecoveryStatus { caseId: string; suspended: boolean; expiresAt: string; appealStatus: AppealState | null; }
+export interface RetentionSummary {
+  total: number;
+  held: number;
+  retained: number;
+  wouldAnonymize: number;
+  wouldDelete: number;
+  excluded: number;
+  dataClass: string;
+  cutoffAt: string;
+}
+export interface RetentionDryRun {
+  runId: string;
+  mode: 'dry_run';
+  status: 'planned' | 'completed' | 'failed';
+  summary?: RetentionSummary;
+}
 
 export const trustAPI = {
+  createRetentionDryRun: async (input: { policyId: string; organizationId?: string }) => data<RetentionDryRun>(await apiClient.post('/admin/trust/retention/dry-runs', input, { headers: commandHeaders('retention-dry-run') })),
+  selectRetentionItems: async (runId: string) => data<RetentionDryRun>(await apiClient.post(/admin/trust/retention/dry-runs//select-items, {}, { headers: commandHeaders(etention-select:) })),
   listLegalHolds: async () => data<LegalHold[]>(await apiClient.get('/admin/trust/legal-holds')),
   placeLegalHold: async (input: {organizationId?:string;subjectType:LegalHold['subjectType'];subjectId:string;reasonCode:string;note?:string}) => data<LegalHold>(await apiClient.post('/admin/trust/legal-holds', input, {headers:commandHeaders('legal-hold-place')})),
   releaseLegalHold: async (holdId:string,reasonCode:string,note?:string) => data<LegalHold>(await apiClient.post(`/admin/trust/legal-holds/${holdId}/release`, {reasonCode,note}, {headers:commandHeaders(`legal-hold-release:${holdId}`)})),
