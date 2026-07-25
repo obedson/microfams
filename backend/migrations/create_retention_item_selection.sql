@@ -17,7 +17,7 @@ END; $$;
 CREATE TRIGGER data_retention_runs_terminal_history BEFORE UPDATE OR DELETE ON data_retention_runs FOR EACH ROW EXECUTE FUNCTION protect_data_retention_run();
 CREATE OR REPLACE FUNCTION select_retention_dry_run_items(p_actor UUID,p_run UUID,p_idempotency_key TEXT,p_request_hash TEXT)
 RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
-DECLARE r data_retention_runs; p data_retention_policies; result JSONB; summary JSONB; cutoff TIMESTAMPTZ;
+DECLARE r data_retention_runs; p data_retention_policies; result JSONB; v_summary JSONB; cutoff TIMESTAMPTZ;
 BEGIN
  PERFORM trust_require_platform_admin(p_actor);
  PERFORM pg_advisory_xact_lock(hashtextextended('retention-selection:'||p_run::TEXT,0));
@@ -53,9 +53,9 @@ BEGIN
   WHERE a.organization_id IS NOT DISTINCT FROM r.organization_id AND a.filed_at<cutoff;
  END IF;
  SELECT jsonb_build_object('total',count(*),'held',count(*) FILTER(WHERE proposed_action='held'),'retained',count(*) FILTER(WHERE proposed_action='retain'),'wouldAnonymize',count(*) FILTER(WHERE proposed_action='would_anonymize'),'wouldDelete',count(*) FILTER(WHERE proposed_action='would_delete'),'excluded',count(*) FILTER(WHERE proposed_action='excluded'),'dataClass',p.data_class,'cutoffAt',cutoff)
- INTO summary FROM data_retention_run_items WHERE run_id=r.id;
- UPDATE data_retention_runs SET status='completed',completed_at=NOW(),summary=summary WHERE id=r.id;
- result:=jsonb_build_object('runId',r.id,'mode','dry_run','status','completed','summary',summary);
+ INTO v_summary FROM data_retention_run_items WHERE run_id=r.id;
+ UPDATE data_retention_runs SET status='completed',completed_at=NOW(),summary=v_summary WHERE id=r.id;
+ result:=jsonb_build_object('runId',r.id,'mode','dry_run','status','completed','summary',v_summary);
  RETURN trust_store_result(p_actor,'retention.select_items',p_idempotency_key,p_request_hash,result);
 END; $$;
 REVOKE ALL ON FUNCTION select_retention_dry_run_items(UUID,UUID,TEXT,TEXT) FROM PUBLIC,anon,authenticated;
