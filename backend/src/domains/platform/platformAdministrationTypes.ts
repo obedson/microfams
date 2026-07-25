@@ -19,6 +19,6 @@ export interface PlatformAdministrationRepository {
   listActiveAdministrators(): Promise<PlatformAdministrator[]>;
   grant(actorId: string, userId: string, reasonCode: string, expiresAt?: string): Promise<unknown>;
   revoke(actorId: string, userId: string, reasonCode: string): Promise<unknown>;
-  suspend(actorId: string, userId: string, reasonCode: string, reasonNote?: string): Promise<unknown>;
+  suspend(actorId: string, userId: string, caseId: string, reasonCode: string, idempotencyKey: string, requestHash: string, reasonNote?: string): Promise<unknown>;
   resume(actorId: string, userId: string, reasonCode: string): Promise<unknown>;
 }
