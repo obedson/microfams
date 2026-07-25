@@ -76,6 +76,10 @@ else
     --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.trust_review_cases') IS NOT NULL")"
   if [[ "$trust_schema_present" == "f" ]]; then
     migrations=(create_trust_review_appeals.sql create_suspended_account_recovery.sql)
+  else
+    recovery_schema_present="$(docker exec "$container" psql --username postgres --dbname microfams \\
+      --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.suspended_account_recovery_tokens') IS NOT NULL")"
+    if [[ "$recovery_schema_present" == "f" ]]; then migrations=(create_suspended_account_recovery.sql); fi
   fi
 fi
 
@@ -105,6 +109,8 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
   --command "DO \$\$ BEGIN
     IF to_regclass('public.trust_review_cases') IS NULL
       OR to_regprocedure('public.file_trust_appeal(uuid,uuid,text,text,text)') IS NULL
+      OR to_regclass('public.suspended_account_recovery_tokens') IS NULL
+      OR to_regprocedure('public.file_suspended_account_recovery_appeal(text,text,text,text)') IS NULL
     THEN RAISE EXCEPTION 'trust review and appeal schema was not installed'; END IF;
   END \$\$;" >/dev/null
 
