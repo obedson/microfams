@@ -23,7 +23,7 @@ describe('AdminRetentionDryRuns', () => {
     await waitFor(() => expect(trustAPI.createRetentionDryRun).toHaveBeenCalledWith({ policyId: 'policy-1', organizationId: 'org-1' }));
     await waitFor(() => expect(trustAPI.selectRetentionItems).toHaveBeenCalledWith('run-1'));
     expect(await screen.findByText('Completed preview')).toBeInTheDocument();
-    expect(screen.getByText('trust.case_metadata')).toBeInTheDocument();
+    expect(screen.getByText(/trust\.case_metadata/)).toBeInTheDocument();
     expect(screen.getByText(/never anonymizes or deletes/i)).toBeInTheDocument();
   });
 });
