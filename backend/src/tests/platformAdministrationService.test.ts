@@ -25,12 +25,15 @@ describe('platform administration service', () => {
     repo.suspend.mockResolvedValue({ status: 'active' });
     const service = new PlatformAdministrationService(repo);
 
-    await service.suspend('actor-1', 'user-2', ' policy_breach ', ' reviewed evidence ');
+    await service.suspend('actor-1', 'user-2', 'case-3', ' policy_breach ', 'suspend-key-1', ' reviewed evidence ');
 
     expect(repo.suspend).toHaveBeenCalledWith(
       'actor-1',
       'user-2',
+      'case-3',
       'POLICY_BREACH',
+      'suspend-key-1',
+      expect.stringMatching(/^[0-9a-f]{64}$/),
       'reviewed evidence',
     );
   });
@@ -48,7 +51,7 @@ describe('platform administration service', () => {
     const repo = repository();
     const service = new PlatformAdministrationService(repo);
 
-    await expect(service.suspend('actor-1', 'user-2', 'POLICY_BREACH', 'x'.repeat(1001)))
+    await expect(service.suspend('actor-1', 'user-2', 'case-3', 'POLICY_BREACH', 'suspend-key-2', 'x'.repeat(1001)))
       .rejects.toMatchObject({ code: 'INVALID_REASON_NOTE', status: 400 });
     expect(repo.suspend).not.toHaveBeenCalled();
   });
