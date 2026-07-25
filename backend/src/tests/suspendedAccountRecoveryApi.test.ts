@@ -1,0 +1,11 @@
+import { jest } from '@jest/globals';
+import { suspendedAccountRecoveryController } from '../controllers/suspendedAccountRecoveryController.js';
+import { suspendedAccountRecoveryService } from '../domains/trust/suspendedAccountRecoveryService.js';
+jest.mock('../domains/trust/suspendedAccountRecoveryService.js',()=>({SuspendedRecoveryError:class SuspendedRecoveryError extends Error{constructor(readonly code:string,readonly status:number){super(code);}},suspendedAccountRecoveryService:{request:jest.fn(),inspect:jest.fn(),fileAppeal:jest.fn()}}));
+const response=()=>{const res:any={};res.status=jest.fn().mockReturnValue(res);res.json=jest.fn().mockReturnValue(res);return res;};
+describe('suspended recovery API contract',()=>{
+ beforeEach(()=>jest.clearAllMocks());
+ it('returns an enumeration-resistant request response',async()=>{const res=response();await suspendedAccountRecoveryController.request({body:{email:'User@Example.test'}} as any,res);expect(res.status).toHaveBeenCalledWith(202);expect(JSON.stringify((res.json as jest.Mock).mock.calls[0][0])).not.toContain('User@Example');});
+ it('requires idempotency for the single-purpose appeal',async()=>{const res=response();await suspendedAccountRecoveryController.fileAppeal({body:{token:'A'.repeat(43),grounds:'Material evidence was omitted.'},header:()=>undefined} as any,res);expect(res.status).toHaveBeenCalledWith(400);expect(suspendedAccountRecoveryService.fileAppeal).toHaveBeenCalledWith('A'.repeat(43),'Material evidence was omitted.','');});
+ it('does not accept actor identity from the request',async()=>{const res=response();(suspendedAccountRecoveryService.fileAppeal as jest.Mock).mockResolvedValue({status:'filed'} as never);await suspendedAccountRecoveryController.fileAppeal({body:{token:'A'.repeat(43),grounds:'Material evidence was omitted.',actorId:'attacker'},header:()=> 'appeal-key-1'} as any,res);expect(suspendedAccountRecoveryService.fileAppeal).toHaveBeenCalledWith('A'.repeat(43),'Material evidence was omitted.','appeal-key-1');expect(res.status).toHaveBeenCalledWith(202);});
+});
