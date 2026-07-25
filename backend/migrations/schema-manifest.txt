@@ -47,6 +47,7 @@ create_platform_administration.sql
 create_trust_review_appeals.sql
 create_suspended_account_recovery.sql
 create_legal_hold_commands.sql
+create_retention_item_selection.sql
 install_payment_engine.sql
 install_payment_servicing.sql
 install_payment_settlement.sql
