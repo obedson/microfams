@@ -41,6 +41,10 @@ Secrets belong in Codespaces or the deployment secret manager and must never be 
 
 The backend service role has read-only table access to payment intents, attempts, refunds, reversals, fees, settlements, provider events, payouts, and payout attempts. All mutations must use the approved `SECURITY DEFINER` commands. Custom PostgreSQL session settings are not authorization boundaries, and setting an engine variable does not restore direct insert, update, or delete privileges.
 
+## Reconciliation boundary
+
+Provider reconciliation files or event batches are persisted through one atomic database command. The source hash is an idempotency boundary: an exact replay returns the existing run, while changed facts under the same hash are rejected. Duplicate provider rows remain visible as separate exception evidence, and any invalid row rolls back the complete import. The backend role can read runs, items, and exceptions but cannot mutate them directly.
+
 ## Recovery
 
 - The minute job processes verified payment provider events in receipt order.
