@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import { supabase } from '../../utils/supabase.js';
 
 export interface ReconciliationCandidate {
@@ -74,103 +73,19 @@ export class ReconciliationService {
     openingBalanceMinor: number;
     providerBalanceMinor: number;
   }) {
-    const { data: configuration, error: configError } = await supabase
-      .from('reconciliation_configurations')
-      .select('*')
-      .eq('id', input.configurationId)
-      .eq('organization_id', input.organizationId)
-      .eq('enabled', true)
-      .single();
-    if (configError || !configuration) throw new Error('Reconciliation configuration is unavailable');
-    const { data: payments, error: paymentError } = await supabase
-      .from('payments')
-      .select('id, provider_reference, internal_reference, amount_minor, currency, terminal_at')
-      .eq('organization_id', input.organizationId)
-      .eq('provider_name', configuration.provider_name)
-      .eq('provider_environment', configuration.provider_environment)
-      .in('state', ['succeeded', 'partially_refunded', 'refunded'])
-      .gte('terminal_at', input.periodStart)
-      .lte('terminal_at', input.periodEnd);
-    if (paymentError) throw paymentError;
-    const inbound: InternalPaymentCandidate[] = (payments ?? []).map((payment: any) => ({
-      paymentId: payment.id, providerReference: payment.provider_reference,
-      internalReference: payment.internal_reference, amountMinor: Number(payment.amount_minor),
-      currency: payment.currency, direction: 'inbound', occurredAt: payment.terminal_at,
-    }));
-
-    const { data: payouts, error: payoutError } = await supabase
-      .from('payouts')
-      .select('id, provider_reference, internal_reference, amount_minor, currency, terminal_at')
-      .eq('organization_id', input.organizationId)
-      .eq('provider_name', configuration.provider_name)
-      .eq('provider_environment', configuration.provider_environment)
-      .eq('state', 'succeeded')
-      .gte('terminal_at', input.periodStart)
-      .lte('terminal_at', input.periodEnd);
-    if (payoutError) throw payoutError;
-    const internal: InternalPayoutCandidate[] = (payouts ?? []).map((payout: any) => ({
-      payoutId: payout.id,
-      providerReference: payout.provider_reference,
-      internalReference: payout.internal_reference,
-      amountMinor: Number(payout.amount_minor),
-      currency: payout.currency,
-      direction: 'outbound',
-      occurredAt: payout.terminal_at,
-    }));
-    const matches = reconcilePayoutCandidates([...internal, ...inbound], input.providerItems, configuration.date_window_hours);
-    const movementMinor = inbound.reduce((sum, item) => sum + item.amountMinor, 0) - internal.reduce((sum, item) => sum + item.amountMinor, 0);
-    const closingBalanceMinor = input.openingBalanceMinor + movementMinor;
-    const matchedValueMinor = matches.filter((item) => item.state === 'matched')
-      .reduce((sum, item) => sum + item.source.amountMinor, 0);
-    const unexplainedVarianceMinor = closingBalanceMinor - input.providerBalanceMinor;
-
-    const { data: run, error: runError } = await supabase.from('reconciliation_runs').upsert({
-      organization_id: input.organizationId,
-      configuration_id: input.configurationId,
-      source_hash: input.sourceHash,
-      period_start: input.periodStart,
-      period_end: input.periodEnd,
-      state: 'completed',
-      opening_balance_minor: input.openingBalanceMinor,
-      movement_minor: movementMinor,
-      closing_balance_minor: closingBalanceMinor,
-      provider_balance_minor: input.providerBalanceMinor,
-      matched_value_minor: matchedValueMinor,
-      unexplained_variance_minor: unexplainedVarianceMinor,
-      started_by: input.startedBy,
-      completed_at: new Date().toISOString(),
-    }, { onConflict: 'configuration_id,source_hash' }).select().single();
-    if (runError || !run) throw runError ?? new Error('Reconciliation run could not be stored');
-
-    for (const match of matches) {
-      const sourceItemHash = crypto.createHash('sha256').update(JSON.stringify(match.source)).digest('hex');
-      const { data: item, error: itemError } = await supabase.from('reconciliation_items').upsert({
-        organization_id: input.organizationId,
-        run_id: run.id,
-        payout_id: match.payoutId,
-        provider_reference: match.source.providerReference,
-        payment_id: match.paymentId,
-        internal_reference: match.source.internalReference,
-        direction: match.source.direction,
-        currency: match.source.currency,
-        amount_minor: match.source.amountMinor,
-        occurred_at: match.source.occurredAt,
-        source_item_hash: sourceItemHash,
-        state: match.state,
-        mismatch_reason: match.reason,
-      }, { onConflict: 'run_id,source_item_hash' }).select().single();
-      if (itemError || !item) throw itemError ?? new Error('Reconciliation item could not be stored');
-      if (match.state !== 'matched') {
-        const { error: exceptionError } = await supabase.from('reconciliation_exceptions').upsert({
-          organization_id: input.organizationId,
-          run_id: run.id,
-          item_id: item.id,
-          reason: match.reason ?? match.state,
-        }, { onConflict: 'item_id' });
-        if (exceptionError) throw exceptionError;
-      }
-    }
-    return { ...run, matchedCount: matches.filter((item) => item.state === 'matched').length, exceptionCount: matches.filter((item) => item.state !== 'matched').length };
+    const { data, error } = await supabase.rpc('run_payment_reconciliation', {
+      p_organization_id: input.organizationId,
+      p_configuration_id: input.configurationId,
+      p_source_hash: input.sourceHash,
+      p_period_start: input.periodStart,
+      p_period_end: input.periodEnd,
+      p_provider_items: input.providerItems,
+      p_started_by: input.startedBy,
+      p_opening_balance_minor: input.openingBalanceMinor,
+      p_provider_balance_minor: input.providerBalanceMinor,
+    });
+    if (error || !data) throw error ?? new Error('Reconciliation run could not be stored');
+    return data;
   }
 }
 

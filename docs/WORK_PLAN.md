@@ -92,6 +92,7 @@ Exit gate: sandbox and live-contract tests, privacy review, replay protection, a
   - [x] Add audited tenant cutover, protected derived caches, reservations, reversals, rollback controls, and concurrent overcommit coverage.
 - [ ] Add idempotent payment orchestration, provider adapters, webhooks, settlement, fees, refunds, reversals, and reconciliation.
   - [x] Remove direct backend-role mutation rights and run the payment/refund/reversal/settlement SQL contract in clean-schema CI.
+  - [x] Persist reconciliation runs and source evidence atomically with tenant validation and replay protection.
 - [ ] Implement individual, group, escrow, savings, investment, clearing, fee, and settlement accounts.
 - [ ] Add statements, limits, approvals, freezes, closures, and incident recovery.
   - [x] Add reproducible journal-derived personal and group wallet statements.
