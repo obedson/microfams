@@ -175,6 +175,10 @@ BEGIN
       AND group_record.group_fund_balance * 100 <> wallet_account_balance_minor(account.id)
   ) THEN RAISE EXCEPTION 'a wallet cache does not reconcile to its liability account'; END IF;
 
+  IF EXISTS (SELECT 1 FROM wallet_cache_write_capabilities) THEN
+    RAISE EXCEPTION 'posting engine leaked a wallet cache write capability';
+  END IF;
+
   BEGIN
     PERFORM rollback_wallet_ledger_cutover(tenant_id, owner_id);
     RAISE EXCEPTION 'cutover with posted wallet activity rolled back';

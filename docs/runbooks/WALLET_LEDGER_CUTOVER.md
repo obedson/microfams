@@ -26,6 +26,10 @@ Every command uses a tenant-scoped idempotency key, posts a balanced journal, li
 
 ## Fund reservations and API money
 
+Derived wallet and group balance caches are protected by transaction- and owner-scoped database capabilities. Only the non-public posting helper can issue a capability, it is deleted immediately after synchronization, and application roles cannot create or inspect capability rows. Custom PostgreSQL settings are not authorization boundaries and must never be used to bypass cache protection.
+
+Concurrent reservations lock the wallet before calculating available balance. The clean-schema suite opens separate database sessions against the same wallet and proves that exactly one competing reservation succeeds when both would otherwise overcommit the account.
+
 Wallet command APIs accept `amountMinor`, `currency`, and an idempotency key. They do not accept or return floating-point financial amounts. Legacy decimal columns remain compatibility caches only; application adapters convert them through exact decimal strings.
 
 Withdrawal confirmation creates an expiring `fund_reservations` record before any provider call. An active reservation reduces available balance without changing ledger balance. Consumption atomically moves the wallet liability to that wallet's pending-payout liability, and provider failure restores the exact consumed reservation through a compensating journal. Replays return the original reservation and journals.
