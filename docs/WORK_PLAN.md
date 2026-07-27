@@ -80,7 +80,7 @@ Exit gate: automated tenant-isolation tests across database, API, exports, jobs,
   - [x] Add single-purpose suspended-account recovery and appeal tokens.
   - [x] Add legal-hold placement/release command history.
   - [x] Add the retention item-selection worker.
-  - [ ] Add negative-path trust and recovery E2E coverage.
+  - [x] Add negative-path trust and recovery E2E coverage.
 
 Exit gate: sandbox and live-contract tests, privacy review, replay protection, and negative-path E2E tests.
 
