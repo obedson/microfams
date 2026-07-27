@@ -84,6 +84,7 @@ Critical journeys:
 - Cached balances reconcile to the ledger.
 - Application-controlled session settings cannot authorize derived-cache writes.
 - Concurrent debit reservations serialize and cannot overcommit available funds.
+- Backend service roles can read durable payment and payout records but mutate them only through approved atomic commands.
 - Escrow assets equal escrow liabilities.
 - Savings interest and dividends follow approved deterministic rules.
 - Loan principal, interest, fees, payments, arrears, and write-offs reconcile.

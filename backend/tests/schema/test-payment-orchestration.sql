@@ -34,12 +34,6 @@ BEGIN
   EXCEPTION WHEN OTHERS THEN
     IF SQLERRM = 'payment replay accepted changed money' THEN RAISE; END IF;
   END;
-  BEGIN
-    UPDATE payments SET state = 'succeeded' WHERE id = payment.id;
-    RAISE EXCEPTION 'payment allowed direct state mutation';
-  EXCEPTION WHEN OTHERS THEN
-    IF SQLERRM = 'payment allowed direct state mutation' THEN RAISE; END IF;
-  END;
 
   payment := mark_payment_initialized(payment.id, repeat('a', 64), 'PAY-schema-success-001',
     'requires_action', NOW() + INTERVAL '1 hour');
@@ -123,6 +117,20 @@ BEGIN
     OR NOT EXISTS (SELECT 1 FROM payment_fees WHERE settlement_id = settlement.id AND amount_minor = 2500)
     THEN RAISE EXCEPTION 'settlement fee posting failed'; END IF;
 END $$;
+
+SET ROLE service_role;
+DO $$ BEGIN
+  PERFORM set_config('microfams.payment_engine', 'on', TRUE);
+  BEGIN
+    UPDATE payments SET state = 'failed'
+    WHERE internal_reference = 'PAY-schema-success-001';
+    RAISE EXCEPTION 'caller-controlled setting bypassed payment mutation protection';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'caller-controlled setting bypassed payment mutation protection' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('microfams.payment_engine', '', TRUE);
+END $$;
+RESET ROLE;
 
 GRANT SELECT ON payments, payment_refunds, payment_reversals, payment_provider_events, settlements TO authenticated;
 SET ROLE authenticated;

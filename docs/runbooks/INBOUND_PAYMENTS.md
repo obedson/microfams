@@ -37,6 +37,10 @@ Secrets belong in Codespaces or the deployment secret manager and must never be 
 9. Provider reversals create immutable reversal records and compensating journals; the original payment and journal are not edited.
 10. Settlements post net bank cash and provider fees against gross provider clearing.
 
+## Database mutation boundary
+
+The backend service role has read-only table access to payment intents, attempts, refunds, reversals, fees, settlements, provider events, payouts, and payout attempts. All mutations must use the approved `SECURITY DEFINER` commands. Custom PostgreSQL session settings are not authorization boundaries, and setting an engine variable does not restore direct insert, update, or delete privileges.
+
 ## Recovery
 
 - The minute job processes verified payment provider events in receipt order.
