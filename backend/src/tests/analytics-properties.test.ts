@@ -15,35 +15,19 @@ describe('Analytics Property Tests - Full Compliance', () => {
   let testOwnerId: string;
 
   beforeAll(async () => {
-    console.log('Setting up analytics test with existing data approach...');
-
-    // Use existing user as farmer
-    const { data: farmer } = await supabase
-      .from('users')
-      .select('id, email')
-      .eq('role', 'farmer')
-      .limit(1)
-      .single();
-
-    if (!farmer) {
-      throw new Error('No farmer found in database');
-    }
-
+    const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const { data: farmer, error: farmerError } = await supabase.from('users').insert({
+      email: `analytics-farmer-${suffix}@example.test`, password: 'not-a-real-password',
+      name: 'Analytics Farmer', role: 'farmer'
+    }).select('id').single();
+    if (farmerError || !farmer) throw farmerError ?? new Error('Failed to create analytics farmer');
     testFarmerId = farmer.id;
-    console.log(`Using existing farmer: ${farmer.email} ID: ${testFarmerId}`);
 
-    // Use existing user as owner
-    const { data: owner } = await supabase
-      .from('users')
-      .select('id')
-      .eq('role', 'owner')
-      .limit(1)
-      .single();
-
-    if (!owner) {
-      throw new Error('No owner found in database');
-    }
-
+    const { data: owner, error: ownerError } = await supabase.from('users').insert({
+      email: `analytics-owner-${suffix}@example.test`, password: 'not-a-real-password',
+      name: 'Analytics Owner', role: 'owner'
+    }).select('id').single();
+    if (ownerError || !owner) throw ownerError ?? new Error('Failed to create analytics owner');
     testOwnerId = owner.id;
 
     // Create a dedicated test property
@@ -84,6 +68,8 @@ describe('Analytics Property Tests - Full Compliance', () => {
     // Cleanup test data
     await supabase.from('bookings').delete().eq('property_id', testPropertyId);
     await supabase.from('properties').delete().eq('id', testPropertyId);
+    if (testFarmerId) await supabase.from('users').delete().eq('id', testFarmerId);
+    if (testOwnerId) await supabase.from('users').delete().eq('id', testOwnerId);
     console.log(`Cleaned up test property: ${testPropertyId}`);
   });
 

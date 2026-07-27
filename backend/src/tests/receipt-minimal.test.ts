@@ -2,18 +2,37 @@ import { describe, it, expect } from '@jest/globals';
 import { supabase } from '../utils/supabase.js';
 
 describe('Receipt System - Database Only Tests', () => {
-  const bookingId = '83517c07-8cfe-464d-b84f-797c5386d8b6';
+  let bookingId: string;
+  let propertyId: string;
+  let testUserId: string;
   let testReceiptId: string;
   let organizationId: string;
+  const suffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
   beforeAll(async () => {
-    const { data: booking, error } = await supabase
-      .from('bookings')
-      .select('organization_id')
-      .eq('id', bookingId)
-      .single();
+    const { data: user, error: userError } = await supabase.from('users').insert({
+      email: `receipt-owner-${suffix}@example.test`, password: 'not-a-real-password',
+      name: 'Receipt Owner', role: 'owner'
+    }).select('id').single();
+    if (userError || !user) throw userError ?? new Error('Failed to create receipt owner');
+    testUserId = user.id;
+    organizationId = user.id;
 
-    if (error) throw error;
+    const { data: property, error: propertyError } = await supabase.from('properties').insert({
+      owner_id: testUserId, title: 'Receipt Test Property', description: 'Receipt integration fixture',
+      livestock_type: 'poultry', space_type: 'equipped_house', size: 10, size_unit: 'units',
+      city: 'Test City', lga: 'Test LGA', price_per_month: 1000,
+      available_from: '2026-01-01', available_to: '2026-12-31', is_active: true
+    }).select('id').single();
+    if (propertyError || !property) throw propertyError ?? new Error('Failed to create receipt property');
+    propertyId = property.id;
+
+    const { data: booking, error: bookingError } = await supabase.from('bookings').insert({
+      property_id: propertyId, farmer_id: testUserId, start_date: '2026-07-01', end_date: '2026-07-02',
+      total_amount: 50000, status: 'confirmed', payment_status: 'paid'
+    }).select('id, organization_id').single();
+    if (bookingError || !booking) throw bookingError ?? new Error('Failed to create receipt booking');
+    bookingId = booking.id;
     organizationId = booking.organization_id;
   });
 
@@ -84,7 +103,7 @@ describe('Receipt System - Database Only Tests', () => {
         .insert({
           booking_id: bookingId,
           organization_id: organizationId,
-          payment_reference: 'test_auto_number',
+          payment_reference: `test_auto_number_${suffix}`,
           amount: 25000,
           currency: 'NGN'
         })
@@ -105,6 +124,16 @@ describe('Receipt System - Database Only Tests', () => {
   afterAll(async () => {
     if (testReceiptId) {
       await supabase.from('payment_receipts').delete().eq('id', testReceiptId);
+    }
+    if (bookingId) {
+      await supabase.from('payment_receipts').delete().eq('booking_id', bookingId);
+      await supabase.from('bookings').delete().eq('id', bookingId);
+    }
+    if (propertyId) {
+      await supabase.from('properties').delete().eq('id', propertyId);
+    }
+    if (testUserId) {
+      await supabase.from('users').delete().eq('id', testUserId);
     }
   });
 });

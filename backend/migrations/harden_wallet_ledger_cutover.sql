@@ -95,8 +95,10 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION protect_cutover_wallet_cache() FROM PUBLIC;
-REVOKE ALL ON FUNCTION sync_wallet_ledger_cache(UUID, TEXT, UUID, UUID) FROM PUBLIC;
+REVOKE ALL ON FUNCTION protect_cutover_wallet_cache()
+  FROM PUBLIC, anon, authenticated, service_role;
+REVOKE ALL ON FUNCTION sync_wallet_ledger_cache(UUID, TEXT, UUID, UUID)
+  FROM PUBLIC, anon, authenticated, service_role;
 
 DO $$
 BEGIN
