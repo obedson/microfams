@@ -57,3 +57,4 @@ enable_rls_policies.sql
 fix_courses_rls.sql
 disable_public_access.sql
 harden_wallet_ledger_cutover.sql
+harden_payment_payout_engines.sql

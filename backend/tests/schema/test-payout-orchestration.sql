@@ -41,12 +41,6 @@ BEGIN
   IF payout.id <> replay.id OR payout.state <> 'reserved' THEN
     RAISE EXCEPTION 'payout creation replay was not idempotent';
   END IF;
-  BEGIN
-    UPDATE payouts SET state = 'succeeded' WHERE id = payout.id;
-    RAISE EXCEPTION 'payout allowed direct state mutation';
-  EXCEPTION WHEN OTHERS THEN
-    IF SQLERRM = 'payout allowed direct state mutation' THEN RAISE; END IF;
-  END;
 
   payout := mark_payout_submitted(payout.id, repeat('b', 64), 'DET-success-1', TRUE);
   IF payout.state <> 'processing' THEN RAISE EXCEPTION 'unknown submission did not remain recoverable'; END IF;
@@ -104,6 +98,20 @@ BEGIN
     RAISE EXCEPTION 'failed payout did not restore the exact consumed reservation';
   END IF;
 END $$;
+
+SET ROLE service_role;
+DO $$ BEGIN
+  PERFORM set_config('microfams.payout_engine', 'on', TRUE);
+  BEGIN
+    UPDATE payouts SET state = 'succeeded'
+    WHERE internal_reference = 'WD-schema-payout-success';
+    RAISE EXCEPTION 'caller-controlled setting bypassed payout mutation protection';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'caller-controlled setting bypassed payout mutation protection' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('microfams.payout_engine', '', TRUE);
+END $$;
+RESET ROLE;
 
 GRANT SELECT ON payouts, payout_attempts, provider_events TO authenticated;
 SET ROLE authenticated;
