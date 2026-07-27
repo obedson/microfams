@@ -5,6 +5,13 @@ import { supabase } from '../utils/supabase.js';
 import Joi from 'joi';
 import { TenantRequest } from '../middleware/tenant.js';
 import { payoutService } from '../domains/financial/payoutService.js';
+import { FinancialStatementService, StatementValidationError } from '../domains/financial/financialStatementService.js';
+import {
+  StatementAccessError,
+  SupabaseFinancialStatementGateway,
+} from '../domains/financial/supabaseFinancialStatementGateway.js';
+
+const financialStatementService = new FinancialStatementService(new SupabaseFinancialStatementGateway());
 
 const p2pSchema = Joi.object({
   recipientEmail: Joi.string().email().required(),
@@ -33,6 +40,50 @@ const groupWithdrawSchema = Joi.object({
 });
 
 class WalletController {
+  async getStatement(req: TenantRequest, res: Response) {
+    try {
+      const result = await financialStatementService.getStatement({
+        organizationId: req.tenant!.id,
+        actorId: req.user!.id,
+        ownerType: 'user',
+        ownerId: req.user!.id,
+        currency: req.query.currency as string | undefined,
+        from: req.query.from as string | undefined,
+        to: req.query.to as string | undefined,
+        cutoff: req.query.cutoff as string | undefined,
+        page: req.query.page ? Number(req.query.page) : undefined,
+        limit: req.query.limit ? Number(req.query.limit) : undefined,
+      });
+      return res.json(result);
+    } catch (error) {
+      if (error instanceof StatementValidationError) return res.status(400).json({ error: error.message });
+      if (error instanceof StatementAccessError) return res.status(404).json({ error: error.message });
+      return res.status(500).json({ error: 'Statement could not be loaded.' });
+    }
+  }
+
+  async getGroupStatement(req: TenantRequest, res: Response) {
+    try {
+      const result = await financialStatementService.getStatement({
+        organizationId: req.tenant!.id,
+        actorId: req.user!.id,
+        ownerType: 'group',
+        ownerId: req.params.id,
+        currency: req.query.currency as string | undefined,
+        from: req.query.from as string | undefined,
+        to: req.query.to as string | undefined,
+        cutoff: req.query.cutoff as string | undefined,
+        page: req.query.page ? Number(req.query.page) : undefined,
+        limit: req.query.limit ? Number(req.query.limit) : undefined,
+      });
+      return res.json(result);
+    } catch (error) {
+      if (error instanceof StatementValidationError) return res.status(400).json({ error: error.message });
+      if (error instanceof StatementAccessError) return res.status(404).json({ error: error.message });
+      return res.status(500).json({ error: 'Statement could not be loaded.' });
+    }
+  }
+
   async getWallet(req: TenantRequest, res: Response) {
     const page = parseInt(req.query.page as string) || 1;
     const limit = parseInt(req.query.limit as string) || 10;

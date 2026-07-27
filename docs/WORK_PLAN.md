@@ -92,6 +92,7 @@ Exit gate: sandbox and live-contract tests, privacy review, replay protection, a
 - [ ] Add idempotent payment orchestration, provider adapters, webhooks, settlement, fees, refunds, reversals, and reconciliation.
 - [ ] Implement individual, group, escrow, savings, investment, clearing, fee, and settlement accounts.
 - [ ] Add statements, limits, approvals, freezes, closures, and incident recovery.
+  - [x] Add reproducible journal-derived personal and group wallet statements.
 
 Exit gate: invariant/property tests, reconciliation to zero unexplained variance, concurrency tests, and provider sandbox certification.
 

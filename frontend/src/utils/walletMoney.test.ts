@@ -12,5 +12,8 @@ describe('wallet minor-unit input', () => {
 
   it('formats minor units as NGN', () => {
     expect(formatNgnMinor(100005)).toContain('1,000.05');
+    expect(formatNgnMinor('-1000')).toBe('-₦10.00');
+    expect(formatNgnMinor('9223372036854775807')).toBe('₦92,233,720,368,547,758.07');
+    expect(() => formatNgnMinor(Number.MAX_SAFE_INTEGER + 1)).toThrow();
   });
 });

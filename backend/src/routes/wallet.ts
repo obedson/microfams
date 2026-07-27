@@ -22,6 +22,7 @@ router.use(resolveTenant);
 
 // Individual wallet routes
 router.get('/', requireFeature('financial.wallets.read'), walletController.getWallet);
+router.get('/statement', requireFeature('financial.accounting.read'), walletController.getStatement);
 router.get('/transactions/:id', requireFeature('financial.wallets.read'), walletController.getTransaction);
 router.post('/p2p/lookup', requireFeature('financial.wallets.read'), walletLimiter, walletController.lookupRecipient);
 router.post('/p2p', requireFeature('financial.wallets.transact'), walletLimiter, walletController.initiateP2P);
@@ -32,6 +33,7 @@ router.get('/withdraw/:id/status', requireFeature('financial.payouts.service_exi
 
 // Group wallet routes
 router.get('/groups/:id', requireFeature('financial.wallets.read'), walletController.getGroupWallet);
+router.get('/groups/:id/statement', requireFeature('financial.accounting.read'), walletController.getGroupStatement);
 router.post('/groups/:id/withdraw', requireFeature('financial.wallets.transact'), requireFeature('financial.payouts.create'), walletLimiter, walletController.initiateGroupWithdrawal);
 router.get('/groups/:id/withdraw/:requestId', requireFeature('financial.wallets.read'), walletController.getGroupWithdrawalRequest);
 router.post('/groups/:id/withdraw/:requestId/approve', requireFeature('financial.wallets.transact'), requireFeature('financial.payouts.create'), walletLimiter, walletController.castApprovalVote);
