@@ -82,6 +82,8 @@ Critical journeys:
 - Reversal plus original has zero net effect except explicit non-refundable fees.
 - Statements reconcile to journal entries.
 - Cached balances reconcile to the ledger.
+- Application-controlled session settings cannot authorize derived-cache writes.
+- Concurrent debit reservations serialize and cannot overcommit available funds.
 - Escrow assets equal escrow liabilities.
 - Savings interest and dividends follow approved deterministic rules.
 - Loan principal, interest, fees, payments, arrears, and write-offs reconcile.

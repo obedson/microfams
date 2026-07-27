@@ -1,6 +1,6 @@
 # Micro Fams V1 Financial Core Specification
 
-Status: proposed for product-owner approval. No financial-core implementation may rely on this document until its status is changed to `approved` with an approval record.
+Status: approved. FC-01 through FC-08 were approved by the product owner on 2026-07-19; the approval record is maintained at the end of this specification.
 
 ## Purpose
 
@@ -10,7 +10,7 @@ The financial core is tenant-isolated and provider-neutral. Feature flags contro
 
 ## Authority and conflict resolution
 
-When approved, this specification supersedes conflicting financial implementation details in `.kiro/specs/group-individual-wallet-system/`, including:
+This approved specification supersedes conflicting financial implementation details in `.kiro/specs/group-individual-wallet-system/`, including:
 
 - treating `wallet_transactions` as an accounting ledger;
 - treating wallet or group balance columns as the source of truth;
@@ -36,7 +36,7 @@ The wallet specification's user journeys remain product requirements where they 
 
 ## 2. Money representation
 
-Proposed decision FC-01:
+Approved decision FC-01:
 
 1. Application and database money amounts MUST use signed 64-bit integer minor units. For NGN, `100` represents ?1.00.
 2. APIs MUST expose amounts as integer minor units plus an ISO 4217 currency code. They MUST NOT accept JavaScript floating-point money.
@@ -48,7 +48,7 @@ Proposed decision FC-01:
 
 ## 3. Account model and chart of accounts
 
-Proposed decision FC-02:
+Approved decision FC-02:
 
 1. The financial source of truth MUST consist of first-class ledger accounts, journal entries, and journal lines.
 2. Account classes are `asset`, `liability`, `equity`, `revenue`, and `expense`.
@@ -80,7 +80,7 @@ Minimum control accounts:
 
 ## 4. Journal lifecycle and invariants
 
-Proposed decision FC-03:
+Approved decision FC-03:
 
 1. Journal entry states are `draft`, `posted`, and `reversed`.
 2. Draft entries have no financial effect. A posted entry is immutable.
@@ -95,7 +95,7 @@ Proposed decision FC-03:
 
 ## 5. Available, pending, and ledger balances
 
-Proposed decision FC-04:
+Approved decision FC-04:
 
 1. Each wallet or financial contract MUST distinguish `ledger_balance`, `pending_debits`, `pending_credits`, and `available_balance`.
 2. `available_balance = ledger_balance - reserved_or_pending_debits`, subject to product-specific holds.
@@ -126,7 +126,7 @@ The exact account identifiers are tenant-specific, but approved products MUST ma
 
 ## 7. Payment and payout orchestration
 
-Proposed decision FC-05:
+Approved decision FC-05:
 
 1. Provider-neutral commands MUST use adapters; controllers and domain services MUST NOT depend directly on Paystack or Interswitch payloads.
 2. Payment states are at least `created`, `requires_action`, `processing`, `succeeded`, `failed`, `cancelled`, `expired`, `partially_refunded`, and `refunded`.
@@ -150,7 +150,7 @@ Proposed decision FC-05:
 
 ## 9. Reconciliation and settlement
 
-Proposed decision FC-06:
+Approved decision FC-06:
 
 1. Each external provider and bank account MUST have a reconciliation configuration per environment and currency.
 2. Reconciliation MUST compare internal payment/payout records, posted journal entries, provider transactions, provider settlements, fees, and bank settlement totals.
@@ -163,7 +163,7 @@ Proposed decision FC-06:
 
 ## 10. Limits, KYC, risk, and configurable rules
 
-Proposed decision FC-07:
+Approved decision FC-07:
 
 1. Transaction and balance limits MUST be stored as effective-dated, tenant-, jurisdiction-, product-, channel-, currency-, and KYC-tier-aware rules.
 2. The platform MAY impose a lower product or user limit than a provider/regulatory ceiling. It MUST NOT exceed an applicable ceiling.
@@ -224,7 +224,7 @@ The backend MUST enforce the existing acquisition/servicing pairs:
 
 ## 15. Migration from the current wallet model
 
-Proposed decision FC-08:
+Approved decision FC-08:
 
 1. Existing `NUMERIC(15,2)` money MUST be converted to integer minor units through an audited migration that rejects fractions below one minor unit and out-of-range values.
 2. Existing organization ownership MUST be complete before financial migration. Quarantined or ambiguous records MUST NOT be silently assigned to an active tenant.

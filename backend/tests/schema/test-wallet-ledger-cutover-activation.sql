@@ -56,6 +56,15 @@ BEGIN
     IF SQLERRM = 'active cutover allowed a direct wallet cache write' THEN RAISE; END IF;
   END;
 
+  PERFORM set_config('microfams.wallet_posting_engine', 'on', TRUE);
+  BEGIN
+    UPDATE user_wallets SET balance = balance + 1 WHERE id = wallet_id;
+    RAISE EXCEPTION 'application-controlled GUC bypassed wallet cache protection';
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM = 'application-controlled GUC bypassed wallet cache protection' THEN RAISE; END IF;
+  END;
+  PERFORM set_config('microfams.wallet_posting_engine', '', TRUE);
+
   SELECT id INTO blocked_run_id FROM wallet_ledger_migration_runs
   WHERE organization_id = '00000000-0000-4000-8000-000000000102'
   ORDER BY completed_at DESC LIMIT 1;
