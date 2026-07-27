@@ -94,6 +94,7 @@ Exit gate: sandbox and live-contract tests, privacy review, replay protection, a
   - [x] Remove direct backend-role mutation rights and run the payment/refund/reversal/settlement SQL contract in clean-schema CI.
   - [x] Persist reconciliation runs and source evidence atomically with tenant validation and replay protection.
   - [x] Add authorized, auditable, and idempotent reconciliation exception investigation transitions.
+  - [x] Add maker-checker resolution and write-off with immutable evidence and compensating-journal validation.
 - [ ] Implement individual, group, escrow, savings, investment, clearing, fee, and settlement accounts.
 - [ ] Add statements, limits, approvals, freezes, closures, and incident recovery.
   - [x] Add reproducible journal-derived personal and group wallet statements.

@@ -92,4 +92,32 @@ describe('atomic reconciliation persistence', () => {
       p_reason: 'Investigate duplicate provider evidence before close',
     });
   });
+
+  it('requests resolution with evidence and a compensating journal', async () => {
+    rpcMock.mockResolvedValue({ data: { id: 'resolution-1', state: 'pending' }, error: null });
+    const service = new ReconciliationService();
+    await expect(service.requestExceptionResolution({
+      exceptionId: 'exception-1', actorId: 'maker-1', resolutionType: 'writeoff',
+      resolutionReason: 'Write off verified provider variance', evidenceReference: 'evidence://reconciliation/001',
+      compensatingJournalEntryId: 'journal-1', idempotencyKey: 'resolution-key-001',
+    })).resolves.toEqual({ id: 'resolution-1', state: 'pending' });
+    expect(rpcMock).toHaveBeenCalledWith('request_reconciliation_exception_resolution', {
+      p_exception: 'exception-1', p_actor: 'maker-1', p_type: 'writeoff',
+      p_reason: 'Write off verified provider variance', p_evidence: 'evidence://reconciliation/001',
+      p_journal: 'journal-1', p_key: 'resolution-key-001',
+    });
+  });
+
+  it('delegates the independent checker decision to the atomic command', async () => {
+    rpcMock.mockResolvedValue({ data: { id: 'resolution-1', state: 'approved' }, error: null });
+    const service = new ReconciliationService();
+    await expect(service.decideExceptionResolution({
+      resolutionRequestId: 'resolution-1', actorId: 'checker-1', approve: true,
+      decisionReason: 'Independent checker verified evidence',
+    })).resolves.toEqual({ id: 'resolution-1', state: 'approved' });
+    expect(rpcMock).toHaveBeenCalledWith('decide_reconciliation_exception_resolution', {
+      p_request: 'resolution-1', p_actor: 'checker-1', p_approve: true,
+      p_reason: 'Independent checker verified evidence',
+    });
+  });
 });

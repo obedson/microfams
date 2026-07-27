@@ -102,6 +102,42 @@ export class ReconciliationService {
     }
     return data;
   }
+  async requestExceptionResolution(input: {
+    exceptionId: string;
+    actorId: string;
+    resolutionType: 'matched_evidence' | 'provider_correction' | 'compensating_adjustment' | 'writeoff';
+    resolutionReason: string;
+    evidenceReference: string;
+    compensatingJournalEntryId?: string;
+    idempotencyKey: string;
+  }) {
+    const { data, error } = await supabase.rpc('request_reconciliation_exception_resolution', {
+      p_exception: input.exceptionId,
+      p_actor: input.actorId,
+      p_type: input.resolutionType,
+      p_reason: input.resolutionReason,
+      p_evidence: input.evidenceReference,
+      p_journal: input.compensatingJournalEntryId ?? null,
+      p_key: input.idempotencyKey,
+    });
+    if (error || !data) throw error ?? new Error('Reconciliation resolution could not be requested');
+    return data;
+  }
+  async decideExceptionResolution(input: {
+    resolutionRequestId: string;
+    actorId: string;
+    approve: boolean;
+    decisionReason: string;
+  }) {
+    const { data, error } = await supabase.rpc('decide_reconciliation_exception_resolution', {
+      p_request: input.resolutionRequestId,
+      p_actor: input.actorId,
+      p_approve: input.approve,
+      p_reason: input.decisionReason,
+    });
+    if (error || !data) throw error ?? new Error('Reconciliation resolution could not be decided');
+    return data;
+  }
 }
 
 export const reconciliationService = new ReconciliationService();
