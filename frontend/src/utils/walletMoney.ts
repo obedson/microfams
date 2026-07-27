@@ -13,7 +13,16 @@ export const parseNgnMinor = (value: string): number => {
   return result;
 };
 
-export const formatNgnMinor = (minor: number): string => new Intl.NumberFormat('en-NG', {
-  style: 'currency',
-  currency: 'NGN',
-}).format(minor / 100);
+export const formatNgnMinor = (minor: number | string): string => {
+  if (typeof minor === 'number' && !Number.isSafeInteger(minor)) {
+    throw new Error('Minor-unit number must be a safe integer');
+  }
+  const raw = String(minor);
+  if (!/^-?\d+$/.test(raw)) throw new Error('Minor-unit value must be an integer');
+  const negative = raw.startsWith('-');
+  const unsigned = (negative ? raw.slice(1) : raw).replace(/^0+(?=\d)/, '');
+  const padded = unsigned.padStart(3, '0');
+  const whole = padded.slice(0, -2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  const fraction = padded.slice(-2);
+  return `${negative ? '-' : ''}₦${whole}.${fraction}`;
+};

@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatNgnMinor, parseNgnMinor } from '../utils/walletMoney';
 
 export default function WalletPage() {
+  const today = new Date().toISOString().slice(0, 10);
   const queryClient = useQueryClient();
   const { user } = useAuthStore();
   const navigate = useNavigate();
@@ -16,10 +17,28 @@ export default function WalletPage() {
   const [recipientInfo, setRecipientInfo] = useState<{name: string, nin_verified: boolean} | null>(null);
   const [withdrawData, setWithdrawData] = useState({ accountNumber: '', bankCode: '044', amount: '' });
   const [preview, setPreview] = useState<any>(null);
+  const [statementDates, setStatementDates] = useState({
+    from: `${today.slice(0, 7)}-01`,
+    to: today,
+  });
+  const [statementRequest, setStatementRequest] = useState({
+    from: `${today.slice(0, 7)}-01`,
+    to: today,
+    cutoff: new Date().toISOString(),
+  });
 
   const { data: walletData, isLoading } = useQuery({
     queryKey: ['wallet'],
     queryFn: () => walletApi.getWallet().then(res => res.data)
+  });
+
+  const { data: statement, isLoading: statementLoading, isError: statementError } = useQuery({
+    queryKey: ['wallet-statement', statementRequest],
+    queryFn: () => walletApi.getStatement(
+      statementRequest.from,
+      statementRequest.to,
+      statementRequest.cutoff,
+    ).then(res => res.data),
   });
 
   const lookupMutation = useMutation({
@@ -128,8 +147,8 @@ export default function WalletPage() {
               <Wallet size={24} />
               <span className="font-medium">Total Balance</span>
             </div>
-            <h2 className="text-4xl font-bold">{formatNgnMinor(Number(wallet?.availableBalanceMinor || 0))}</h2>
-            <p className="mt-2 text-green-100 text-xs">Ledger: {formatNgnMinor(Number(wallet?.ledgerBalanceMinor || 0))}</p>
+            <h2 className="text-4xl font-bold">{formatNgnMinor(wallet?.availableBalanceMinor || 0)}</h2>
+            <p className="mt-2 text-green-100 text-xs">Ledger: {formatNgnMinor(wallet?.ledgerBalanceMinor || 0)}</p>
             <p className="mt-2 text-green-100 text-sm">Status: {wallet?.status}</p>
           </div>
 
@@ -293,6 +312,62 @@ export default function WalletPage() {
 
         {/* Main Content: History */}
         <div className="md:col-span-2">
+          <section className="mb-6 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm" aria-labelledby="wallet-statement-heading">
+            <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+              <div>
+                <h3 id="wallet-statement-heading" className="text-xl font-bold">Journal statement</h3>
+                <p className="mt-1 text-sm text-gray-500">Reproducible from posted journals at the displayed cutoff time.</p>
+              </div>
+              <form
+                className="flex flex-wrap items-end gap-3"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  setStatementRequest({ ...statementDates, cutoff: new Date().toISOString() });
+                }}
+              >
+                <label className="text-sm font-medium text-gray-700">
+                  From
+                  <input aria-label="Statement from" type="date" value={statementDates.from} max={statementDates.to}
+                    onChange={event => setStatementDates({ ...statementDates, from: event.target.value })}
+                    className="mt-1 block rounded-lg border-gray-300" />
+                </label>
+                <label className="text-sm font-medium text-gray-700">
+                  To
+                  <input aria-label="Statement to" type="date" value={statementDates.to} min={statementDates.from} max={today}
+                    onChange={event => setStatementDates({ ...statementDates, to: event.target.value })}
+                    className="mt-1 block rounded-lg border-gray-300" />
+                </label>
+                <button className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-bold text-white">Apply</button>
+              </form>
+            </div>
+            {statementLoading ? <p role="status" className="mt-6 text-gray-500">Loading statement…</p>
+              : statementError ? <p role="alert" className="mt-6 text-red-700">The journal statement could not be loaded.</p>
+              : statement ? (
+                <>
+                  <div className="mt-5 grid grid-cols-1 gap-3 text-sm sm:grid-cols-3">
+                    <p className="rounded-lg bg-gray-50 p-3">Opening <strong className="block text-lg">{formatNgnMinor(statement.openingBalanceMinor)}</strong></p>
+                    <p className="rounded-lg bg-gray-50 p-3">Closing <strong className="block text-lg">{formatNgnMinor(statement.closingBalanceMinor)}</strong></p>
+                    <p className="rounded-lg bg-gray-50 p-3">Cutoff <strong className="block text-xs">{new Date(statement.period.cutoff).toLocaleString()}</strong></p>
+                  </div>
+                  <div className="mt-4 overflow-x-auto">
+                    <table className="w-full text-left text-sm">
+                      <thead><tr className="border-b text-gray-500"><th className="py-2">Date</th><th>Description</th><th className="text-right">Movement</th><th className="text-right">Balance</th></tr></thead>
+                      <tbody>
+                        {statement.entries.map((entry: any) => (
+                          <tr key={entry.id} className="border-b border-gray-50">
+                            <td className="py-3">{entry.effectiveDate}</td>
+                            <td>{entry.description}</td>
+                            <td className="text-right">{formatNgnMinor(entry.movementMinor)}</td>
+                            <td className="text-right font-medium">{formatNgnMinor(entry.balanceMinor)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {!statement.entries.length && <p className="py-6 text-center text-gray-400">No posted movements in this period.</p>}
+                  </div>
+                </>
+              ) : null}
+          </section>
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-50 flex justify-between items-center">
               <h3 className="text-xl font-bold">Transaction History</h3>
@@ -333,7 +408,7 @@ export default function WalletPage() {
                     <p className={`text-lg font-bold ${
                       tx.direction === 'CREDIT' ? 'text-green-600' : 'text-red-600'
                     }`}>
-                      {tx.direction === 'CREDIT' ? '+' : '-'}{formatNgnMinor(Number(tx.amountMinor))}
+                      {tx.direction === 'CREDIT' ? '+' : '-'}{formatNgnMinor(tx.amountMinor)}
                     </p>
                     <p className={`text-xs px-2 py-0.5 rounded-full inline-block ${
                       tx.status === 'SUCCESS' ? 'bg-green-100 text-green-700' : 
