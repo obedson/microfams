@@ -96,6 +96,7 @@ Exit gate: sandbox and live-contract tests, privacy review, replay protection, a
   - [x] Add authorized, auditable, and idempotent reconciliation exception investigation transitions.
   - [x] Add maker-checker resolution and write-off with immutable evidence and compensating-journal validation.
 - [ ] Implement individual, group, escrow, savings, investment, clearing, fee, and settlement accounts.
+  - [x] Add canonical FC-02 account purposes and idempotent tenant provisioning for every required V1 account family.
 - [ ] Add statements, limits, approvals, freezes, closures, and incident recovery.
   - [x] Add reproducible journal-derived personal and group wallet statements.
 
