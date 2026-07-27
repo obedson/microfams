@@ -59,3 +59,4 @@ disable_public_access.sql
 harden_wallet_ledger_cutover.sql
 harden_payment_payout_engines.sql
 install_payment_reconciliation.sql
+install_reconciliation_investigation.sql

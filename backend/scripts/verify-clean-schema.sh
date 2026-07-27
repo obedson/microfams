@@ -260,6 +260,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
   < "$repo_root/backend/tests/schema/test-payment-reconciliation.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-reconciliation-investigation.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-financial-rules.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \

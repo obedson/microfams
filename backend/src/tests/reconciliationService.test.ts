@@ -74,4 +74,22 @@ describe('atomic reconciliation persistence', () => {
       p_provider_balance_minor: 100000,
     }));
   });
+
+  it('starts exception investigation through the authorized atomic command', async () => {
+    rpcMock.mockResolvedValue({ data: { id: 'exception-1', state: 'investigating' }, error: null });
+    const service = new ReconciliationService();
+
+    await expect(service.startExceptionInvestigation({
+      exceptionId: 'exception-1',
+      actorId: 'actor-1',
+      reason: 'Investigate duplicate provider evidence before close',
+    })).resolves.toEqual({ id: 'exception-1', state: 'investigating' });
+
+    expect(rpcMock).toHaveBeenCalledTimes(1);
+    expect(rpcMock).toHaveBeenCalledWith('start_reconciliation_exception_investigation', {
+      p_exception_id: 'exception-1',
+      p_actor_id: 'actor-1',
+      p_reason: 'Investigate duplicate provider evidence before close',
+    });
+  });
 });

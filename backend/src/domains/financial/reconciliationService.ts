@@ -87,6 +87,21 @@ export class ReconciliationService {
     if (error || !data) throw error ?? new Error('Reconciliation run could not be stored');
     return data;
   }
+  async startExceptionInvestigation(input: {
+    exceptionId: string;
+    actorId: string;
+    reason: string;
+  }) {
+    const { data, error } = await supabase.rpc('start_reconciliation_exception_investigation', {
+      p_exception_id: input.exceptionId,
+      p_actor_id: input.actorId,
+      p_reason: input.reason,
+    });
+    if (error || !data) {
+      throw error ?? new Error('Reconciliation investigation could not be started');
+    }
+    return data;
+  }
 }
 
 export const reconciliationService = new ReconciliationService();

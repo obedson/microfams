@@ -45,6 +45,8 @@ The backend service role has read-only table access to payment intents, attempts
 
 Provider reconciliation files or event batches are persisted through one atomic database command. The source hash is an idempotency boundary: an exact replay returns the existing run, while changed facts under the same hash are rejected. Duplicate provider rows remain visible as separate exception evidence, and any invalid row rolls back the complete import. The backend role can read runs, items, and exceptions but cannot mutate them directly.
 
+An open exception may enter investigation only through the permission-checked database command. The first actor and reason are immutable: an exact retry returns the same evidence, while a retry with changed facts is rejected. Resolution and write-off remain separate maker-checker actions.
+
 ## Recovery
 
 - The minute job processes verified payment provider events in receipt order.
