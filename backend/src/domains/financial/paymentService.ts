@@ -35,6 +35,27 @@ interface InitializeInput {
   metadata?: Record<string, string>;
 }
 
+interface BookingRetryInput {
+  organizationId: string;
+  bookingId: string;
+  payerId: string;
+  actorId: string;
+  correlationId: string;
+  internalReference: string;
+  idempotencyKey: string;
+  amountMinor: number;
+  customerEmail: string;
+  callbackUrl: string;
+  maxRetries: number;
+}
+
+export interface PaymentRecoveryResult {
+  processed: number;
+  cancelled: number;
+  deferred: number;
+  errors: Array<{ paymentId: string; reason: string }>;
+}
+
 interface RefundInput {
   paymentId: string;
   organizationId: string;
@@ -62,11 +83,15 @@ const publicPayment = (payment: any) => ({
   amountMinor: Number(payment.amount_minor),
   currency: payment.currency,
   state: payment.state,
+  attemptNumber: Number(payment.attempt_number ?? 1),
+  retryOfPaymentId: payment.retry_of_payment_id ?? null,
   failureCode: payment.failure_code,
+  actionExpiresAt: payment.action_expires_at,
   createdAt: payment.created_at,
   updatedAt: payment.updated_at,
   authorizationUrl: undefined as string | undefined,
   accessCode: undefined as string | undefined,
+  idempotencyReplay: false,
 });
 
 const publicRefund = (refund: any) => ({
@@ -138,49 +163,108 @@ export class PaymentService {
       p_actor_id: input.actorId,
     });
     if (error || !payment) throw error ?? new Error('Payment intent could not be created');
-    if (payment.state !== 'created') return { ...publicPayment(payment) };
+    return this.initializeCreatedPayment(payment, input, adapter);
+  }
 
-    const command = {
-      internalReference: input.internalReference,
+  async retryBookingPayment(input: BookingRetryInput) {
+    if (!Number.isSafeInteger(input.amountMinor) || input.amountMinor <= 0) {
+      throw new Error('Payment amount must be a positive safe integer in minor units');
+    }
+    if (!Number.isInteger(input.maxRetries) || input.maxRetries < 0 || input.maxRetries > 20) {
+      throw new Error('Payment retry policy is invalid');
+    }
+    const adapter = this.adapterFactory();
+    await this.assertLiveRoutingEnabled(adapter, input.organizationId, input.actorId);
+    await financialRuleService.enforce({
+      organizationId: input.organizationId,
+      actorId: input.actorId,
+      commandType: 'payment.retry',
+      commandId: input.idempotencyKey,
+      product: 'payments',
+      channel: 'booking',
       amountMinor: input.amountMinor,
-      currency: 'NGN' as const,
+      currency: 'NGN',
+    });
+    const { data: payment, error } = await supabase.rpc('create_booking_payment_retry', {
+      p_organization_id: input.organizationId,
+      p_booking_id: input.bookingId,
+      p_payer_id: input.payerId,
+      p_internal_reference: input.internalReference,
+      p_idempotency_key: input.idempotencyKey,
+      p_provider_name: adapter.name,
+      p_provider_environment: adapter.environment,
+      p_amount_minor: input.amountMinor,
+      p_correlation_id: input.correlationId,
+      p_actor_id: input.actorId,
+      p_max_retries: input.maxRetries,
+    });
+    if (error || !payment) throw error ?? new Error('Booking payment retry could not be created');
+    return this.initializeCreatedPayment(payment, {
+      organizationId: input.organizationId,
+      sourceType: 'booking',
+      sourceId: input.bookingId,
+      payerId: input.payerId,
+      actorId: input.actorId,
+      correlationId: input.correlationId,
+      internalReference: input.internalReference,
+      idempotencyKey: input.idempotencyKey,
+      amountMinor: input.amountMinor,
       customerEmail: input.customerEmail,
       callbackUrl: input.callbackUrl,
-      metadata: {
-        type: input.sourceType,
-        source_id: input.sourceId,
-        organization_id: input.organizationId,
-        ...input.metadata,
-      },
-    };
-    const requestHash = sha256(JSON.stringify({
-      internalReference: command.internalReference,
-      amountMinor: command.amountMinor,
-      currency: command.currency,
-      sourceType: input.sourceType,
-      sourceId: input.sourceId,
-      provider: adapter.name,
-      environment: adapter.environment,
-    }));
+      metadata: { booking_id: input.bookingId, recovery: 'retry' },
+    }, adapter);
+  }
 
-    let result: ProviderPaymentResult;
-    try {
-      result = await adapter.initialize(command);
-    } catch {
-      const processing = await this.markInitialized(payment.id, requestHash, undefined, 'processing');
-      return publicPayment(processing);
+  async recoverExpiredBookingPayments(limit = 100): Promise<PaymentRecoveryResult> {
+    const safeLimit = Math.min(Math.max(Math.trunc(limit), 1), 500);
+    const result: PaymentRecoveryResult = { processed: 0, cancelled: 0, deferred: 0, errors: [] };
+    const { data: candidates, error } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('source_type', 'booking')
+      .in('state', ['requires_action', 'processing', 'failed'])
+      .not('action_expires_at', 'is', null)
+      .lte('action_expires_at', new Date().toISOString())
+      .order('action_expires_at', { ascending: true })
+      .limit(safeLimit);
+    if (error) throw error;
+
+    for (const candidate of candidates ?? []) {
+      result.processed += 1;
+      let current = publicPayment(candidate);
+      if (current.state === 'requires_action' || current.state === 'processing') {
+        try {
+          current = await this.queryAndApply(current.id);
+        } catch (queryError) {
+          result.deferred += 1;
+          result.errors.push({
+            paymentId: current.id,
+            reason: queryError instanceof Error ? queryError.message : 'Provider status query failed',
+          });
+          continue;
+        }
+      }
+      if (current.state === 'succeeded' || current.state === 'partially_refunded' || current.state === 'refunded') {
+        continue;
+      }
+      if (current.state === 'processing') {
+        result.deferred += 1;
+        continue;
+      }
+      try {
+        const { error: cancelError } = await supabase.rpc('cancel_expired_booking_payment', {
+          p_payment_id: current.id,
+        });
+        if (cancelError) throw cancelError;
+        result.cancelled += 1;
+      } catch (cancelError) {
+        result.errors.push({
+          paymentId: current.id,
+          reason: cancelError instanceof Error ? cancelError.message : 'Timeout cancellation failed',
+        });
+      }
     }
-    const initialized = await this.markInitialized(
-      payment.id,
-      requestHash,
-      result.providerReference,
-      result.status === 'processing' ? 'processing' : 'requires_action',
-    );
-    return {
-      ...publicPayment(initialized),
-      authorizationUrl: result.authorizationUrl,
-      accessCode: result.accessCode,
-    };
+    return result;
   }
 
   async ingestWebhook(rawBody: Buffer, signature: string) {
@@ -373,6 +457,77 @@ export class PaymentService {
     return data;
   }
 
+  private async initializeCreatedPayment(
+    payment: any,
+    input: InitializeInput,
+    adapter: PaymentAdapter,
+  ) {
+    if (payment.state !== 'created') {
+      const { data: authorizationUrl, error } = await supabase.rpc('get_payment_authorization_url', {
+        p_payment_id: payment.id,
+      });
+      if (error) throw error;
+      return {
+        ...publicPayment(payment),
+        authorizationUrl: authorizationUrl ?? undefined,
+        idempotencyReplay: true,
+      };
+    }
+    const command = {
+      internalReference: payment.internal_reference,
+      amountMinor: Number(payment.amount_minor),
+      currency: 'NGN' as const,
+      customerEmail: input.customerEmail,
+      callbackUrl: input.callbackUrl,
+      metadata: {
+        type: input.sourceType,
+        source_id: input.sourceId,
+        organization_id: input.organizationId,
+        ...input.metadata,
+      },
+    };
+    const requestHash = sha256(JSON.stringify({
+      internalReference: command.internalReference,
+      amountMinor: command.amountMinor,
+      currency: command.currency,
+      sourceType: input.sourceType,
+      sourceId: input.sourceId,
+      provider: adapter.name,
+      environment: adapter.environment,
+    }));
+    let result: ProviderPaymentResult;
+    try {
+      result = await adapter.initialize(command);
+    } catch {
+      const processing = await this.markInitialized(payment.id, requestHash, undefined, 'processing');
+      await this.syncBookingPaymentWindow(processing);
+      return { ...publicPayment(processing), idempotencyReplay: false };
+    }
+    if (result.amountMinor !== command.amountMinor || result.currency !== command.currency) {
+      throw new Error('Payment provider initialization money mismatch');
+    }
+    const initialized = await this.markInitialized(
+      payment.id,
+      requestHash,
+      result.providerReference,
+      result.status === 'processing' ? 'processing' : 'requires_action',
+    );
+    if (result.authorizationUrl) {
+      const { data, error } = await supabase.rpc('record_payment_authorization_url', {
+        p_payment_id: payment.id,
+        p_authorization_url: result.authorizationUrl,
+      });
+      if (error || !data) throw error ?? new Error('Payment authorization URL could not be recorded');
+    }
+    await this.syncBookingPaymentWindow(initialized);
+    return {
+      ...publicPayment(initialized),
+      authorizationUrl: result.authorizationUrl,
+      idempotencyReplay: false,
+      accessCode: result.accessCode,
+    };
+  }
+
   private async applyProviderResult(paymentId: string, result: ProviderPaymentResult) {
     if (result.status === 'succeeded') {
       const { data, error } = await supabase.rpc('succeed_inbound_payment', {
@@ -392,7 +547,9 @@ export class PaymentService {
         p_failure_reason: result.failureReason ?? `Provider reported payment ${result.status}`,
       });
       if (error || !data) throw error ?? new Error('Payment terminal state could not be applied');
-      return publicPayment(data);
+      const payment = publicPayment(data);
+      await this.markSourcePaymentFailure(payment);
+      return payment;
     }
     const { data: payment, error } = await supabase.from('payments').select('*').eq('id', paymentId).single();
     if (error || !payment) throw new Error('Payment not found');
@@ -426,6 +583,31 @@ export class PaymentService {
     });
     if (error || !data) throw error ?? new Error('Payment initialization state could not be recorded');
     return data;
+  }
+
+  private async syncBookingPaymentWindow(payment: any): Promise<void> {
+    if (payment.source_type !== 'booking') return;
+    const { error } = await supabase.from('bookings').update({
+      payment_reference: payment.internal_reference,
+      payment_status: 'pending',
+      payment_timeout_at: payment.action_expires_at,
+      updated_at: new Date().toISOString(),
+    }).eq('id', payment.source_id)
+      .eq('organization_id', payment.organization_id)
+      .eq('status', 'pending_payment');
+    if (error) throw error;
+  }
+
+  private async markSourcePaymentFailure(payment: ReturnType<typeof publicPayment>): Promise<void> {
+    if (payment.sourceType !== 'booking') return;
+    const { error } = await supabase.from('bookings').update({
+      payment_status: 'failed',
+      updated_at: new Date().toISOString(),
+    }).eq('id', payment.sourceId)
+      .eq('organization_id', payment.organizationId)
+      .eq('payment_reference', payment.internalReference)
+      .eq('status', 'pending_payment');
+    if (error) throw error;
   }
 
   private async finishEvent(eventId: string, state: 'processed' | 'rejected', reason?: string) {

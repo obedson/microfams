@@ -15,6 +15,7 @@ import {
 } from '../controllers/bookingController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { resolveTenant } from '../middleware/tenant.js';
+import { requireFeature } from '../middleware/requireFeature.js';
 import { bookingLimiter } from '../middleware/rateLimiter.js';
 import { detectBookingFraud } from '../middleware/fraudDetection.js';
 
@@ -37,9 +38,22 @@ router.put('/:id/status', authenticateToken, resolveTenant, updateBookingStatus)
 router.put('/:id/cancel', authenticateToken, resolveTenant, cancelBooking);
 
 // New enhanced endpoints
-router.post('/:id/retry-payment', authenticateToken, resolveTenant, retryPayment);
+router.post(
+  '/:id/retry-payment',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('financial.payments.accept_new'),
+  bookingLimiter,
+  retryPayment,
+);
 router.get('/:id/history', authenticateToken, resolveTenant, getBookingHistory);
 router.get('/:id/cancellation-eligibility', authenticateToken, resolveTenant, getCancellationEligibility);
-router.get('/:id/payment-retry-status', authenticateToken, resolveTenant, getPaymentRetryStatus);
+router.get(
+  '/:id/payment-retry-status',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('financial.payments.service_existing'),
+  getPaymentRetryStatus,
+);
 
 export default router;

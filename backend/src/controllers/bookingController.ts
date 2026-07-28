@@ -1,8 +1,8 @@
+import crypto from 'crypto';
 import { Request, Response } from 'express';
 import { BookingModel } from '../models/Booking.js';
 import { PropertyModel } from '../models/Property.js';
 import { sendEmail } from '../services/emailService.js';
-import { initiateRefund } from '../services/refundService.js';
 import { BookingCancellationService } from '../services/bookingCancellationService.js';
 import { PaymentRecoveryService } from '../services/paymentRecoveryService.js';
 import { AvailabilityService } from '../services/availabilityService.js';
@@ -25,6 +25,13 @@ const statusUpdateSchema = Joi.object({
     otherwise: Joi.forbidden()
   })
 });
+
+const requestCorrelationId = (request: Request): string => {
+  const candidate = request.headers['x-correlation-id'];
+  return typeof candidate === 'string' && /^[0-9a-f-]{36}$/i.test(candidate)
+    ? candidate
+    : crypto.randomUUID();
+};
 
 export const getBookedDates = async (req: Request, res: Response) => {
   try {
@@ -355,7 +362,11 @@ export const cancelBooking = async (req: TenantRequest, res: Response) => {
 export const retryPayment = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const userId = (req as any).user.id;
+    const userId = req.user!.id;
+    const idempotencyKey = String(req.headers['idempotency-key'] ?? '');
+    if (idempotencyKey.length < 8) {
+      return res.status(400).json({ success: false, error: 'Idempotency-Key header is required' });
+    }
 
     const scopedBooking = await BookingModel.findByIdWithDetails(id, req.tenant!.id);
     if (!scopedBooking) {
@@ -365,7 +376,12 @@ export const retryPayment = async (req: TenantRequest, res: Response) => {
     // Use the payment recovery service
     const result = await PaymentRecoveryService.processPaymentRetry({
       bookingId: id,
-      userId: userId
+      organizationId: scopedBooking.organization_id,
+      userId,
+      customerEmail: req.user!.email,
+      callbackUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/payment/callback`,
+      correlationId: requestCorrelationId(req),
+      idempotencyKey,
     });
 
     if (result.success) {
@@ -373,7 +389,8 @@ export const retryPayment = async (req: TenantRequest, res: Response) => {
     } else {
       const statusCode = result.error === 'Booking not found' ? 404 :
                         result.error?.includes('Only the farmer') ? 403 :
-                        result.error?.includes('Maximum retry') ? 429 : 400;
+                        result.error?.includes('Maximum') ? 429 :
+                        result.error?.includes('active attempt') ? 409 : 400;
       
       res.status(statusCode).json({
         success: false,
@@ -450,7 +467,7 @@ export const getPaymentRetryStatus = async (req: TenantRequest, res: Response) =
       return res.status(404).json({ success: false, error: 'Booking not found' });
     }
 
-    const status = await PaymentRecoveryService.getRetryStatus(id, userId);
+    const status = await PaymentRecoveryService.getRetryStatus(id, userId, scopedBooking.organization_id);
 
     res.json({
       success: true,

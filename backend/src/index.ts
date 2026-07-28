@@ -43,7 +43,7 @@ import trustRoutes from './routes/trust.js';
 import { startCronJobs } from './jobs/contributionJobs.js';
 import { startBookingJobs } from './jobs/bookingJobs.js';
 import { startWalletJobs } from './jobs/walletJobs.js';
-import './cleanupBookings.js';
+import PaymentTimeoutJob from './jobs/paymentTimeoutJob.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -122,6 +122,7 @@ if (process.env.NODE_ENV !== 'test') {
     startCronJobs();
     startBookingJobs();
     startWalletJobs();
+    PaymentTimeoutJob.scheduleJob();
     logger.info('✅ Cron jobs enabled (production mode)');
   } else {
     logger.warn('⚠️  Cron jobs disabled (development mode)');

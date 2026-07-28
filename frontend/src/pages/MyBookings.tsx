@@ -93,12 +93,23 @@ const MyBookings: React.FC = () => {
   });
 
   const retryPaymentMutation = useMutation({
-    mutationFn: async (bookingId: string) => {
+    mutationFn: async ({
+      bookingId,
+      idempotencyKey
+    }: {
+      bookingId: string;
+      idempotencyKey: string;
+    }) => {
       const token = localStorage.getItem('token');
       const response = await axios.post(
         `${API_URL}/bookings/${bookingId}/retry-payment`,
         {},
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Idempotency-Key': idempotencyKey
+          }
+        }
       );
       return response.data;
     },
@@ -189,7 +200,10 @@ const MyBookings: React.FC = () => {
   };
 
   const handleRetryPayment = (booking: any) => {
-    retryPaymentMutation.mutate(booking.id);
+    retryPaymentMutation.mutate({
+      bookingId: booking.id,
+      idempotencyKey: `booking-retry-${booking.id}-${crypto.randomUUID()}`
+    });
   };
 
   // Task 5.3: Filter management

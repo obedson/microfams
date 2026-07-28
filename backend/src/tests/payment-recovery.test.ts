@@ -1,5 +1,37 @@
 import fc from 'fast-check';
-import { PaymentRecoveryService } from '../services/paymentRecoveryService.js';
+import { bookingPaymentRetryEligibility } from '../services/paymentRecoveryService.js';
+
+describe('Canonical booking payment retry policy', () => {
+  const booking = {
+    farmer_id: 'farmer-1',
+    status: 'pending_payment',
+    payment_status: 'failed',
+    payment_retry_count: 0,
+  };
+
+  test('allows the booking farmer to retry a failed pending payment', () => {
+    expect(bookingPaymentRetryEligibility(booking, 'farmer-1', 3)).toEqual({ canRetry: true });
+  });
+
+  test.each([
+    [{ ...booking }, 'someone-else', 'Only the farmer can retry payment'],
+    [{ ...booking, status: 'confirmed' }, 'farmer-1', 'Booking must be pending payment to retry'],
+    [{ ...booking, payment_status: 'paid' }, 'farmer-1', 'Payment retry is only available for failed payments'],
+    [{ ...booking, payment_retry_count: 3 }, 'farmer-1', 'Maximum payment retry attempts exceeded'],
+  ])('rejects ineligible retry requests', (candidate, userId, reason) => {
+    expect(bookingPaymentRetryEligibility(candidate, userId, 3)).toEqual({
+      canRetry: false,
+      reason,
+    });
+  });
+
+  test('rejects a missing booking without exposing tenant data', () => {
+    expect(bookingPaymentRetryEligibility(null, 'farmer-1', 3)).toEqual({
+      canRetry: false,
+      reason: 'Booking not found',
+    });
+  });
+});
 
 /**
  * **Feature: farmle-platform-enhancement, Property 12: Payment Failure Status Update**
@@ -262,4 +294,4 @@ function validateRetryEligibility(booking: any, userId: string): {
   }
 
   return { canRetry: true };
-}
+}
