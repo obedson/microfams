@@ -64,3 +64,4 @@ install_reconciliation_investigation.sql
 install_reconciliation_resolution.sql
 create_financial_account_provisioning.sql
 install_booking_refund_orchestration.sql
+install_atomic_booking_reservations.sql

@@ -89,6 +89,17 @@ describe('API Endpoints', () => {
       });
     });
 
+    it('protects atomic booking reservation creation', async () => {
+      await request(app)
+        .post('/api/bookings')
+        .set('Idempotency-Key', 'booking-api-contract-1')
+        .send({
+          property_id: '00000000-0000-4000-8000-000000000201',
+          start_date: '2030-01-01',
+          end_date: '2030-01-31'
+        })
+        .expect(401);
+    });
     it('protects booking cancellation and refund review commands', async () => {
       await request(app)
         .put('/api/bookings/00000000-0000-4000-8000-000000000201/cancel')

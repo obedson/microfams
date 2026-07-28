@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Calendar, CreditCard, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Calendar, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
 import { bookingAPI, paymentAPI } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import Button from './ui/Button';
 import Card from './ui/Card';
+import { ReservationConfirmation } from './bookings/ReservationConfirmation';
 
 interface BookingFormProps {
   property: any;
@@ -17,11 +18,11 @@ interface BookingForm {
   end_date: string;
 }
 
-const BookingForm: React.FC<BookingFormProps> = ({ property, onSuccess }) => {
+const BookingForm: React.FC<BookingFormProps> = ({ property }) => {
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<BookingForm>();
   const { isAuthenticated } = useAuthStore();
   const queryClient = useQueryClient();
-  const [bookingId, setBookingId] = useState<string | null>(null);
+  const [reservation, setReservation] = useState<any | null>(null);
   const [disabledDates, setDisabledDates] = useState<string[]>([]);
   const [conflictInfo, setConflictInfo] = useState<{ dates: string[], suggestion: any } | null>(null);
 
@@ -66,24 +67,15 @@ const BookingForm: React.FC<BookingFormProps> = ({ property, onSuccess }) => {
   };
 
   const bookingMutation = useMutation(
-    (data: any) => bookingAPI.create(data),
+    (request: { data: any; idempotencyKey: string }) => bookingAPI.create(request.data, request.idempotencyKey),
     {
       onSuccess: (response) => {
-        const booking = response.data.data;
-        setBookingId(booking.id);
+        setReservation(response.data.data);
         queryClient.invalidateQueries(['bookedDates', property.id]);
       },
       onError: (err: any) => {
-        if (err.response?.status === 409 && err.response?.data?.conflicts) {
-          const conflictingRanges = err.response.data.conflicts;
-          const conflictDates: string[] = [];
-          conflictingRanges.forEach((range: any) => {
-            conflictDates.push(`${new Date(range.start_date).toLocaleDateString()} - ${new Date(range.end_date).toLocaleDateString()}`);
-          });
-          setConflictInfo({
-            dates: conflictDates,
-            suggestion: err.response.data.suggestion
-          });
+        if (err.response?.status === 409 && err.response?.data?.error === 'BOOKING_DATES_UNAVAILABLE') {
+          setConflictInfo({ dates: ['The selected dates are no longer available.'], suggestion: err.response.data.suggestion });
         }
       }
     }
@@ -115,14 +107,13 @@ const BookingForm: React.FC<BookingFormProps> = ({ property, onSuccess }) => {
       property_id: property.id,
       start_date: data.start_date,
       end_date: data.end_date,
-      total_amount: calculateTotal(),
     };
-    bookingMutation.mutate(bookingData);
+    bookingMutation.mutate({ data: bookingData, idempotencyKey: window.crypto.randomUUID() });
   };
 
   const handlePayment = () => {
-    if (bookingId) {
-      paymentMutation.mutate(bookingId);
+    if (reservation?.booking?.id) {
+      paymentMutation.mutate(reservation.booking.id);
     }
   };
 
@@ -143,44 +134,14 @@ const BookingForm: React.FC<BookingFormProps> = ({ property, onSuccess }) => {
     );
   }
 
-  if (bookingId) {
+  if (reservation) {
     return (
-      <Card className="p-6 border-2 border-green-500 shadow-xl shadow-green-50">
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <CheckCircle2 size={32} className="text-green-600" />
-          </div>
-          <h3 className="text-xl font-bold text-gray-900 mb-2">
-            Booking Secured!
-          </h3>
-          <p className="text-gray-600 text-sm">
-            Please complete payment to finalize your reservation.
-          </p>
-        </div>
-
-        <div className="bg-gray-50 rounded-xl p-5 mb-6 border border-gray-100">
-          <div className="flex justify-between items-center mb-2">
-            <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">Property</span>
-            <span className="text-gray-900 font-semibold text-sm">{property.title}</span>
-          </div>
-          <div className="flex justify-between items-center pt-3 border-t border-gray-200">
-            <span className="text-gray-500 text-xs font-bold uppercase tracking-wider">Total Amount</span>
-            <span className="text-2xl font-black text-primary-600">
-              ₦{calculateTotal().toLocaleString()}
-            </span>
-          </div>
-        </div>
-
-        <Button
-          onClick={handlePayment}
-          loading={paymentMutation.isLoading}
-          className="w-full py-4 text-lg font-bold"
-          size="lg"
-        >
-          <CreditCard size={20} />
-          {paymentMutation.isLoading ? 'Redirecting...' : 'Pay with Paystack'}
-        </Button>
-      </Card>
+      <ReservationConfirmation
+        reservation={reservation}
+        propertyTitle={property.title}
+        onPay={handlePayment}
+        isPaying={paymentMutation.isLoading}
+      />
     );
   }
 

@@ -86,8 +86,8 @@ export const propertyAPI = {
     apiClient.put(`/properties/${id}/images/reorder`, { images }),};
 
 export const bookingAPI = {
-  create: (data: any) =>
-    apiClient.post('/bookings', data),
+  create: (data: any, idempotencyKey: string) =>
+    apiClient.post('/bookings', data, { headers: { 'Idempotency-Key': idempotencyKey } }),
   getMyBookings: () =>
     apiClient.get('/bookings/my-bookings'),
   getBookedDates: (propertyId: string) =>

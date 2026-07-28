@@ -26,7 +26,15 @@ const router = Router();
 router.get('/property/:property_id/booked-dates', getBookedDates);
 
 // Farmer routes
-router.post('/', authenticateToken, resolveTenant, bookingLimiter, detectBookingFraud, createBooking);
+router.post(
+  '/',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.reservations.create'),
+  bookingLimiter,
+  detectBookingFraud,
+  createBooking,
+);
 router.get('/my-bookings', authenticateToken, resolveTenant, getMyBookings);
 
 // Owner routes
