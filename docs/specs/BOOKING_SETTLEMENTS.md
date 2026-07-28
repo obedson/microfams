@@ -1,8 +1,8 @@
 # Booking Settlements, Disputes, Fees, Refunds, and Supplier Payouts
 
-Status: Proposed for product-owner approval
+Status: Approved
 
-Proposed version: BS-01 through BS-12
+Approved version: BS-01 through BS-12
 
 Depends on: approved FC-01 through FC-08 in `FINANCIAL_CORE.md`
 
@@ -32,7 +32,7 @@ No live money workflow may be enabled merely because this specification is appro
 
 All amounts use integer minor units and an ISO 4217 currency code. Version 1 initially supports NGN, but records and rules must remain currency-explicit.
 
-## 3. Approved-decision candidates
+## 3. Approved decisions
 
 ### BS-01 — Funds custody and conservation
 
@@ -279,6 +279,6 @@ Disabling acquisition stops new settlement contracts, disputes, or payouts accor
 
 ## 8. Approval record
 
-BS-01 through BS-12 are proposed and are not approved by creation of this document. Product-owner approval is required before implementation of booking settlement, dispute, fee, and supplier-payout economics.
+BS-01 through BS-12 were approved by the product owner on 2026-07-28.
 
-Approval, rejection, or requested corrections should be recorded here with the decision date and approved version.
+This approval authorizes implementation behind the specified backend feature flags. Live-money activation remains separately controlled by provider configuration, reconciliation certification, compliance metadata, and tenant activation evidence.
