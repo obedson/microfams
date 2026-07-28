@@ -96,6 +96,11 @@ if [[ "$booking_refund_schema_present" == "f" ]]; then
   migrations+=(install_booking_refund_orchestration.sql)
 fi
 
+booking_reservation_schema_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regprocedure('public.create_booking_reservation(uuid,uuid,uuid,date,date,text,text,uuid)') IS NOT NULL")"
+if [[ "$booking_reservation_schema_present" == "f" ]]; then migrations+=(install_atomic_booking_reservations.sql); fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -127,6 +132,8 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
       OR to_regclass('public.data_legal_hold_events') IS NULL
       OR to_regprocedure('public.place_data_legal_hold(uuid,uuid,text,text,text,text,text,text)') IS NULL
       OR to_regprocedure('public.select_retention_dry_run_items(uuid,uuid,text,text)') IS NULL
+      OR to_regclass('public.booking_price_snapshots') IS NULL
+      OR to_regprocedure('public.create_booking_reservation(uuid,uuid,uuid,date,date,text,text,uuid)') IS NULL
     THEN RAISE EXCEPTION 'trust review and appeal schema was not installed'; END IF;
   END \$\$;" >/dev/null
 

@@ -1,11 +1,11 @@
 import crypto from 'crypto';
 import { Request, Response } from 'express';
 import { BookingModel } from '../models/Booking.js';
-import { PropertyModel } from '../models/Property.js';
 import { sendEmail } from '../services/emailService.js';
 import { BookingRefundOrchestrationService } from '../services/bookingRefundOrchestrationService.js';
 import { PaymentRecoveryService } from '../services/paymentRecoveryService.js';
 import { AvailabilityService } from '../services/availabilityService.js';
+import { BookingReservationService, bookingReservationHttpError } from '../services/bookingReservationService.js';
 import Joi from 'joi';
 import { TenantRequest } from '../middleware/tenant.js';
 
@@ -13,8 +13,8 @@ const bookingSchema = Joi.object({
   property_id: Joi.string().required(),
   start_date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
   end_date: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
-  total_amount: Joi.number().positive().required(),
-  notes: Joi.string().optional().allow(''),
+  total_amount: Joi.number().positive().optional().strip(),
+  notes: Joi.string().max(2000).optional().allow(''),
 });
 
 const statusUpdateSchema = Joi.object({
@@ -57,105 +57,35 @@ export const getBookedDates = async (req: Request, res: Response) => {
 };
 
 export const createBooking = async (req: TenantRequest, res: Response) => {
+  const { error, value } = bookingSchema.validate(req.body);
+  if (error) return res.status(400).json({ success: false, error: 'BOOKING_REQUEST_INVALID', message: error.details[0].message });
+
+  const idempotencyKey = req.headers['idempotency-key'];
+  if (typeof idempotencyKey !== 'string') {
+    return res.status(400).json({ success: false, error: 'IDEMPOTENCY_KEY_REQUIRED' });
+  }
+
   try {
-    const { error, value } = bookingSchema.validate(req.body);
-    if (error) {
-      return res.status(400).json({ success: false, error: error.details[0].message });
-    }
-
-    // Validate end_date is after start_date
-    if (new Date(value.end_date) <= new Date(value.start_date)) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'End date must be after start date' 
-      });
-    }
-
-    // Verify property exists and calculate correct price
-    const property = await PropertyModel.findById(value.property_id);
-    if (!property) {
-      return res.status(404).json({ 
-        success: false, 
-        error: 'Property not found' 
-      });
-    }
-
-    if (!property.is_active) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Property is not available for booking' 
-      });
-    }
-
-    // Calculate and validate total amount
-    const start = new Date(value.start_date);
-    const end = new Date(value.end_date);
-    const days = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
-    const months = Math.ceil(days / 30);
-    const calculatedAmount = months * property.price_per_month;
-
-    if (Math.abs(value.total_amount - calculatedAmount) > 0.01) {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Invalid total amount. Please refresh and try again.' 
-      });
-    }
-
-    // Check for booking conflicts
-    const conflictingBookings = await AvailabilityService.getConflictingBookings(
-      value.property_id,
-      value.start_date,
-      value.end_date
-    );
-
-    if (conflictingBookings.length > 0) {
-      const nextSlot = await AvailabilityService.findNextAvailableSlot(
-        value.property_id, 
-        value.end_date
-      );
-
-      return res.status(409).json({ 
-        success: false, 
-        error: 'Property is already booked for some of the selected dates',
-        conflicts: conflictingBookings,
-        suggestion: nextSlot
-      });
-    }
-
-    const booking = await BookingModel.create({
-      property_id: value.property_id,
-      start_date: value.start_date,
-      end_date: value.end_date,
-      total_amount: calculatedAmount,
-      farmer_id: (req as any).user.id,
-      organization_id: req.tenant!.id,
-      provider_organization_id: property.organization_id,
-      status: 'pending_payment',
-      payment_status: 'pending',
-      payment_retry_count: 0,
+    const result = await BookingReservationService.create({
+      organizationId: req.tenant!.id,
+      actorId: req.user!.id,
+      propertyId: value.property_id,
+      startDate: value.start_date,
+      endDate: value.end_date,
+      notes: value.notes,
+      idempotencyKey,
+      correlationId: requestCorrelationId(req),
     });
-
-    // Send notification to owner
-    await sendEmail({
-      to: property.owner_email,
-      subject: 'New Booking Request',
-      template: 'new-booking',
-      data: {
-        propertyTitle: property.title,
-        farmerName: (req as any).user.name,
-        startDate: value.start_date,
-        endDate: value.end_date,
-        amount: calculatedAmount
-      }
-    });
-
-    res.status(201).json({ success: true, data: booking });
-  } catch (error) {
-    console.error('Create booking error:', error);
-    res.status(500).json({ success: false, error: 'Failed to create booking' });
+    return res.status(result.idempotency_replay ? 200 : 201).json({ success: true, data: result });
+  } catch (error: any) {
+    const mapped = bookingReservationHttpError(error?.message ?? 'BOOKING_RESERVATION_FAILED');
+    if (mapped.code === 'BOOKING_DATES_UNAVAILABLE') {
+      const suggestion = await AvailabilityService.findNextAvailableSlot(value.property_id, value.end_date);
+      return res.status(mapped.status).json({ success: false, error: mapped.code, suggestion });
+    }
+    return res.status(mapped.status).json({ success: false, error: mapped.code });
   }
 };
-
 export const getMyBookings = async (req: TenantRequest, res: Response) => {
   try {
     const {

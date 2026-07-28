@@ -44,17 +44,6 @@ export interface PaginatedBookingResult {
 }
 
 export class BookingModel {
-  static async create(bookingData: Omit<Booking, 'id' | 'created_at' | 'updated_at'>): Promise<Booking> {
-    const { data, error } = await supabase
-      .from('bookings')
-      .insert(bookingData)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
   static async findById(id: string): Promise<Booking | null> {
     const { data, error } = await supabase
       .from('bookings')
