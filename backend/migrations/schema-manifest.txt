@@ -51,6 +51,7 @@ create_retention_item_selection.sql
 create_financial_statements.sql
 install_payment_engine.sql
 install_payment_servicing.sql
+install_payment_recovery.sql
 install_payment_settlement.sql
 fix_function_security.sql
 enable_rls_policies.sql
