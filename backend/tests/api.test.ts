@@ -88,5 +88,20 @@ describe('API Endpoints', () => {
         error: 'Access token required'
       });
     });
+
+    it('protects booking cancellation and refund review commands', async () => {
+      await request(app)
+        .put('/api/bookings/00000000-0000-4000-8000-000000000201/cancel')
+        .send({ reason: 'Change of plans' })
+        .expect(401);
+      await request(app)
+        .post('/api/bookings/cancellations/00000000-0000-4000-8000-000000000202/refund-proposals')
+        .send({ amount_minor: 10000, reason: 'Unused service' })
+        .expect(401);
+      await request(app)
+        .post('/api/bookings/refund-approvals/00000000-0000-4000-8000-000000000203/decision')
+        .send({ approve: true, reason: 'Independent approval' })
+        .expect(401);
+    });
   });
 });

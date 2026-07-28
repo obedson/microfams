@@ -75,6 +75,12 @@ export interface PaymentAdapter {
     currency: 'NGN';
     reason: string;
   }): Promise<ProviderRefundResult>;
+  recoverRefund(command: {
+    internalReference: string;
+    providerPaymentReference: string;
+    amountMinor: number;
+    currency: 'NGN';
+  }): Promise<ProviderRefundResult | undefined>;
   queryRefund(providerRefundReference: string): Promise<ProviderRefundResult>;
   verifyAndParseWebhook(rawBody: Buffer, signature: string): VerifiedPaymentProviderEvent;
 }

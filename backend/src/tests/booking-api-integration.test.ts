@@ -1,6 +1,6 @@
 import request from 'supertest';
 import { BookingModel } from '../models/Booking.js';
-import { BookingCancellationService } from '../services/bookingCancellationService.js';
+import { validateBookingCancellation } from '../services/bookingRefundOrchestrationService.js';
 import { PaymentRecoveryService } from '../services/paymentRecoveryService.js';
 
 /**
@@ -71,8 +71,8 @@ describe('Enhanced Booking API Integration Tests', () => {
       const cancellableBooking = { ...mockBooking, status: 'confirmed' as const };
       const nonCancellableBooking = { ...mockBooking, status: 'completed' as const };
 
-      const validation1 = BookingCancellationService.validateCancellation(cancellableBooking);
-      const validation2 = BookingCancellationService.validateCancellation(nonCancellableBooking);
+      const validation1 = validateBookingCancellation(cancellableBooking);
+      const validation2 = validateBookingCancellation(nonCancellableBooking);
 
       expect(validation1.canCancel).toBe(true);
       expect(validation2.canCancel).toBe(false);
@@ -236,4 +236,4 @@ describe('Enhanced Booking API Integration Tests', () => {
       expect(ownerCanRetry).toBe(false);
     });
   });
-});
+});

@@ -109,14 +109,16 @@ const recoverPendingPayments = async () => {
     }
     const { data: refunds, error: refundError } = await supabase
       .from('payment_refunds')
-      .select('id, internal_reference')
-      .in('state', ['submitted', 'processing'])
+      .select('id, organization_id, internal_reference, state')
+      .in('state', ['created', 'submitted', 'processing'])
       .lt('updated_at', recoveryThreshold)
       .limit(50);
     if (refundError) throw refundError;
     for (const refund of refunds ?? []) {
       try {
-        await paymentService.queryRefundAndApply(refund.id);
+        if (refund.state === 'created') {
+          await paymentService.submitRefund(refund.id, refund.organization_id);
+        } else await paymentService.queryRefundAndApply(refund.id);
       } catch (recoveryError: any) {
         logger.error('Failed to recover pending refund', {
           refund_reference: refund.internal_reference,

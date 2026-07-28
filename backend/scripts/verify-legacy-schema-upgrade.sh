@@ -89,6 +89,13 @@ else
   fi
 fi
 
+booking_refund_schema_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regclass('public.booking_cancellations') IS NOT NULL")"
+if [[ "$booking_refund_schema_present" == "f" ]]; then
+  migrations+=(install_booking_refund_orchestration.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \

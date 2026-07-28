@@ -374,7 +374,6 @@ export class PaymentService {
   }
 
   async requestRefund(input: RefundInput) {
-    const adapter = this.adapterFactory();
     const { data: payment, error: paymentError } = await supabase
       .from('payments')
       .select('*')
@@ -394,17 +393,38 @@ export class PaymentService {
     });
     if (error || !refund) throw error ?? new Error('Refund could not be created');
     if (refund.state !== 'created') return publicRefund(refund);
+    return this.submitRefund(refund.id, input.organizationId, input.actorId);
+  }
+
+  async submitRefund(refundId: string, organizationId: string, actorId?: string) {
+    const { data: refund, error } = await supabase
+      .from('payment_refunds')
+      .select('*, payments!inner(*)')
+      .eq('id', refundId)
+      .eq('organization_id', organizationId)
+      .single();
+    if (error || !refund) throw new Error('Refund not found');
+    if (refund.state !== 'created') return publicRefund(refund);
+    const payment = refund.payments;
+    const adapter = this.adapterFactory();
+    if (adapter.name !== payment.provider_name || adapter.environment !== payment.provider_environment) {
+      throw new Error('Configured payment adapter does not match the stored refund');
+    }
+    await this.assertLiveRoutingEnabled(adapter, organizationId, actorId);
     let result: ProviderRefundResult;
     try {
       result = await adapter.refund({
         internalReference: refund.internal_reference,
         providerPaymentReference: payment.provider_reference ?? payment.internal_reference,
         amountMinor: Number(refund.amount_minor),
-        currency: 'NGN',
+        currency: refund.currency,
         reason: refund.reason,
       });
     } catch {
-      result = { status: 'processing', amountMinor: Number(refund.amount_minor), currency: 'NGN' };
+      result = { status: 'processing', amountMinor: Number(refund.amount_minor), currency: refund.currency };
+    }
+    if (result.amountMinor !== Number(refund.amount_minor) || result.currency !== refund.currency) {
+      throw new Error('Payment provider refund money mismatch');
     }
     return this.applyRefundResult(refund.id, result);
   }
@@ -412,23 +432,30 @@ export class PaymentService {
   async queryRefundAndApply(refundId: string) {
     const { data: refund, error } = await supabase
       .from('payment_refunds')
-      .select('*, payments!inner(provider_name, provider_environment)')
+      .select('*, payments!inner(provider_name, provider_environment, provider_reference, internal_reference)')
       .eq('id', refundId)
       .single();
     if (error || !refund) throw new Error('Refund not found');
     if (!['submitted', 'processing'].includes(refund.state)) return publicRefund(refund);
-    if (!refund.provider_reference) throw new Error('Refund provider reference is unavailable');
     const adapter = this.adapterFactory();
     const payment = refund.payments;
     if (adapter.name !== payment.provider_name || adapter.environment !== payment.provider_environment) {
       throw new Error('Configured payment adapter does not match the stored refund');
     }
-    let result: ProviderRefundResult;
+    let result: ProviderRefundResult | undefined;
     try {
-      result = await adapter.queryRefund(refund.provider_reference);
+      result = refund.provider_reference
+        ? await adapter.queryRefund(refund.provider_reference)
+        : await adapter.recoverRefund({
+          internalReference: refund.internal_reference,
+          providerPaymentReference: payment.provider_reference ?? payment.internal_reference,
+          amountMinor: Number(refund.amount_minor),
+          currency: refund.currency,
+        });
     } catch {
       return publicRefund(refund);
     }
+    if (!result) return publicRefund(refund);
     return this.applyRefundResult(refund.id, result);
   }
 
@@ -565,6 +592,12 @@ export class PaymentService {
       p_failure_reason: result.failureReason ?? null,
     });
     if (error || !data) throw error ?? new Error('Refund state could not be applied');
+    const { error: syncError } = await supabase.rpc('sync_booking_cancellation_refund', {
+      p_refund_id: refundId,
+    });
+    if (syncError) logger.warn('Booking cancellation refund state could not be synchronized', {
+      refundId, reason: syncError.message,
+    });
     return publicRefund(data);
   }
 

@@ -1,5 +1,5 @@
 import fc from 'fast-check';
-import { BookingCancellationService } from '../services/bookingCancellationService.js';
+import { validateBookingCancellation } from '../services/bookingRefundOrchestrationService.js';
 
 /**
  * **Feature: farmle-platform-enhancement, Property 7: Cancellation Modal Requirements**
@@ -66,7 +66,7 @@ describe('Booking Cancellation Workflow - Property Tests', () => {
    */
   test('Property 7: Cancellation should require non-empty reason', () => {
     fc.assert(fc.property(bookingArb, cancellationReasonArb, (booking, reason) => {
-      const validation = BookingCancellationService.validateCancellation(booking);
+      const validation = validateBookingCancellation(booking);
       
       // Only test if booking is otherwise cancellable
       if (validation.canCancel) {
@@ -90,7 +90,7 @@ describe('Booking Cancellation Workflow - Property Tests', () => {
    */
   test('Property 8: Cancellation should follow status rules', () => {
     fc.assert(fc.property(bookingArb, (booking) => {
-      const validation = BookingCancellationService.validateCancellation(booking);
+      const validation = validateBookingCancellation(booking);
       
       const cancellableStatuses = ['pending_payment', 'pending', 'confirmed'];
       const nonCancellableStatuses = ['cancelled', 'completed'];
@@ -110,7 +110,7 @@ describe('Booking Cancellation Workflow - Property Tests', () => {
    */
   test('Property 9: Paid bookings should initiate refund process', () => {
     fc.assert(fc.property(bookingArb, (booking) => {
-      const validation = BookingCancellationService.validateCancellation(booking);
+      const validation = validateBookingCancellation(booking);
       
       // Only test cancellable bookings
       if (validation.canCancel) {
@@ -165,7 +165,7 @@ describe('Booking Cancellation Workflow - Property Tests', () => {
     });
 
     fc.assert(fc.property(cancelledBookingArb, (booking) => {
-      const validation = BookingCancellationService.validateCancellation(booking);
+      const validation = validateBookingCancellation(booking);
       
       // Cancelled bookings should not be cancellable again
       expect(validation.canCancel).toBe(false);
@@ -233,4 +233,4 @@ function simulateCancellationValidation(booking: any, reason: string): {
     requiresReason: true,
     requiresRefund
   };
-}
+}

@@ -53,6 +53,14 @@ export class PaystackService {
     return response.data;
   }
 
+  static async listRefunds(transactionReference: string) {
+    const response = await axios.get(
+      `${this.BASE_URL}/refund`,
+      { headers: this.getHeaders(), timeout: 15000, params: { transaction: transactionReference } },
+    );
+    return response.data;
+  }
+
   static async fetchRefund(reference: string) {
     const response = await axios.get(
       `${this.BASE_URL}/refund/${encodeURIComponent(reference)}`,

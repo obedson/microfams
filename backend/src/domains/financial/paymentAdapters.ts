@@ -95,6 +95,15 @@ export class DeterministicPaymentAdapter implements PaymentAdapter {
     };
   }
 
+
+  async recoverRefund(command: {
+    internalReference: string;
+    providerPaymentReference: string;
+    amountMinor: number;
+    currency: 'NGN';
+  }): Promise<ProviderRefundResult | undefined> {
+    return this.refundOutcomes.get(command.internalReference);
+  }
   async queryRefund(providerRefundReference: string): Promise<ProviderRefundResult> {
     const result = [...this.refundOutcomes.values()]
       .find((candidate) => candidate.providerReference === providerRefundReference);
@@ -159,7 +168,7 @@ export class PaystackPaymentAdapter implements PaymentAdapter {
     const response = await PaystackService.createRefund({
       transaction: command.providerPaymentReference,
       amount: command.amountMinor,
-      merchant_note: command.reason,
+      merchant_note: `[${command.internalReference}] ${command.reason}`,
     });
     const data = response.data;
     return {
@@ -170,6 +179,28 @@ export class PaystackPaymentAdapter implements PaymentAdapter {
     };
   }
 
+
+  async recoverRefund(command: {
+    internalReference: string;
+    providerPaymentReference: string;
+    amountMinor: number;
+    currency: 'NGN';
+  }): Promise<ProviderRefundResult | undefined> {
+    const response = await PaystackService.listRefunds(command.providerPaymentReference);
+    const refunds = Array.isArray(response.data) ? response.data : [];
+    const marker = `[${command.internalReference}]`;
+    const match = refunds.find((candidate: any) =>
+      Number(candidate.amount) === command.amountMinor
+      && String(candidate.currency ?? 'NGN').toUpperCase() === command.currency
+      && String(candidate.merchant_note ?? '').includes(marker));
+    if (!match) return undefined;
+    return {
+      providerReference: match.id ? String(match.id) : match.refund_reference,
+      status: refundStatus(match.status),
+      amountMinor: asPositiveMinor(match.amount),
+      currency: command.currency,
+    };
+  }
   async queryRefund(providerRefundReference: string): Promise<ProviderRefundResult> {
     const response = await PaystackService.fetchRefund(providerRefundReference);
     const data = response.data;

@@ -13,6 +13,7 @@ import {
   getCancellationEligibility,
   getPaymentRetryStatus
 } from '../controllers/bookingController.js';
+import { decideBookingRefund, proposeBookingRefund } from '../controllers/bookingRefundController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { resolveTenant } from '../middleware/tenant.js';
 import { requireFeature } from '../middleware/requireFeature.js';
@@ -33,9 +34,25 @@ router.get('/owner/bookings', authenticateToken, resolveTenant, getOwnerBookings
 router.get('/owner/stats', authenticateToken, resolveTenant, getBookingStats);
 
 // Shared routes
+router.post(
+  '/cancellations/:cancellationId/refund-proposals',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('financial.payments.service_existing'),
+  bookingLimiter,
+  proposeBookingRefund,
+);
+router.post(
+  '/refund-approvals/:approvalId/decision',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('financial.payments.service_existing'),
+  bookingLimiter,
+  decideBookingRefund,
+);
 router.get('/:id', authenticateToken, resolveTenant, getBookingById);
 router.put('/:id/status', authenticateToken, resolveTenant, updateBookingStatus);
-router.put('/:id/cancel', authenticateToken, resolveTenant, cancelBooking);
+router.put('/:id/cancel', authenticateToken, resolveTenant, requireFeature('financial.payments.service_existing'), bookingLimiter, cancelBooking);
 
 // New enhanced endpoints
 router.post(
@@ -47,7 +64,7 @@ router.post(
   retryPayment,
 );
 router.get('/:id/history', authenticateToken, resolveTenant, getBookingHistory);
-router.get('/:id/cancellation-eligibility', authenticateToken, resolveTenant, getCancellationEligibility);
+router.get('/:id/cancellation-eligibility', authenticateToken, resolveTenant, requireFeature('financial.payments.service_existing'), getCancellationEligibility);
 router.get(
   '/:id/payment-retry-status',
   authenticateToken,

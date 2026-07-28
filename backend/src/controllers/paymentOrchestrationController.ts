@@ -71,6 +71,20 @@ export const requestRefund = asyncHandler(async (req: Request, res: Response) =>
   }
   const idempotencyKey = String(req.headers['idempotency-key'] || '');
   if (idempotencyKey.length < 8) throw createError('Idempotency-Key header is required', 400);
+  const { data: storedPayment, error: paymentError } = await supabase.from('payments')
+    .select('source_type').eq('id', req.params.paymentId)
+    .eq('organization_id', request.tenant!.id).single();
+  if (paymentError || !storedPayment) throw createError('Payment not found', 404);
+  if (storedPayment.source_type === 'booking') {
+    throw createError('Booking refunds must use the booking cancellation/refund workflow', 409);
+  }
+  if (!req.body.approval_reference) throw createError('Refund approval reference is required', 400);
+  const { data: permitted, error: permissionError } = await supabase.rpc('has_financial_permission', {
+    p_org: request.tenant!.id,
+    p_actor: request.user!.id,
+    p_permission: 'financial.refunds.create',
+  });
+  if (permissionError || !permitted) throw createError('Refund request is not authorized', 403);
   const result = await paymentService.requestRefund({
     paymentId: req.params.paymentId,
     organizationId: request.tenant!.id,
