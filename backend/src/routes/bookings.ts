@@ -59,7 +59,7 @@ router.post(
   decideBookingRefund,
 );
 router.get('/:id', authenticateToken, resolveTenant, getBookingById);
-router.put('/:id/status', authenticateToken, resolveTenant, updateBookingStatus);
+router.put('/:id/status', authenticateToken, resolveTenant, requireFeature('booking.lifecycle.manage'), bookingLimiter, updateBookingStatus);
 router.put('/:id/cancel', authenticateToken, resolveTenant, requireFeature('financial.payments.service_existing'), bookingLimiter, cancelBooking);
 
 // New enhanced endpoints

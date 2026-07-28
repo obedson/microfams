@@ -89,8 +89,7 @@ export const verifyPayment = asyncHandler(async (req: Request, res: Response) =>
       const bookingId = data.metadata?.booking_id;
       
       if (bookingId) {
-        await BookingModel.updatePaymentStatus(bookingId, 'paid', reference);
-        await BookingModel.updateStatus(bookingId, 'confirmed');
+        await BookingModel.completePayment(bookingId, reference);
       }
 
       res.json({

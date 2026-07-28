@@ -102,6 +102,11 @@ describe('API Endpoints', () => {
     });
     it('protects booking cancellation and refund review commands', async () => {
       await request(app)
+        .put('/api/bookings/00000000-0000-4000-8000-000000000201/status')
+        .set('Idempotency-Key', 'booking-lifecycle-api-contract')
+        .send({ status: 'confirmed' })
+        .expect(401);
+      await request(app)
         .put('/api/bookings/00000000-0000-4000-8000-000000000201/cancel')
         .send({ reason: 'Change of plans' })
         .expect(401);

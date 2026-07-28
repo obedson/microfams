@@ -10,6 +10,7 @@ interface BookingCardProps {
   onCancel?: (booking: any) => void;
   onApprove?: (booking: any) => void;
   onReject?: (booking: any) => void;
+  onComplete?: (booking: any) => void;
   onContact?: (booking: any) => void;
   onRetryPayment?: (booking: any) => void;
 }
@@ -20,6 +21,7 @@ const BookingCard: React.FC<BookingCardProps> = ({
   onCancel,
   onApprove,
   onReject,
+  onComplete,
   onContact,
   onRetryPayment
 }) => {
@@ -365,6 +367,17 @@ const BookingCard: React.FC<BookingCardProps> = ({
                 )}
               </>
             )}
+            {booking.status === 'confirmed'
+              && booking.payment_status === 'paid'
+              && booking.end_date <= new Date().toISOString().slice(0, 10)
+              && onComplete && (
+                <button
+                  onClick={() => onComplete(booking)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium"
+                >
+                  Mark Completed
+                </button>
+              )}
             {onContact && currentUser && (
               <MessageButton
                 userType="owner"
