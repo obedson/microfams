@@ -1,6 +1,7 @@
 # Booking Cancellation and Refund Rules
 
-Status: proposed for product-owner approval.
+Status: approved. BR-01 through BR-12 were approved by the product owner on 2026-07-28.
+The approval was recorded in the Codex implementation task and this specification is now normative.
 
 ## Purpose
 
@@ -139,15 +140,15 @@ Implementation is complete only when CI proves:
 
 | Decision | Recommendation | Status |
 | --- | --- | --- |
-| BR-01 | Resource-bound farmer/property-owner cancellation authorization | Proposed |
-| BR-02 | Only pending-payment, pending, and confirmed bookings cancellable | Proposed |
-| BR-03 | Pre-start automatic policy; post-start manual review | Proposed |
-| BR-04 | Full remaining principal before start; no unapproved penalty | Proposed |
-| BR-05 | Integer minor units, cumulative cap, provider fees separate | Proposed |
-| BR-06 | Automatic policy refund; maker-checker for exceptions/partial/post-start | Proposed |
-| BR-07 | Atomic cancellation plus durable refund obligation | Proposed |
-| BR-08 | Original-rail, provider-neutral, recoverable asynchronous servicing | Proposed |
-| BR-09 | Explicit cancellation/refund UI states and notifications | Proposed |
-| BR-10 | Journal only on confirmed success; full reconciliation | Proposed |
-| BR-11 | Existing-obligation servicing remains available under flags | Proposed |
-| BR-12 | Tenant-scoped immutable audit and idempotent recovery | Proposed |
+| BR-01 | Resource-bound farmer/property-owner cancellation authorization | Approved |
+| BR-02 | Only pending-payment, pending, and confirmed bookings cancellable | Approved |
+| BR-03 | Pre-start automatic policy; post-start manual review | Approved |
+| BR-04 | Full remaining principal before start; no unapproved penalty | Approved |
+| BR-05 | Integer minor units, cumulative cap, provider fees separate | Approved |
+| BR-06 | Automatic policy refund; maker-checker for exceptions/partial/post-start | Approved |
+| BR-07 | Atomic cancellation plus durable refund obligation | Approved |
+| BR-08 | Original-rail, provider-neutral, recoverable asynchronous servicing | Approved |
+| BR-09 | Explicit cancellation/refund UI states and notifications | Approved |
+| BR-10 | Journal only on confirmed success; full reconciliation | Approved |
+| BR-11 | Existing-obligation servicing remains available under flags | Approved |
+| BR-12 | Tenant-scoped immutable audit and idempotent recovery | Approved |
