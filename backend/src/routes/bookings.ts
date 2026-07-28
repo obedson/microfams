@@ -68,6 +68,7 @@ router.post(
   authenticateToken,
   resolveTenant,
   requireFeature('financial.payments.accept_new'),
+  requireFeature('booking.settlements.create'),
   bookingLimiter,
   retryPayment,
 );

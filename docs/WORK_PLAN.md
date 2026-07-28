@@ -119,6 +119,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
 - [ ] Atomic booking creation, reservation holds, state transitions, pricing snapshots, payouts, refunds, disputes.
   - [x] Add atomic reservations, immutable pricing snapshots, canonical cancellation/refunds, and idempotent owner approval/completion transitions.
   - [x] Approve BS-01 through BS-12 booking settlement, dispute, fee, refund, and supplier-payout rules in [`docs/specs/BOOKING_SETTLEMENTS.md`](specs/BOOKING_SETTLEMENTS.md). Approved by the product owner on 2026-07-28.
+  - [x] Add booking settlement contracts, booking-specific escrow custody, refund/reversal allocations, legacy review quarantine, and acquisition/servicing flags.
 - [ ] Group treasury, contributions, projects, committees, meetings, voting, documents, and shared assets.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
