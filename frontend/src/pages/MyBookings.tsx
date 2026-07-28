@@ -4,6 +4,7 @@ import { bookingAPI } from '../api/client';
 import BookingList from '../components/bookings/BookingList';
 import BookingFilters from '../components/bookings/BookingFilters';
 import BookingCalendar from '../components/bookings/BookingCalendar';
+import CancellationPolicyNotice from '../components/bookings/CancellationPolicyNotice';
 import { X, RefreshCcw } from 'lucide-react';
 import axios from 'axios';
 import toast from 'react-hot-toast';
@@ -74,18 +75,27 @@ const MyBookings: React.FC = () => {
   const cancelMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: string; reason: string }) => {
       const token = localStorage.getItem('token');
-      await axios.put(
+      const response = await axios.put(
         `${API_URL}/bookings/${id}/cancel`,
         { reason },
-        { headers: { Authorization: `Bearer ${token}` } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Idempotency-Key': `booking-cancel:${id}:${crypto.randomUUID()}`,
+          },
+        }
       );
+      return response.data;
     },
-    onSuccess: () => {
+    onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['my-bookings'] });
       setShowCancelModal(false);
       setSelectedBooking(null);
       setCancelReason('');
-      toast.success('Booking cancelled successfully');
+      toast.success(result?.refund_status === 'manual_review'
+        ? 'Booking cancelled; refund is awaiting review'
+        : result?.refund_status === 'refund_processing'
+          ? 'Booking cancelled; refund is processing' : 'Booking cancelled successfully');
     },
     onError: () => {
       toast.error('Failed to cancel booking');
@@ -405,6 +415,12 @@ const MyBookings: React.FC = () => {
             <p className="text-gray-600 mb-4">
               Please provide a reason for cancelling this booking:
             </p>
+            {selectedBooking && (
+              <CancellationPolicyNotice
+                startDate={selectedBooking.start_date}
+                paymentStatus={selectedBooking.payment_status}
+              />
+            )}
             <textarea
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}

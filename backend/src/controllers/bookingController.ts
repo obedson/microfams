@@ -3,7 +3,7 @@ import { Request, Response } from 'express';
 import { BookingModel } from '../models/Booking.js';
 import { PropertyModel } from '../models/Property.js';
 import { sendEmail } from '../services/emailService.js';
-import { BookingCancellationService } from '../services/bookingCancellationService.js';
+import { BookingRefundOrchestrationService } from '../services/bookingRefundOrchestrationService.js';
 import { PaymentRecoveryService } from '../services/paymentRecoveryService.js';
 import { AvailabilityService } from '../services/availabilityService.js';
 import Joi from 'joi';
@@ -264,6 +264,12 @@ export const updateBookingStatus = async (req: TenantRequest, res: Response) => 
     if (error) {
       return res.status(400).json({ success: false, error: error.details[0].message });
     }
+    if (value.status === 'cancelled') {
+      return res.status(409).json({
+        success: false,
+        error: 'Use the booking cancellation endpoint so refund policy is applied',
+      });
+    }
 
     const booking = await BookingModel.findByIdWithDetails(id, req.tenant!.id);
     if (!booking) {
@@ -334,17 +340,26 @@ export const cancelBooking = async (req: TenantRequest, res: Response) => {
       return res.status(404).json({ success: false, error: 'Booking not found' });
     }
 
-    // Use the cancellation service for complete workflow
-    const result = await BookingCancellationService.processCancellation({
+    const idempotencyKey = String(req.headers['idempotency-key'] ?? '');
+    if (idempotencyKey.length < 8) {
+      return res.status(400).json({ success: false, error: 'Idempotency-Key header is required' });
+    }
+
+    const result = await BookingRefundOrchestrationService.processCancellation({
       bookingId: id,
-      reason: reason,
-      cancelledBy: userId
+      organizationId: req.tenant!.id,
+      reason,
+      cancelledBy: userId,
+      idempotencyKey,
+      correlationId: requestCorrelationId(req),
     });
 
     if (result.success) {
       res.json(result);
     } else {
       const statusCode = result.error === 'BOOKING_NOT_FOUND' ? 404 :
+                        result.error === 'UNAUTHORIZED' ? 403 :
+                        result.error === 'IDEMPOTENCY_CONFLICT' ? 409 :
                         result.error === 'MISSING_REASON' ? 400 :
                         result.error === 'CANCELLATION_NOT_ALLOWED' ? 400 : 500;
       
@@ -444,7 +459,7 @@ export const getCancellationEligibility = async (req: TenantRequest, res: Respon
       return res.status(404).json({ success: false, error: 'Booking not found' });
     }
 
-    const eligibility = await BookingCancellationService.getCancellationEligibility(id, userId);
+    const eligibility = await BookingRefundOrchestrationService.getCancellationEligibility(id, req.tenant!.id, userId);
 
     res.json({
       success: true,
