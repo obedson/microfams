@@ -1,11 +1,11 @@
 import crypto from 'crypto';
 import { Request, Response } from 'express';
 import { BookingModel } from '../models/Booking.js';
-import { sendEmail } from '../services/emailService.js';
 import { BookingRefundOrchestrationService } from '../services/bookingRefundOrchestrationService.js';
 import { PaymentRecoveryService } from '../services/paymentRecoveryService.js';
 import { AvailabilityService } from '../services/availabilityService.js';
 import { BookingReservationService, bookingReservationHttpError } from '../services/bookingReservationService.js';
+import { BookingLifecycleService, bookingTransitionHttpError } from '../services/bookingLifecycleService.js';
 import Joi from 'joi';
 import { TenantRequest } from '../middleware/tenant.js';
 
@@ -18,12 +18,7 @@ const bookingSchema = Joi.object({
 });
 
 const statusUpdateSchema = Joi.object({
-  status: Joi.string().valid('confirmed', 'cancelled', 'completed').required(),
-  rejection_reason: Joi.string().when('status', {
-    is: 'cancelled',
-    then: Joi.optional(),
-    otherwise: Joi.forbidden()
-  })
+  status: Joi.string().valid('confirmed', 'completed').required(),
 });
 
 const requestCorrelationId = (request: Request): string => {
@@ -187,65 +182,27 @@ export const getBookingById = async (req: TenantRequest, res: Response) => {
 };
 
 export const updateBookingStatus = async (req: TenantRequest, res: Response) => {
+  const { error, value } = statusUpdateSchema.validate(req.body);
+  if (error) return res.status(400).json({ success: false, error: 'BOOKING_TRANSITION_REQUEST_INVALID' });
+
+  const idempotencyKey = req.headers['idempotency-key'];
+  if (typeof idempotencyKey !== 'string' || idempotencyKey.length < 8 || idempotencyKey.length > 160) {
+    return res.status(400).json({ success: false, error: 'IDEMPOTENCY_KEY_REQUIRED' });
+  }
   try {
     const { id } = req.params;
-    const { error, value } = statusUpdateSchema.validate(req.body);
-    
-    if (error) {
-      return res.status(400).json({ success: false, error: error.details[0].message });
-    }
-    if (value.status === 'cancelled') {
-      return res.status(409).json({
-        success: false,
-        error: 'Use the booking cancellation endpoint so refund policy is applied',
-      });
-    }
-
-    const booking = await BookingModel.findByIdWithDetails(id, req.tenant!.id);
-    if (!booking) {
-      return res.status(404).json({ success: false, error: 'Booking not found' });
-    }
-
-    // Verify owner authorization
-    if (booking.owner_id !== (req as any).user.id) {
-      return res.status(403).json({ success: false, error: 'Only property owner can update booking status' });
-    }
-
-    // Validate status transitions
-    if (booking.status === 'completed' || booking.status === 'cancelled') {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Cannot update status of completed or cancelled bookings' 
-      });
-    }
-
-    if (value.status === 'confirmed' && booking.payment_status !== 'paid') {
-      return res.status(400).json({ 
-        success: false, 
-        error: 'Cannot confirm booking until payment is completed' 
-      });
-    }
-
-    await BookingModel.updateStatus(id, value.status, value.rejection_reason, undefined, req.tenant!.id);
-
-    // Send notification to farmer
-    await sendEmail({
-      to: booking.farmer_email,
-      subject: `Booking ${value.status === 'confirmed' ? 'Confirmed' : 'Cancelled'}`,
-      template: 'booking-status-update',
-      data: {
-        propertyTitle: booking.property_title,
-        status: value.status,
-        rejectionReason: value.rejection_reason,
-        startDate: booking.start_date,
-        endDate: booking.end_date
-      }
+    const result = await BookingLifecycleService.transition({
+      bookingId: id,
+      organizationId: req.tenant!.id,
+      actorId: req.user!.id,
+      targetStatus: value.status,
+      idempotencyKey,
+      correlationId: requestCorrelationId(req),
     });
-
-    res.json({ success: true, message: 'Booking status updated successfully' });
-  } catch (error) {
-    console.error('Update booking status error:', error);
-    res.status(500).json({ success: false, error: 'Failed to update booking status' });
+    return res.json({ success: true, data: result });
+  } catch (error: any) {
+    const mapped = bookingTransitionHttpError(error?.message ?? 'BOOKING_TRANSITION_FAILED');
+    return res.status(mapped.status).json({ success: false, error: mapped.code });
   }
 };
 

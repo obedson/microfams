@@ -54,13 +54,14 @@ const OwnerBookings: React.FC = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ id, status, rejection_reason }: any) => {
+    mutationFn: async ({ id, status, reason, idempotencyKey }: any) => {
       const token = localStorage.getItem('token');
-      await axios.put(
-        `${API_URL}/bookings/${id}/status`,
-        { status, rejection_reason },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const headers = { Authorization: `Bearer ${token}`, 'Idempotency-Key': idempotencyKey };
+      if (status === 'cancelled') {
+        await axios.put(`${API_URL}/bookings/${id}/cancel`, { reason }, { headers });
+      } else {
+        await axios.put(`${API_URL}/bookings/${id}/status`, { status }, { headers });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['owner-bookings'] });
@@ -70,14 +71,28 @@ const OwnerBookings: React.FC = () => {
       setRejectionReason('');
       toast.success('Booking status updated');
     },
-    onError: () => {
-      toast.error('Failed to update booking status');
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || error?.response?.data?.error || 'Failed to update booking status');
     }
   });
 
   const handleApprove = (booking: any) => {
     if (window.confirm('Approve this booking?')) {
-      updateStatusMutation.mutate({ id: booking.id, status: 'confirmed' });
+      updateStatusMutation.mutate({
+        id: booking.id,
+        status: 'confirmed',
+        idempotencyKey: `booking-confirm-${booking.id}-${Date.now()}`,
+      });
+    }
+  };
+
+  const handleComplete = (booking: any) => {
+    if (window.confirm('Mark this booking as completed?')) {
+      updateStatusMutation.mutate({
+        id: booking.id,
+        status: 'completed',
+        idempotencyKey: `booking-complete-${booking.id}-${Date.now()}`,
+      });
     }
   };
 
@@ -91,7 +106,8 @@ const OwnerBookings: React.FC = () => {
       updateStatusMutation.mutate({
         id: selectedBooking.id,
         status: 'cancelled',
-        rejection_reason: rejectionReason
+        reason: rejectionReason,
+        idempotencyKey: `booking-cancel-${selectedBooking.id}-${Date.now()}`,
       });
     }
   };
@@ -155,6 +171,7 @@ const OwnerBookings: React.FC = () => {
         isLoading={isLoading}
         onApprove={handleApprove}
         onReject={handleReject}
+        onComplete={handleComplete}
         onContact={handleContact}
       />
 

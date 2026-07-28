@@ -201,7 +201,7 @@ export class BookingModel {
       .from('bookings')
       .update({ 
         payment_status: 'paid',
-        status: 'confirmed',
+        status: 'pending',
         payment_reference: paymentReference,
         updated_at: new Date().toISOString() 
       })

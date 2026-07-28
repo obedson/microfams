@@ -117,6 +117,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
 ## Phase 5 — Booking, groups, and cooperative accounting
 
 - [ ] Atomic booking creation, reservation holds, state transitions, pricing snapshots, payouts, refunds, disputes.
+  - [x] Add atomic reservations, immutable pricing snapshots, canonical cancellation/refunds, and idempotent owner approval/completion transitions.
 - [ ] Group treasury, contributions, projects, committees, meetings, voting, documents, and shared assets.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 

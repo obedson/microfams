@@ -54,8 +54,7 @@ const handleSuccessfulPayment = async (data: any) => {
   }
 
   try {
-    await BookingModel.updatePaymentStatus(bookingId, 'paid', reference);
-    await BookingModel.updateStatus(bookingId, 'confirmed');
+    await BookingModel.completePayment(bookingId, reference);
     
     console.log(`Payment successful for booking ${bookingId}, amount: ${amount}`);
     

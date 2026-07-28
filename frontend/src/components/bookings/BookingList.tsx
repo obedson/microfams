@@ -8,6 +8,7 @@ interface BookingListProps {
   onCancel?: (booking: any) => void;
   onApprove?: (booking: any) => void;
   onReject?: (booking: any) => void;
+  onComplete?: (booking: any) => void;
   onContact?: (booking: any) => void;
   onRetryPayment?: (booking: any) => void;
 }
@@ -19,6 +20,7 @@ const BookingList: React.FC<BookingListProps> = ({
   onCancel,
   onApprove,
   onReject,
+  onComplete,
   onContact,
   onRetryPayment
 }) => {
@@ -68,6 +70,7 @@ const BookingList: React.FC<BookingListProps> = ({
           onCancel={onCancel}
           onApprove={onApprove}
           onReject={onReject}
+          onComplete={onComplete}
           onContact={onContact}
           onRetryPayment={onRetryPayment}
         />
