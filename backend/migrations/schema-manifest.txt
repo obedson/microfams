@@ -68,3 +68,4 @@ install_atomic_booking_reservations.sql
 install_booking_state_transitions.sql
 install_booking_settlement_foundation.sql
 install_booking_settlement_eligibility_fees.sql
+install_booking_dispute_opening.sql

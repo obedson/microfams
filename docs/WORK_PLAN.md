@@ -121,6 +121,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Approve BS-01 through BS-12 booking settlement, dispute, fee, refund, and supplier-payout rules in [`docs/specs/BOOKING_SETTLEMENTS.md`](specs/BOOKING_SETTLEMENTS.md). Approved by the product owner on 2026-07-28.
   - [x] Add booking settlement contracts, booking-specific escrow custody, refund/reversal allocations, legacy review quarantine, and acquisition/servicing flags.
   - [x] Add effective-dated settlement and fee rules, maker-checker activation, completion-time eligibility snapshots, hold-aware release checks, and balanced cross-tenant supplier/platform accounting.
+  - [x] Add BS-06 customer/support dispute opening, atomic contested-amount freezes, append-only malware-aware evidence, and tenant-safe timelines.
 - [ ] Group treasury, contributions, projects, committees, meetings, voting, documents, and shared assets.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 

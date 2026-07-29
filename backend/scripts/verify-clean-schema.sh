@@ -59,7 +59,8 @@ BEGIN
       'wallet_cache_write_capabilities','booking_settlement_contracts',
       'booking_settlement_allocations','booking_settlement_legacy_reviews',
       'booking_settlement_rules','booking_fee_rules','booking_settlement_holds',
-      'booking_settlement_posting_links'
+      'booking_settlement_posting_links','booking_disputes',
+      'booking_dispute_evidence','booking_dispute_events'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -292,6 +293,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-booking-settlement-eligibility-fees.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-booking-dispute-opening.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"

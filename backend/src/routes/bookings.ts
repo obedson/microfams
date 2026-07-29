@@ -13,6 +13,11 @@ import {
   getCancellationEligibility,
   getPaymentRetryStatus
 } from '../controllers/bookingController.js';
+import {
+  addBookingDisputeEvidence,
+  getBookingDisputeTimeline,
+  openBookingDispute,
+} from '../controllers/bookingDisputeController.js';
 import { decideBookingRefund, proposeBookingRefund } from '../controllers/bookingRefundController.js';
 import {
   decideBookingFinancialRule,
@@ -57,6 +62,29 @@ router.post(
   requireFeature('financial.payments.service_existing'),
   bookingLimiter,
   proposeBookingRefund,
+);
+router.post(
+  '/disputes/:disputeId/evidence',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.disputes.service_existing'),
+  bookingLimiter,
+  addBookingDisputeEvidence,
+);
+router.post(
+  '/:id/disputes',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.disputes.open'),
+  bookingLimiter,
+  openBookingDispute,
+);
+router.get(
+  '/:id/disputes',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.disputes.service_existing'),
+  getBookingDisputeTimeline,
 );
 router.post(
   '/refund-approvals/:approvalId/decision',
