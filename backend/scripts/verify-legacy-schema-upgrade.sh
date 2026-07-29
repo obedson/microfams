@@ -125,6 +125,14 @@ if [[ "$booking_dispute_schema_present" == "f" ]]; then
   migrations+=(install_booking_dispute_opening.sql)
 fi
 
+booking_dispute_resolution_schema_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regclass('public.booking_dispute_resolution_proposals') IS NOT NULL
+    AND to_regprocedure('public.decide_booking_dispute_resolution(uuid,uuid,boolean,text,text,uuid)') IS NOT NULL")"
+if [[ "$booking_dispute_resolution_schema_present" == "f" ]]; then
+  migrations+=(install_booking_dispute_resolution.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -168,6 +176,11 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
       OR to_regclass('public.booking_disputes') IS NULL
       OR to_regclass('public.booking_dispute_evidence') IS NULL
       OR to_regprocedure('public.open_booking_dispute(uuid,uuid,uuid,text,text,text,bigint,text,uuid)') IS NULL
+      OR to_regclass('public.booking_dispute_resolution_proposals') IS NULL
+      OR to_regclass('public.booking_dispute_response_rules') IS NULL
+      OR to_regclass('public.booking_settlement_releases') IS NULL
+      OR to_regprocedure('public.decide_booking_dispute_resolution(uuid,uuid,boolean,text,text,uuid)') IS NULL
+      OR to_regprocedure('public.read_booking_dispute_resolution_case(uuid,uuid,uuid)') IS NULL
     THEN RAISE EXCEPTION 'required trust and booking schema was not installed'; END IF;
   END \$\$;" >/dev/null
 
