@@ -14,6 +14,14 @@ import {
   getPaymentRetryStatus
 } from '../controllers/bookingController.js';
 import { decideBookingRefund, proposeBookingRefund } from '../controllers/bookingRefundController.js';
+import {
+  decideBookingFinancialRule,
+  getBookingFinancialRules,
+  getBookingSettlement,
+  proposeBookingFeeRule,
+  proposeBookingSettlementRule,
+  releaseBookingSettlement,
+} from '../controllers/bookingSettlementController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { resolveTenant } from '../middleware/tenant.js';
 import { requireFeature } from '../middleware/requireFeature.js';
@@ -57,6 +65,52 @@ router.post(
   requireFeature('financial.payments.service_existing'),
   bookingLimiter,
   decideBookingRefund,
+);
+router.get(
+  '/settlement-rules',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  getBookingFinancialRules,
+);
+router.post(
+  '/settlement-rules',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  bookingLimiter,
+  proposeBookingSettlementRule,
+);
+router.post(
+  '/fee-rules',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  bookingLimiter,
+  proposeBookingFeeRule,
+);
+router.post(
+  '/settlement-rule-approvals/:approvalId/decision',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  bookingLimiter,
+  decideBookingFinancialRule,
+);
+router.get(
+  '/:id/settlement',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  getBookingSettlement,
+);
+router.post(
+  '/:id/settlement/release',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  bookingLimiter,
+  releaseBookingSettlement,
 );
 router.get('/:id', authenticateToken, resolveTenant, getBookingById);
 router.put('/:id/status', authenticateToken, resolveTenant, requireFeature('booking.lifecycle.manage'), bookingLimiter, updateBookingStatus);
