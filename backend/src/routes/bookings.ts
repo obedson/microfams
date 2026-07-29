@@ -18,6 +18,13 @@ import {
   getBookingDisputeTimeline,
   openBookingDispute,
 } from '../controllers/bookingDisputeController.js';
+import {
+  decideBookingDisputeResponseRule,
+  getBookingDisputeResolutionCase,
+  proposeBookingDisputeResolution,
+  proposeBookingDisputeResponseRule,
+  transitionBookingDispute,
+} from '../controllers/bookingDisputeResolutionController.js';
 import { decideBookingRefund, proposeBookingRefund } from '../controllers/bookingRefundController.js';
 import {
   decideBookingFinancialRule,
@@ -70,6 +77,45 @@ router.post(
   requireFeature('booking.disputes.service_existing'),
   bookingLimiter,
   addBookingDisputeEvidence,
+);
+router.post(
+  '/disputes/:disputeId/transitions',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.disputes.service_existing'),
+  bookingLimiter,
+  transitionBookingDispute,
+);
+router.post(
+  '/disputes/:disputeId/resolution-proposals',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.disputes.service_existing'),
+  bookingLimiter,
+  proposeBookingDisputeResolution,
+);
+router.get(
+  '/disputes/:disputeId/resolution',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.disputes.service_existing'),
+  getBookingDisputeResolutionCase,
+);
+router.post(
+  '/dispute-response-rules',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.disputes.service_existing'),
+  bookingLimiter,
+  proposeBookingDisputeResponseRule,
+);
+router.post(
+  '/dispute-response-rule-approvals/:ruleId/decision',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.disputes.service_existing'),
+  bookingLimiter,
+  decideBookingDisputeResponseRule,
 );
 router.post(
   '/:id/disputes',

@@ -8,6 +8,7 @@ import { requirePlatformAdministrator } from '../middleware/platformAdministrato
 import { trustController } from '../controllers/trustController.js';
 import { legalHoldController } from '../controllers/legalHoldController.js';
 import { requireFeature } from '../middleware/requireFeature.js';
+import { decideBookingDisputeResolution } from '../controllers/bookingDisputeResolutionController.js';
 
 const router = Router();
 
@@ -17,6 +18,12 @@ router.post('/mfa/verify', authenticateToken, verifyMFA);
 
 router.use(authenticateToken);
 router.use(requirePlatformAdministrator);
+
+router.post(
+  '/booking-dispute-resolution-proposals/:proposalId/decision',
+  requireFeature('booking.disputes.service_existing'),
+  decideBookingDisputeResolution,
+);
 
 router.get('/platform-administrators', platformAdministrationController.list);
 router.post('/platform-administrators', platformAdministrationController.grant);
