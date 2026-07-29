@@ -8,7 +8,15 @@ import { supabase } from '../utils/supabase.js';
 
 const router = Router();
 
-router.post('/initialize', authenticateToken, resolveTenant, requireFeature('financial.payments.accept_new'), paymentLimiter, initializePayment);
+router.post(
+  '/initialize',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('financial.payments.accept_new'),
+  requireFeature('booking.settlements.create'),
+  paymentLimiter,
+  initializePayment,
+);
 router.get('/verify/:reference', requireFeature('financial.payments.service_existing'), verifyPayment);
 router.post(
   '/:paymentId/refunds',

@@ -14,7 +14,7 @@ BEGIN
     RAISE EXCEPTION 'purpose % provisioned with invalid canonical facts',rule.purpose;
   END IF;
  END LOOP;
- IF counter<>18 THEN RAISE EXCEPTION 'canonical purpose catalogue is incomplete'; END IF;
+ IF counter<>26 THEN RAISE EXCEPTION 'canonical purpose catalogue is incomplete'; END IF;
  SELECT to_jsonb(fa) INTO result FROM financial_accounts fa WHERE organization_id=org AND provisioning_key='purpose-provision-001';
  replay:=provision_financial_account(org,actor,result->>'code',result->>'name',result->>'purpose',result->>'currency',result->>'owner_type',NULLIF(result->>'owner_id','')::UUID,(result->>'effective_from')::DATE,'purpose-provision-001');
  IF replay->>'id'<>result->>'id' THEN RAISE EXCEPTION 'account provisioning replay created a duplicate'; END IF;
@@ -26,7 +26,7 @@ BEGIN
   PERFORM provision_financial_account(org,outsider,'9999.CROSS','Cross tenant account','operating_cash','NGN','organization',NULL,DATE '2026-07-27','cross-tenant-provision');
   RAISE EXCEPTION 'cross-tenant actor provisioned an account';
  EXCEPTION WHEN OTHERS THEN IF SQLERRM='cross-tenant actor provisioned an account' THEN RAISE; END IF; END;
- IF (SELECT count(*) FROM organization_audit_log WHERE action='FINANCIAL_ACCOUNT_PROVISIONED' AND organization_id=org)<>18 THEN RAISE EXCEPTION 'account provisioning audit count is incorrect'; END IF;
+ IF (SELECT count(*) FROM organization_audit_log WHERE action='FINANCIAL_ACCOUNT_PROVISIONED' AND organization_id=org)<>26 THEN RAISE EXCEPTION 'account provisioning audit count is incorrect'; END IF;
 END $$;
 
 SET ROLE service_role;

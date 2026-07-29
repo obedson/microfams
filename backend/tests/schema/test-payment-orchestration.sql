@@ -12,12 +12,12 @@ DECLARE
   source_id UUID := gen_random_uuid();
 BEGIN
   payment := create_payment_intent(
-    tenant_id, 'booking', source_id, actor_id, 'PAY-schema-success-001',
+    tenant_id, 'marketplace_order', source_id, actor_id, 'PAY-schema-success-001',
     'schema-payment-success-key', 'deterministic', 'deterministic', 'NGN', 100000,
     '00000000-0000-4000-8000-000000009101', actor_id
   );
   replay := create_payment_intent(
-    tenant_id, 'booking', source_id, actor_id, 'PAY-schema-success-001',
+    tenant_id, 'marketplace_order', source_id, actor_id, 'PAY-schema-success-001',
     'schema-payment-success-key', 'deterministic', 'deterministic', 'NGN', 100000,
     '00000000-0000-4000-8000-000000009101', actor_id
   );
@@ -26,7 +26,7 @@ BEGIN
   END IF;
   BEGIN
     PERFORM create_payment_intent(
-      tenant_id, 'booking', source_id, actor_id, 'PAY-schema-success-001',
+      tenant_id, 'marketplace_order', source_id, actor_id, 'PAY-schema-success-001',
       'schema-payment-success-key', 'deterministic', 'deterministic', 'NGN', 100001,
       '00000000-0000-4000-8000-000000009101', actor_id
     );

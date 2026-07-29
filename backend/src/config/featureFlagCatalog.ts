@@ -17,6 +17,10 @@ const flag = (
 export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('booking.reservations.create', 'booking', 'Create atomic property reservation holds.', { defaultEnabled: true }),
   flag('booking.lifecycle.manage', 'booking', 'Approve and complete bookings through the canonical lifecycle command.', { defaultEnabled: true }),
+  flag('booking.settlements.create', 'booking', 'Create new booking settlement obligations.', { risk: 'regulated' }),
+  flag('booking.settlements.service_existing', 'booking', 'Service existing booking settlement obligations.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
+  flag('booking.disputes.open', 'booking', 'Open new booking disputes.', { risk: 'regulated' }),
+  flag('booking.disputes.service_existing', 'booking', 'Service existing booking disputes.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('financial.payments.accept_new', 'payments', 'Accept new customer payment attempts.', { risk: 'regulated' }),
   flag('financial.payments.service_existing', 'payments', 'Process callbacks, reconciliation, refunds, and reversals for existing payments.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('financial.payouts.create', 'payments', 'Create new beneficiary payouts.', { risk: 'regulated' }),
