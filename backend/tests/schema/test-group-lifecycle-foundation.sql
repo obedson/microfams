@@ -7,6 +7,8 @@ DECLARE
   v_other_organization_id UUID;
   v_group_one UUID;
   v_group_two UUID;
+  v_member_one UUID;
+  v_constitution_id UUID;
   v_state TEXT;
   v_version INTEGER;
 BEGIN
@@ -70,9 +72,9 @@ BEGIN
   ) VALUES (
     'GT-01 Group Two', 'cooperative', v_actor_id, v_organization_id, 20
   ) RETURNING id INTO v_group_two;
-  IF NOT EXISTS (
+  IF EXISTS (
     SELECT 1 FROM public_group_directory WHERE id = v_group_one
-  ) THEN RAISE EXCEPTION 'active group is missing from public projection'; END IF;
+  ) THEN RAISE EXCEPTION 'draft group leaked into public projection'; END IF;
   IF EXISTS (
     SELECT 1 FROM information_schema.columns
     WHERE table_schema = 'public' AND table_name = 'public_group_directory'
@@ -82,16 +84,57 @@ BEGIN
       )
   ) THEN RAISE EXCEPTION 'public group projection exposes private columns'; END IF;
 
-  INSERT INTO group_members(organization_id, group_id, user_id)
+  INSERT INTO group_members(
+    organization_id, group_id, user_id, role, payment_status, amount_paid
+  )
   VALUES
-    (v_organization_id, v_group_one, v_actor_id),
-    (v_organization_id, v_group_two, v_actor_id);
+    (v_organization_id, v_group_one, v_actor_id, 'owner', 'paid', 1000),
+    (v_organization_id, v_group_two, v_actor_id, 'owner', 'paid', 1000);
   IF (
     SELECT count(*) FROM group_members
     WHERE user_id = v_actor_id AND group_id IN (v_group_one, v_group_two)
   ) <> 2 THEN
     RAISE EXCEPTION 'GT-01 multi-group membership was not preserved';
   END IF;
+  SELECT id INTO v_member_one FROM group_members
+  WHERE group_id = v_group_one AND user_id = v_actor_id;
+
+  v_constitution_id := adopt_initial_group_constitution(
+    v_organization_id, v_group_one, v_actor_id, 'GT-01 Test Constitution',
+    jsonb_build_object(
+      'minimum_members', 1,
+      'ordinary_quorum_bps', 5000,
+      'ordinary_approval_bps', 5001,
+      'special_quorum_bps', 6667,
+      'special_approval_bps', 6667,
+      'vote_change_allowed', FALSE
+    ),
+    '00000000-0000-4000-8000-000000000221',
+    TIMESTAMPTZ '2026-07-30 13:40:00+00'
+  );
+  PERFORM appoint_initial_group_office(
+    v_organization_id, v_group_one, v_actor_id, 'chair', v_member_one, NULL,
+    '00000000-0000-4000-8000-000000000222',
+    TIMESTAMPTZ '2026-07-30 13:41:00+00'
+  );
+  PERFORM appoint_initial_group_office(
+    v_organization_id, v_group_one, v_actor_id, 'secretary', v_member_one, NULL,
+    '00000000-0000-4000-8000-000000000223',
+    TIMESTAMPTZ '2026-07-30 13:42:00+00'
+  );
+  PERFORM appoint_initial_group_office(
+    v_organization_id, v_group_one, v_actor_id, 'treasurer', v_member_one, NULL,
+    '00000000-0000-4000-8000-000000000224',
+    TIMESTAMPTZ '2026-07-30 13:43:00+00'
+  );
+  PERFORM activate_group_with_constitution(
+    v_organization_id, v_group_one, v_actor_id, 1,
+    '00000000-0000-4000-8000-000000000225',
+    TIMESTAMPTZ '2026-07-30 13:44:00+00'
+  );
+  IF NOT EXISTS (
+    SELECT 1 FROM public_group_directory WHERE id = v_group_one
+  ) THEN RAISE EXCEPTION 'activated group is missing from public projection'; END IF;
 
   BEGIN
     INSERT INTO group_members(organization_id, group_id, user_id)
@@ -136,7 +179,7 @@ BEGIN
     WHERE id = v_group_one AND lifecycle_state = 'active' AND is_active
   ) OR (
     SELECT count(*) FROM group_lifecycle_events WHERE group_id = v_group_one
-  ) <> 3 THEN
+  ) <> 4 THEN
     RAISE EXCEPTION 'group lifecycle history is incomplete';
   END IF;
 END $$;

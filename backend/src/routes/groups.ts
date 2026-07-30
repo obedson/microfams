@@ -4,13 +4,11 @@ import { authenticateToken, AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { createGroupSchema, joinGroupSchema } from '../utils/validation.js';
 import { GroupModel } from '../models/Group.js';
-import { WalletService } from '../services/walletService.js';
 import { Response } from 'express';
 import supabase from '../utils/supabase.js';
 import { resolveTenant, TenantRequest } from '../middleware/tenant.js';
 import { requireFeature } from '../middleware/requireFeature.js';
 
-const walletService = new WalletService();
 const router = Router();
 
 // Rate limiters
@@ -82,17 +80,10 @@ router.post(
       payment_reference
     );
     
-    // Provision NUBAN
-    try {
-      await walletService.provisionGroupNuban(group.id, group.name);
-    } catch (nubanError) {
-      console.error(`Group NUBAN provisioning failed for group ${group.id}:`, nubanError);
-    }
-    
-    res.status(201).json({ 
+    res.status(201).json({
       success: true,
-      message: 'Group created successfully! You are now a member.',
-      group 
+      message: 'Group draft created. Adopt a constitution and fill required offices to activate it.',
+      group
     });
   } catch (error: any) {
     console.error('Group creation error:', error);
