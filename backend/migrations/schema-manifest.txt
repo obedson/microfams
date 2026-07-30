@@ -71,3 +71,4 @@ install_booking_settlement_eligibility_fees.sql
 install_booking_dispute_opening.sql
 install_booking_dispute_resolution.sql
 install_booking_supplier_payout.sql
+install_booking_reversal_recovery.sql
