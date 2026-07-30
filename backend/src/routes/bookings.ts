@@ -27,6 +27,12 @@ import {
 } from '../controllers/bookingDisputeResolutionController.js';
 import { decideBookingRefund, proposeBookingRefund } from '../controllers/bookingRefundController.js';
 import {
+  decideBookingRecoveryAction,
+  decideBookingRecoveryOffsetAgreement,
+  proposeBookingRecoveryAction,
+  proposeBookingRecoveryOffsetAgreement,
+} from '../controllers/bookingRecoveryController.js';
+import {
   decideBookingFinancialRule,
   getBookingFinancialRules,
   getBookingSettlement,
@@ -207,6 +213,42 @@ router.post(
   requireFeature('financial.payouts.service_existing'),
   bookingLimiter,
   cancelBookingSupplierPayout,
+);
+router.post(
+  '/recovery-offset-agreements',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  requireFeature('financial.payouts.service_existing'),
+  bookingLimiter,
+  proposeBookingRecoveryOffsetAgreement,
+);
+router.post(
+  '/recovery-offset-agreements/:agreementId/decision',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  requireFeature('financial.payouts.service_existing'),
+  bookingLimiter,
+  decideBookingRecoveryOffsetAgreement,
+);
+router.post(
+  '/recovery-cases/:caseId/actions',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  requireFeature('financial.payouts.service_existing'),
+  bookingLimiter,
+  proposeBookingRecoveryAction,
+);
+router.post(
+  '/recovery-actions/:actionId/decision',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  requireFeature('financial.payouts.service_existing'),
+  bookingLimiter,
+  decideBookingRecoveryAction,
 );
 router.post(
   '/refund-approvals/:approvalId/decision',

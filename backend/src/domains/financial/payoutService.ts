@@ -256,6 +256,10 @@ export class PayoutService {
   }
 
   private async applyProviderResult(payoutId: string, requestHash: string, result: ProviderPayoutResult) {
+    if (result.status === 'succeeded') {
+      const lateSuccess = await this.recordLateBookingSuccess(payoutId, requestHash, result);
+      if (lateSuccess) return lateSuccess;
+    }
     if (result.status === 'failed') {
       const submitted = await this.markSubmitted(payoutId, requestHash, result.providerReference, false);
       const failureFunction = submitted.source_type === 'booking_settlement'
@@ -304,6 +308,58 @@ export class PayoutService {
     const { data, error } = await supabase.rpc(successFunction, successCommand);
     if (error || !data) throw error ?? new Error('Payout success could not be applied');
     return publicPayout(data);
+  }
+
+  private async recordLateBookingSuccess(
+    payoutId: string,
+    requestHash: string,
+    result: ProviderPayoutResult,
+  ) {
+    const { data: payout, error: payoutError } = await supabase
+      .from('payouts')
+      .select('*')
+      .eq('id', payoutId)
+      .single();
+    if (payoutError || !payout) {
+      throw payoutError ?? new Error('Payout not found');
+    }
+    if (payout.source_type !== 'booking_settlement'
+      || !['failed', 'cancelled'].includes(payout.state)
+    ) return null;
+
+    const providerReference = result.providerReference
+      ?? payout.provider_reference;
+    if (!providerReference) {
+      throw new Error('Late booking payout success requires a provider reference');
+    }
+    const { data: exception, error } = await supabase.rpc(
+      'record_booking_late_payout_success',
+      {
+        p_payout_id: payout.id,
+        p_organization_id: payout.organization_id,
+        p_provider_reference: providerReference,
+        p_amount_minor: result.amountMinor,
+        p_currency: result.currency,
+        p_beneficiary_fingerprint: payout.beneficiary_fingerprint,
+        p_provider_name: payout.provider_name,
+        p_provider_environment: payout.provider_environment,
+        p_evidence_snapshot: {
+          source: 'provider_result',
+          status: result.status,
+          request_hash: requestHash,
+          failure_code: payout.failure_code,
+          observed_at: new Date().toISOString(),
+        },
+      },
+    );
+    if (error || !exception) {
+      throw error ?? new Error('Late booking payout success could not be recorded');
+    }
+    return {
+      ...publicPayout(payout),
+      lateSuccessExceptionId: exception.id,
+      reconciliationRequired: true,
+    };
   }
 
   private async markSubmitted(
