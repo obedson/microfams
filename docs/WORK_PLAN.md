@@ -132,6 +132,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add BS-12A perspective-safe customer and supplier settlement statements plus permission-gated finance reconciliation controls from payment through recovery.
   - [x] Add BS-12B durable tenant-aware booking notification events, leased in-app delivery, deterministic retries/backoff, and dead-letter evidence independent of financial state.
 - [ ] Group treasury, contributions, projects, committees, meetings, voting, documents, and shared assets.
+  - [ ] Approve GT-01 through GT-12 group governance, contribution ownership, treasury, project, meeting, document, and shared-asset rules in [`docs/specs/GROUP_GOVERNANCE_TREASURY.md`](specs/GROUP_GOVERNANCE_TREASURY.md).
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
