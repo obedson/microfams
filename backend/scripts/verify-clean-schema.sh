@@ -69,6 +69,15 @@ BEGIN
 END $$;
 
 DO $$
+BEGIN
+  IF to_regprocedure(
+    'public.read_booking_settlement_statement(uuid,uuid,uuid)'
+  ) IS NULL THEN
+    RAISE EXCEPTION 'booking settlement statement function is missing';
+  END IF;
+END $$;
+
+DO $$
 DECLARE
   owner_id UUID;
   recipient_id UUID;
