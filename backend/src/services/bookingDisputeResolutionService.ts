@@ -87,11 +87,13 @@ export const bookingDisputeResolutionService = {
   },
 
   decide(input: {
-    proposalId: string; actorId: string; approve: boolean; reason: string;
+    proposalId: string; organizationId: string; actorId: string;
+    approve: boolean; reason: string;
     idempotencyKey: string; correlationId: string;
   }) {
-    return rpc('decide_booking_dispute_resolution', {
+    return rpc('decide_booking_dispute_resolution_authorized', {
       p_proposal_id: input.proposalId,
+      p_acting_organization_id: input.organizationId,
       p_actor_id: input.actorId,
       p_approve: input.approve,
       p_reason: input.reason,

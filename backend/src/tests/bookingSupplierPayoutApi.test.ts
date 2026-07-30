@@ -3,6 +3,7 @@ import {
   cancelBookingSupplierPayout,
   createBookingSupplierPayout,
   decideBookingPayoutBeneficiary,
+  getBookingSupplierPayout,
   proposeBookingPayoutChangeRule,
   registerBookingPayoutBeneficiary,
 } from '../controllers/bookingSupplierPayoutController.js';
@@ -21,6 +22,7 @@ jest.mock('../services/bookingSupplierPayoutService.js', () => ({
     proposeChangeRule: jest.fn(),
     decideChangeRule: jest.fn(),
     createAndSubmit: jest.fn(),
+    read: jest.fn(),
     sync: jest.fn(),
     cancel: jest.fn(),
   },
@@ -104,6 +106,29 @@ describe('booking supplier payout API', () => {
       correlationId,
     });
     expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('reads masked payout state under authenticated tenant identity', async () => {
+    (bookingSupplierPayoutService.read as jest.Mock).mockResolvedValue({
+      id: releaseId,
+      state: 'processing',
+      destination_masked: '******6789',
+    } as never);
+    const res = response();
+    await getBookingSupplierPayout({
+      params: { payoutId: releaseId },
+      tenant: { id: organizationId },
+      user: { id: actorId },
+      body: { organization_id: 'attacker' },
+    } as any, res);
+    expect(bookingSupplierPayoutService.read).toHaveBeenCalledWith(
+      releaseId,
+      organizationId,
+      actorId,
+    );
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      success: true,
+    }));
   });
 
   it('requires an explicit independent-decision contract', async () => {

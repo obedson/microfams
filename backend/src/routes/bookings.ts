@@ -45,6 +45,7 @@ import {
   createBookingSupplierPayout,
   decideBookingPayoutBeneficiary,
   decideBookingPayoutChangeRule,
+  getBookingSupplierPayout,
   listBookingPayoutBeneficiaries,
   proposeBookingPayoutChangeRule,
   registerBookingPayoutBeneficiary,
@@ -166,6 +167,11 @@ router.get(
   authenticateToken,
   resolveTenant,
   requireFeature('booking.settlements.service_existing'),
+  requireBookingPermission(
+    'booking.payouts.read',
+    'booking.payout.beneficiaries.read',
+    'organization',
+  ),
   listBookingPayoutBeneficiaries,
 );
 router.post(
@@ -173,6 +179,11 @@ router.post(
   authenticateToken,
   resolveTenant,
   requireFeature('financial.payouts.create'),
+  requireBookingPermission(
+    'booking.payouts.service',
+    'booking.payout.beneficiary.register',
+    'organization',
+  ),
   bookingLimiter,
   registerBookingPayoutBeneficiary,
 );
@@ -181,6 +192,12 @@ router.post(
   authenticateToken,
   resolveTenant,
   requireFeature('financial.payouts.create'),
+  requireBookingPermission(
+    'booking.payouts.service',
+    'booking.payout.beneficiary.decide',
+    'booking_payout_beneficiary',
+    'beneficiaryId',
+  ),
   bookingLimiter,
   decideBookingPayoutBeneficiary,
 );
@@ -189,6 +206,11 @@ router.post(
   authenticateToken,
   resolveTenant,
   requireFeature('financial.payouts.create'),
+  requireBookingPermission(
+    'booking.payouts.service',
+    'booking.payout.change_rule.propose',
+    'organization',
+  ),
   bookingLimiter,
   proposeBookingPayoutChangeRule,
 );
@@ -197,6 +219,12 @@ router.post(
   authenticateToken,
   resolveTenant,
   requireFeature('financial.payouts.create'),
+  requireBookingPermission(
+    'booking.payouts.service',
+    'booking.payout.change_rule.decide',
+    'booking_payout_change_rule',
+    'ruleId',
+  ),
   bookingLimiter,
   decideBookingPayoutChangeRule,
 );
@@ -206,8 +234,28 @@ router.post(
   resolveTenant,
   requireFeature('booking.settlements.service_existing'),
   requireFeature('financial.payouts.create'),
+  requireBookingPermission(
+    'booking.payouts.service',
+    'booking.payout.create',
+    'booking_settlement_release',
+    'releaseId',
+  ),
   bookingLimiter,
   createBookingSupplierPayout,
+);
+router.get(
+  '/supplier-payouts/:payoutId',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  requireFeature('financial.payouts.service_existing'),
+  requireBookingPermission(
+    'booking.payouts.read',
+    'booking.payout.read',
+    'booking_supplier_payout',
+    'payoutId',
+  ),
+  getBookingSupplierPayout,
 );
 router.post(
   '/supplier-payouts/:payoutId/sync',
@@ -215,6 +263,12 @@ router.post(
   resolveTenant,
   requireFeature('booking.settlements.service_existing'),
   requireFeature('financial.payouts.service_existing'),
+  requireBookingPermission(
+    'booking.payouts.service',
+    'booking.payout.sync',
+    'booking_supplier_payout',
+    'payoutId',
+  ),
   bookingLimiter,
   syncBookingSupplierPayout,
 );
@@ -224,6 +278,12 @@ router.post(
   resolveTenant,
   requireFeature('booking.settlements.service_existing'),
   requireFeature('financial.payouts.service_existing'),
+  requireBookingPermission(
+    'booking.payouts.service',
+    'booking.payout.cancel',
+    'booking_supplier_payout',
+    'payoutId',
+  ),
   bookingLimiter,
   cancelBookingSupplierPayout,
 );

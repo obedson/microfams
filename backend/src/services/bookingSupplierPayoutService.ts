@@ -14,6 +14,7 @@ const ERROR_MAPPING: ReadonlyArray<readonly [string, string, number]> = [
   ['BOOKING_SUPPLIER_PAYOUT_INVALID', 'BOOKING_SUPPLIER_PAYOUT_INVALID', 400],
   ['BOOKING_PAYOUT_NOT_AUTHORIZED', 'BOOKING_PAYOUT_NOT_AUTHORIZED', 403],
   ['BOOKING_PAYOUT_BENEFICIARY_MEMBERSHIP_INVALID', 'BOOKING_PAYOUT_BENEFICIARY_MEMBERSHIP_INVALID', 409],
+  ['BOOKING_PAYOUT_RESOURCE_NOT_FOUND', 'BOOKING_PAYOUT_RESOURCE_NOT_FOUND', 404],
   ['BOOKING_PAYOUT_BENEFICIARY_NOT_FOUND', 'BOOKING_PAYOUT_BENEFICIARY_NOT_FOUND', 404],
   ['BOOKING_PAYOUT_CHANGE_RULE_NOT_FOUND', 'BOOKING_PAYOUT_CHANGE_RULE_NOT_FOUND', 404],
   ['BOOKING_SUPPLIER_PAYOUT_RELEASE_NOT_FOUND', 'BOOKING_SUPPLIER_PAYOUT_RELEASE_NOT_FOUND', 404],
@@ -42,6 +43,26 @@ const mapError = (error: { message?: string } | null) => {
   return match
     ? new BookingSupplierPayoutError(match[1], match[2])
     : new BookingSupplierPayoutError('BOOKING_SUPPLIER_PAYOUT_FAILED', 503);
+};
+
+const authorizePayoutResource = async (
+  organizationId: string,
+  actorId: string,
+  requiredPermission: 'booking.payouts.read' | 'booking.payouts.service',
+  resourceType: string,
+  resourceId: string,
+) => {
+  const { data, error } = await supabase.rpc(
+    'authorize_booking_payout_resource',
+    {
+      p_organization_id: organizationId,
+      p_actor_id: actorId,
+      p_required_permission: requiredPermission,
+      p_resource_type: resourceType,
+      p_resource_id: resourceId,
+    },
+  );
+  if (error || data !== true) throw mapError(error);
 };
 
 const encryptionKey = (configured = process.env.BOOKING_PAYOUT_DESTINATION_ENCRYPTION_KEY) => {
@@ -135,6 +156,9 @@ export const bookingSupplierPayoutService = {
     bankCode: string;
     idempotencyKey: string;
   }) {
+    await authorizePayoutResource(
+      input.organizationId, input.actorId, 'booking.payouts.service',
+      'organization', input.organizationId);
     const adapter = configuredPayoutAdapter();
     await payoutService.assertRoutingEnabled(
       adapter,
@@ -186,6 +210,9 @@ export const bookingSupplierPayoutService = {
     reason: string;
     idempotencyKey: string;
   }) {
+    await authorizePayoutResource(
+      input.organizationId, input.actorId, 'booking.payouts.service',
+      'booking_payout_beneficiary', input.beneficiaryId);
     const { data, error } = await supabase.rpc(
       'decide_booking_payout_beneficiary',
       {
@@ -205,6 +232,9 @@ export const bookingSupplierPayoutService = {
     organizationId: string,
     actorId: string,
   ) {
+    await authorizePayoutResource(
+      organizationId, actorId, 'booking.payouts.read',
+      'organization', organizationId);
     const { data, error } = await supabase.rpc(
       'read_booking_payout_beneficiaries',
       {
@@ -225,6 +255,9 @@ export const bookingSupplierPayoutService = {
     changeReason: string;
     idempotencyKey: string;
   }) {
+    await authorizePayoutResource(
+      input.organizationId, input.actorId, 'booking.payouts.service',
+      'organization', input.organizationId);
     const { data, error } = await supabase.rpc(
       'propose_booking_payout_change_rule',
       {
@@ -249,6 +282,9 @@ export const bookingSupplierPayoutService = {
     reason: string;
     idempotencyKey: string;
   }) {
+    await authorizePayoutResource(
+      input.organizationId, input.actorId, 'booking.payouts.service',
+      'booking_payout_change_rule', input.ruleId);
     const { data, error } = await supabase.rpc(
       'decide_booking_payout_change_rule',
       {
@@ -272,6 +308,9 @@ export const bookingSupplierPayoutService = {
     idempotencyKey: string;
     correlationId: string;
   }) {
+    await authorizePayoutResource(
+      input.organizationId, input.actorId, 'booking.payouts.service',
+      'booking_settlement_release', input.settlementReleaseId);
     const adapter = configuredPayoutAdapter();
     await payoutService.assertRoutingEnabled(
       adapter,
@@ -330,7 +369,23 @@ export const bookingSupplierPayoutService = {
     });
   },
 
+  async read(payoutId: string, organizationId: string, actorId: string) {
+    const { data, error } = await supabase.rpc(
+      'read_booking_supplier_payout',
+      {
+        p_payout_id: payoutId,
+        p_organization_id: organizationId,
+        p_actor_id: actorId,
+      },
+    );
+    if (error || !data) throw mapError(error);
+    return data;
+  },
+
   async sync(payoutId: string, organizationId: string, actorId: string) {
+    await authorizePayoutResource(
+      organizationId, actorId, 'booking.payouts.service',
+      'booking_supplier_payout', payoutId);
     const { data: payout, error } = await supabase
       .from('payouts')
       .select('id, organization_id, source_type')
@@ -354,6 +409,9 @@ export const bookingSupplierPayoutService = {
     reason: string;
     idempotencyKey: string;
   }) {
+    await authorizePayoutResource(
+      input.organizationId, input.actorId, 'booking.payouts.service',
+      'booking_supplier_payout', input.payoutId);
     const { data, error } = await supabase.rpc(
       'cancel_booking_supplier_payout',
       {

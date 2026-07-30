@@ -27,7 +27,7 @@ BEGIN
 
   result := evaluate_booking_authorization(
     allowed_org, allowed_actor, 'booking.settlements.read',
-    'booking.settlement.read', 'booking_settlement', resource_id,
+    'booking.organization.read', 'organization', allowed_org::TEXT,
     '00000000-0000-4000-8000-000000001016', 'booking-auth-key-allowed'
   );
   IF NOT (result->>'allowed')::BOOLEAN THEN
@@ -36,7 +36,7 @@ BEGIN
   SELECT * INTO decision FROM booking_authorization_decisions
   WHERE id = (result->>'decision_id')::UUID;
   IF decision.outcome <> 'allowed'
-    OR decision.resource_reference <> resource_id
+    OR decision.resource_reference <> allowed_org::TEXT
     OR decision.idempotency_key_hash IS NULL
     OR decision.idempotency_key_hash = 'booking-auth-key-allowed'
   THEN RAISE EXCEPTION 'allowed authorization evidence is incomplete'; END IF;

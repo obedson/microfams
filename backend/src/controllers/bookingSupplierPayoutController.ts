@@ -204,6 +204,28 @@ export const createBookingSupplierPayout = async (
   }
 };
 
+export const getBookingSupplierPayout = async (
+  req: TenantRequest,
+  res: Response,
+) => {
+  if (!UUID.test(req.params.payoutId)) {
+    return res.status(400).json({
+      success: false,
+      error: 'BOOKING_SUPPLIER_PAYOUT_INVALID',
+    });
+  }
+  try {
+    const data = await bookingSupplierPayoutService.read(
+      req.params.payoutId,
+      req.tenant!.id,
+      req.user!.id,
+    );
+    return res.json({ success: true, data });
+  } catch (error) {
+    return failure(res, error);
+  }
+};
+
 export const syncBookingSupplierPayout = async (
   req: TenantRequest,
   res: Response,

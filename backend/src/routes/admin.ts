@@ -9,6 +9,8 @@ import { trustController } from '../controllers/trustController.js';
 import { legalHoldController } from '../controllers/legalHoldController.js';
 import { requireFeature } from '../middleware/requireFeature.js';
 import { decideBookingDisputeResolution } from '../controllers/bookingDisputeResolutionController.js';
+import { resolveTenant } from '../middleware/tenant.js';
+import { requireBookingPermission } from '../middleware/requireBookingPermission.js';
 
 const router = Router();
 
@@ -21,7 +23,14 @@ router.use(requirePlatformAdministrator);
 
 router.post(
   '/booking-dispute-resolution-proposals/:proposalId/decision',
+  resolveTenant,
   requireFeature('booking.disputes.service_existing'),
+  requireBookingPermission(
+    'booking.disputes.approve',
+    'booking.dispute.resolution.decide',
+    'booking_dispute_resolution_proposal',
+    'proposalId',
+  ),
   decideBookingDisputeResolution,
 );
 

@@ -2,6 +2,7 @@ DO $$
 DECLARE
   customer_org CONSTANT UUID := '00000000-0000-4000-8000-000000009801';
   provider_org CONSTANT UUID := '00000000-0000-4000-8000-000000009802';
+  approver_org CONSTANT UUID := '00000000-0000-4000-8000-000000009803';
   customer_owner CONSTANT UUID := '00000000-0000-4000-8000-000000009811';
   provider_owner CONSTANT UUID := '00000000-0000-4000-8000-000000009812';
   independent_approver CONSTANT UUID := '00000000-0000-4000-8000-000000009813';
@@ -26,15 +27,19 @@ BEGIN
     (independent_approver, 'resolution-approver@example.test', 'not-a-real-password', 'Resolution Approver', 'admin');
   INSERT INTO organizations(id, name, slug, type, created_by) VALUES
     (customer_org, 'Resolution Customer Org', 'resolution-customer-test', 'cooperative', customer_owner),
-    (provider_org, 'Resolution Provider Org', 'resolution-provider-test', 'farm_business', provider_owner);
+    (provider_org, 'Resolution Provider Org', 'resolution-provider-test', 'farm_business', provider_owner),
+    (approver_org, 'Resolution Approval Org', 'resolution-approval-test', 'ngo', independent_approver);
   INSERT INTO organization_memberships(
-    organization_id, user_id, role, status, joined_at
+    organization_id, user_id, role, permissions, status, joined_at
   ) VALUES
-    (customer_org, customer_owner, 'owner', 'active', NOW()),
-    (provider_org, provider_owner, 'owner', 'active', NOW());
+    (customer_org, customer_owner, 'owner', ARRAY[]::TEXT[], 'active', NOW()),
+    (provider_org, provider_owner, 'owner', ARRAY[]::TEXT[], 'active', NOW()),
+    (approver_org, independent_approver, 'admin',
+      ARRAY['booking.disputes.approve'], 'active', NOW());
   INSERT INTO accounting_periods(organization_id, name, starts_on, ends_on, status) VALUES
     (customer_org, 'Resolution customer period', CURRENT_DATE - 30, CURRENT_DATE + 30, 'open'),
-    (provider_org, 'Resolution provider period', CURRENT_DATE - 30, CURRENT_DATE + 30, 'open');
+    (provider_org, 'Resolution provider period', CURRENT_DATE - 30, CURRENT_DATE + 30, 'open'),
+    (approver_org, 'Resolution approval period', CURRENT_DATE - 30, CURRENT_DATE + 30, 'open');
   INSERT INTO platform_administrator_assignments(
     user_id, granted_by, grant_reason_code
   ) VALUES (independent_approver, NULL, 'BS07_INDEPENDENT_APPROVER');
@@ -120,8 +125,8 @@ BEGIN
   THEN RAISE EXCEPTION 'resolution proposal was not exactly conserved'; END IF;
 
   BEGIN
-    PERFORM decide_booking_dispute_resolution(
-      proposal_key, customer_owner, TRUE,
+    PERFORM decide_booking_dispute_resolution_authorized(
+      proposal_key, customer_org, customer_owner, TRUE,
       'The maker cannot approve their own resolution proposal.',
       'booking-resolution-maker-001', correlation
     );
@@ -132,14 +137,14 @@ BEGIN
     THEN RAISE; END IF;
   END;
 
-  decision := decide_booking_dispute_resolution(
-    proposal_key, independent_approver, TRUE,
+  decision := decide_booking_dispute_resolution_authorized(
+    proposal_key, approver_org, independent_approver, TRUE,
     'Independent review confirms the proposed split is fair and conserved.',
     'booking-resolution-decision-001', correlation
   );
   refund_key := (decision->>'refund_id')::UUID;
-  replay := decide_booking_dispute_resolution(
-    proposal_key, independent_approver, TRUE,
+  replay := decide_booking_dispute_resolution_authorized(
+    proposal_key, approver_org, independent_approver, TRUE,
     'Independent review confirms the proposed split is fair and conserved.',
     'booking-resolution-decision-001', correlation
   );
@@ -166,8 +171,8 @@ BEGIN
   THEN RAISE EXCEPTION 'approved resolution did not atomically create its dispositions'; END IF;
 
   BEGIN
-    PERFORM decide_booking_dispute_resolution(
-      proposal_key, independent_approver, FALSE,
+    PERFORM decide_booking_dispute_resolution_authorized(
+      proposal_key, approver_org, independent_approver, FALSE,
       'A changed replay must not alter the recorded resolution decision.',
       'booking-resolution-decision-001', correlation
     );
@@ -201,9 +206,13 @@ BEGIN
     OR has_table_privilege('authenticated', 'booking_dispute_notices', 'SELECT')
   THEN RAISE EXCEPTION 'dispute resolution tables expose direct mutation or tenant reads'; END IF;
   IF has_function_privilege(
-      'authenticated',
-      'decide_booking_dispute_resolution(uuid,uuid,boolean,text,text,uuid)',
-      'EXECUTE'
+      'authenticated', 'decide_booking_dispute_resolution_authorized(
+        uuid,uuid,uuid,boolean,text,text,uuid)', 'EXECUTE'
     )
   THEN RAISE EXCEPTION 'resolution approval is exposed to authenticated callers'; END IF;
+  IF to_regprocedure(
+    'decide_booking_dispute_resolution_authorized(
+      uuid,uuid,uuid,boolean,text,text,uuid)'
+  ) IS NULL
+  THEN RAISE EXCEPTION 'organization-scoped resolution approval is missing'; END IF;
 END $$;
