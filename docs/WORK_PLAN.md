@@ -125,6 +125,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add BS-07 versioned response rules and notices, monotonic dispute review, conserved maker-checker resolutions, pending-refund reservations, cumulative partial releases and recovery commands.
   - [x] Add BS-08 encrypted verified provider beneficiaries, destination-change holds and independent approval, release-scoped supplier payouts, recoverable servicing, restoration on failure, and exact success postings.
   - [x] Add BS-09 reversal intake that preserves original evidence, classifies escrow/unpaid/post-payout exposure, creates balanced cross-tenant recovery accounting, and forbids automatic unrelated-wallet debit.
+  - [x] Add BS-09 recovery servicing with evidenced maker-checker repayment, provider recovery, insurance, bounded future-settlement offsets and write-offs, plus late-payout-success reconciliation that never silently repays terminal payouts.
 - [ ] Group treasury, contributions, projects, committees, meetings, voting, documents, and shared assets.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
