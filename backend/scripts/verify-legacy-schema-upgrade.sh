@@ -162,6 +162,15 @@ if [[ "$booking_authorization_audit_present" == "f" ]]; then
   migrations+=(install_booking_authorization_audit.sql)
 fi
 
+booking_authorization_completion_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regprocedure(
+    'public.authorize_booking_payout_resource(uuid,uuid,text,text,uuid)') IS NOT NULL
+    AND to_regprocedure(
+    'public.decide_booking_dispute_resolution_authorized(uuid,uuid,uuid,boolean,text,text,uuid)') IS NOT NULL")"
+if [[ "$booking_authorization_completion_present" == "f" ]]; then
+  migrations+=(install_booking_authorization_completion.sql)
+fi
 
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
@@ -223,6 +232,10 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
       OR to_regclass('public.booking_authorization_decisions') IS NULL
       OR to_regprocedure(
         'public.evaluate_booking_authorization(uuid,uuid,text,text,text,text,uuid,text)') IS NULL
+      OR to_regprocedure(
+        'public.read_booking_supplier_payout(uuid,uuid,uuid)') IS NULL
+      OR to_regprocedure(
+        'public.decide_booking_dispute_resolution_authorized(uuid,uuid,uuid,boolean,text,text,uuid)') IS NULL
     THEN RAISE EXCEPTION 'required trust and booking schema was not installed'; END IF;
   END \$\$;" >/dev/null
 

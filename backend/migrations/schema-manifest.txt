@@ -74,3 +74,4 @@ install_booking_supplier_payout.sql
 install_booking_reversal_recovery.sql
 install_booking_recovery_servicing.sql
 install_booking_authorization_audit.sql
+install_booking_authorization_completion.sql

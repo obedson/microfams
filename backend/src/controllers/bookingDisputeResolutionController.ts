@@ -78,7 +78,7 @@ export const proposeBookingDisputeResolution = async (
   } catch (error) { return failure(res, error); }
 };
 
-export const decideBookingDisputeResolution = async (req: AuthRequest, res: Response) => {
+export const decideBookingDisputeResolution = async (req: TenantRequest, res: Response) => {
   const key = keyOf(req);
   if (!UUID.test(req.params.proposalId) || !validKey(key)
     || typeof req.body.approve !== 'boolean' || !validReason(req.body.reason)
@@ -86,7 +86,8 @@ export const decideBookingDisputeResolution = async (req: AuthRequest, res: Resp
   const correlationId = correlationOf(req);
   try {
     const data = await bookingDisputeResolutionService.decide({
-      proposalId: req.params.proposalId, actorId: req.user!.id,
+      proposalId: req.params.proposalId, organizationId: req.tenant!.id,
+      actorId: req.user!.id,
       approve: req.body.approve, reason: req.body.reason.trim(),
       idempotencyKey: key, correlationId,
     });

@@ -133,6 +133,7 @@ describe('booking dispute resolution API', () => {
     await decideBookingDisputeResolution({
       params: { proposalId },
       headers: { 'idempotency-key': 'resolution-decision-001' },
+      tenant: { id: organizationId },
       user: { id: actorId },
       body: {
         approve: true,
@@ -144,5 +145,12 @@ describe('booking dispute resolution API', () => {
       success: false,
       error: 'BOOKING_DISPUTE_APPROVER_NOT_INDEPENDENT',
     });
+    expect(bookingDisputeResolutionService.decide).toHaveBeenCalledWith(
+      expect.objectContaining({
+        proposalId,
+        organizationId,
+        actorId,
+      }),
+    );
   });
 });
