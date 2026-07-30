@@ -133,6 +133,14 @@ if [[ "$booking_dispute_resolution_schema_present" == "f" ]]; then
   migrations+=(install_booking_dispute_resolution.sql)
 fi
 
+booking_supplier_payout_schema_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regclass('public.booking_payout_beneficiaries') IS NOT NULL
+    AND to_regprocedure('public.create_booking_supplier_payout(uuid,uuid,uuid,uuid,text,text,text,uuid)') IS NOT NULL")"
+if [[ "$booking_supplier_payout_schema_present" == "f" ]]; then
+  migrations+=(install_booking_supplier_payout.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -181,6 +189,10 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
       OR to_regclass('public.booking_settlement_releases') IS NULL
       OR to_regprocedure('public.decide_booking_dispute_resolution(uuid,uuid,boolean,text,text,uuid)') IS NULL
       OR to_regprocedure('public.read_booking_dispute_resolution_case(uuid,uuid,uuid)') IS NULL
+      OR to_regclass('public.booking_payout_beneficiaries') IS NULL
+      OR to_regclass('public.booking_supplier_payout_items') IS NULL
+      OR to_regprocedure('public.create_booking_supplier_payout(uuid,uuid,uuid,uuid,text,text,text,uuid)') IS NULL
+      OR to_regprocedure('public.succeed_booking_supplier_payout(uuid,text,text,bigint,text,text,uuid,text,text)') IS NULL
     THEN RAISE EXCEPTION 'required trust and booking schema was not installed'; END IF;
   END \$\$;" >/dev/null
 

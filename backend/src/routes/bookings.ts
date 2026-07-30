@@ -34,6 +34,16 @@ import {
   proposeBookingSettlementRule,
   releaseBookingSettlement,
 } from '../controllers/bookingSettlementController.js';
+import {
+  cancelBookingSupplierPayout,
+  createBookingSupplierPayout,
+  decideBookingPayoutBeneficiary,
+  decideBookingPayoutChangeRule,
+  listBookingPayoutBeneficiaries,
+  proposeBookingPayoutChangeRule,
+  registerBookingPayoutBeneficiary,
+  syncBookingSupplierPayout,
+} from '../controllers/bookingSupplierPayoutController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { resolveTenant } from '../middleware/tenant.js';
 import { requireFeature } from '../middleware/requireFeature.js';
@@ -131,6 +141,72 @@ router.get(
   resolveTenant,
   requireFeature('booking.disputes.service_existing'),
   getBookingDisputeTimeline,
+);
+router.get(
+  '/payout-beneficiaries',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  listBookingPayoutBeneficiaries,
+);
+router.post(
+  '/payout-beneficiaries',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('financial.payouts.create'),
+  bookingLimiter,
+  registerBookingPayoutBeneficiary,
+);
+router.post(
+  '/payout-beneficiaries/:beneficiaryId/decision',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('financial.payouts.create'),
+  bookingLimiter,
+  decideBookingPayoutBeneficiary,
+);
+router.post(
+  '/payout-destination-change-rules',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('financial.payouts.create'),
+  bookingLimiter,
+  proposeBookingPayoutChangeRule,
+);
+router.post(
+  '/payout-destination-change-rule-approvals/:ruleId/decision',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('financial.payouts.create'),
+  bookingLimiter,
+  decideBookingPayoutChangeRule,
+);
+router.post(
+  '/settlement-releases/:releaseId/payouts',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  requireFeature('financial.payouts.create'),
+  bookingLimiter,
+  createBookingSupplierPayout,
+);
+router.post(
+  '/supplier-payouts/:payoutId/sync',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  requireFeature('financial.payouts.service_existing'),
+  bookingLimiter,
+  syncBookingSupplierPayout,
+);
+router.post(
+  '/supplier-payouts/:payoutId/cancel',
+  authenticateToken,
+  resolveTenant,
+  requireFeature('booking.settlements.service_existing'),
+  requireFeature('financial.payouts.service_existing'),
+  bookingLimiter,
+  cancelBookingSupplierPayout,
 );
 router.post(
   '/refund-approvals/:approvalId/decision',
