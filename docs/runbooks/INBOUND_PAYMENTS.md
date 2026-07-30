@@ -10,7 +10,7 @@ This runbook covers the FC-05 and FC-06 provider-neutral inbound-payment engine.
 - 'financial.payments.service_existing' controls verification and customer-requested servicing APIs.
 - Webhook receipt, background recovery, refunds already accepted by a provider, reversals, and reconciliation must remain operational during acquisition disablement.
 - 'integration.paystack.live' is required per tenant for live routing.
-- Live routing also requires 'PAYSTACK_LIVE_APPROVAL_ID', 'PAYMENT_RECONCILIATION_CERTIFIED=true', and Paystack credentials.
+- Live routing requires the complete activation checklist below as well as Paystack credentials. Missing evidence fails with `LIVE_PAYMENT_ACTIVATION_INCOMPLETE`; it never falls back to a simulated success.
 - 'PAYMENT_PROVIDER_MODE' must be 'deterministic', 'sandbox', or 'live'. Deterministic mode is rejected in production.
 
 ## Credentials
@@ -19,8 +19,13 @@ No provider credentials are needed for deterministic CI. Paystack sandbox or liv
 
 - 'PAYSTACK_SECRET_KEY';
 - the matching provider webhook endpoint configured as '/api/webhooks/paystack';
-- 'PAYSTACK_LIVE_APPROVAL_ID' for live mode; and
-- reconciliation certification metadata before live acquisition is enabled.
+- `PAYSTACK_LIVE_APPROVAL_ID` for approved provider metadata;
+- `PAYSTACK_CREDENTIALS_VALIDATED=true` after sandbox/provider validation;
+- `PAYSTACK_WEBHOOK_VERIFIED=true` after signature and delivery certification;
+- `PAYSTACK_SETTLEMENT_ACCOUNT_ID` for the approved settlement destination;
+- `PAYMENT_RECONCILIATION_CERTIFIED=true` after zero-variance certification;
+- `PAYMENT_COMPLIANCE_OWNER` naming the accountable owner; and
+- `PAYSTACK_ACTIVATION_EVIDENCE_ID` referencing the approval evidence.
 
 Secrets belong in Codespaces or the deployment secret manager and must never be committed.
 

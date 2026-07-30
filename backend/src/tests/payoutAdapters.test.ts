@@ -54,7 +54,7 @@ describe('payout adapters', () => {
     delete process.env.INTERSWITCH_LIVE_APPROVAL_ID;
     delete process.env.PAYOUT_RECONCILIATION_CERTIFIED;
     expect(configuredPayoutAdapter().environment).toBe('live');
-    expect(() => assertLivePayoutActivationConfigured()).toThrow('approval metadata');
+    expect(() => assertLivePayoutActivationConfigured()).toThrow('activation configuration is incomplete');
   });
 
   it('rejects an unknown provider mode instead of silently selecting an adapter', () => {

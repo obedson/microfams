@@ -127,8 +127,21 @@ export const parseNormalizedEvent = (payload: any): VerifiedProviderEvent => {
 };
 
 export const assertLivePayoutActivationConfigured = (): void => {
-  if (!process.env.INTERSWITCH_LIVE_APPROVAL_ID || process.env.PAYOUT_RECONCILIATION_CERTIFIED !== 'true') {
-    throw new PayoutConfigurationError('Live payouts require approval metadata and reconciliation certification');
+  const activationRequirements = [
+    Boolean(process.env.INTERSWITCH_LIVE_APPROVAL_ID),
+    process.env.INTERSWITCH_CREDENTIALS_VALIDATED === 'true',
+    process.env.INTERSWITCH_BENEFICIARY_VALIDATION_CONFIGURED === 'true',
+    process.env.INTERSWITCH_WEBHOOK_VERIFIED === 'true',
+    Boolean(process.env.INTERSWITCH_SETTLEMENT_ACCOUNT_ID),
+    process.env.PAYOUT_RECONCILIATION_CERTIFIED === 'true',
+    Boolean(process.env.PAYOUT_COMPLIANCE_OWNER),
+    Boolean(process.env.INTERSWITCH_ACTIVATION_EVIDENCE_ID),
+  ];
+  if (activationRequirements.some((configured) => !configured)) {
+    throw new PayoutConfigurationError(
+      'Live payout activation configuration is incomplete',
+      'LIVE_PAYOUT_ACTIVATION_INCOMPLETE',
+    );
   }
 };
 

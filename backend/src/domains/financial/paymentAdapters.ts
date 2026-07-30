@@ -248,8 +248,20 @@ export const parsePaystackPaymentEvent = (payload: any): VerifiedPaymentProvider
 };
 
 export const assertLivePaymentActivationConfigured = (): void => {
-  if (!process.env.PAYSTACK_LIVE_APPROVAL_ID || process.env.PAYMENT_RECONCILIATION_CERTIFIED !== 'true') {
-    throw new PaymentConfigurationError('Live payments require approval metadata and reconciliation certification');
+  const activationRequirements = [
+    Boolean(process.env.PAYSTACK_LIVE_APPROVAL_ID),
+    process.env.PAYSTACK_CREDENTIALS_VALIDATED === 'true',
+    process.env.PAYSTACK_WEBHOOK_VERIFIED === 'true',
+    Boolean(process.env.PAYSTACK_SETTLEMENT_ACCOUNT_ID),
+    process.env.PAYMENT_RECONCILIATION_CERTIFIED === 'true',
+    Boolean(process.env.PAYMENT_COMPLIANCE_OWNER),
+    Boolean(process.env.PAYSTACK_ACTIVATION_EVIDENCE_ID),
+  ];
+  if (activationRequirements.some((configured) => !configured)) {
+    throw new PaymentConfigurationError(
+      'Live payment activation configuration is incomplete',
+      'LIVE_PAYMENT_ACTIVATION_INCOMPLETE',
+    );
   }
 };
 
