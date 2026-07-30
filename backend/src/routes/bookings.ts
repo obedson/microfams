@@ -53,6 +53,7 @@ import {
 import { authenticateToken } from '../middleware/auth.js';
 import { resolveTenant } from '../middleware/tenant.js';
 import { requireFeature } from '../middleware/requireFeature.js';
+import { requireBookingPermission } from '../middleware/requireBookingPermission.js';
 import { bookingLimiter } from '../middleware/rateLimiter.js';
 import { detectBookingFraud } from '../middleware/fraudDetection.js';
 
@@ -107,6 +108,12 @@ router.post(
   authenticateToken,
   resolveTenant,
   requireFeature('booking.disputes.service_existing'),
+  requireBookingPermission(
+    'booking.disputes.resolve',
+    'booking.dispute.resolution.propose',
+    'booking_dispute',
+    'disputeId',
+  ),
   bookingLimiter,
   proposeBookingDisputeResolution,
 );
@@ -138,6 +145,12 @@ router.post(
   authenticateToken,
   resolveTenant,
   requireFeature('booking.disputes.open'),
+  requireBookingPermission(
+    'booking.disputes.open',
+    'booking.dispute.open',
+    'booking',
+    'id',
+  ),
   bookingLimiter,
   openBookingDispute,
 );
@@ -294,6 +307,12 @@ router.get(
   authenticateToken,
   resolveTenant,
   requireFeature('booking.settlements.service_existing'),
+  requireBookingPermission(
+    'booking.settlements.read',
+    'booking.settlement.read',
+    'booking_settlement',
+    'id',
+  ),
   getBookingSettlement,
 );
 router.post(
@@ -301,6 +320,12 @@ router.post(
   authenticateToken,
   resolveTenant,
   requireFeature('booking.settlements.service_existing'),
+  requireBookingPermission(
+    'booking.settlements.release',
+    'booking.settlement.release',
+    'booking_settlement',
+    'id',
+  ),
   bookingLimiter,
   releaseBookingSettlement,
 );
