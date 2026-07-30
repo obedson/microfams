@@ -1,6 +1,7 @@
 import cron from 'node-cron';
 import { supabase } from '../utils/supabase.js';
 import { sendEmail } from '../services/emailService.js';
+import { bookingNotificationOutboxWorker } from '../services/bookingNotificationOutboxService.js';
 
 interface ExpiredBooking {
   id: string;
@@ -14,6 +15,17 @@ interface ExpiredBooking {
 import { logger } from '../utils/logger.js';
 
 export const startBookingJobs = () => {
+  cron.schedule('* * * * *', async () => {
+    try {
+      const result = await bookingNotificationOutboxWorker.runOnce();
+      if (result.claimed > 0) {
+        logger.info('Processed booking notification outbox', result);
+      }
+    } catch (error) {
+      logger.error('Error processing booking notification outbox', { error });
+    }
+  });
+
   // Auto-expire pending bookings after 48 hours
   cron.schedule('0 * * * *', async () => {
     try {
