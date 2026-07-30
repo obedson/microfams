@@ -180,6 +180,16 @@ if [[ "$booking_operational_statements_present" == "f" ]]; then
   migrations+=(install_booking_operational_statements.sql)
 fi
 
+booking_notification_outbox_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regclass(
+    'public.booking_domain_notification_outbox') IS NOT NULL
+    AND to_regprocedure(
+      'public.claim_booking_domain_notifications(text,timestamp with time zone,integer,integer)') IS NOT NULL")"
+if [[ "$booking_notification_outbox_present" == "f" ]]; then
+  migrations+=(install_booking_notification_outbox.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \

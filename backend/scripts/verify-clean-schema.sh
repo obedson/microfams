@@ -60,7 +60,8 @@ BEGIN
       'booking_settlement_allocations','booking_settlement_legacy_reviews',
       'booking_settlement_rules','booking_fee_rules','booking_settlement_holds',
       'booking_settlement_posting_links','booking_disputes',
-      'booking_dispute_evidence','booking_dispute_events'
+      'booking_dispute_evidence','booking_dispute_events',
+      'booking_domain_notification_outbox'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -74,6 +75,15 @@ BEGIN
     'public.read_booking_settlement_statement(uuid,uuid,uuid)'
   ) IS NULL THEN
     RAISE EXCEPTION 'booking settlement statement function is missing';
+  END IF;
+  IF to_regprocedure(
+    'public.claim_booking_domain_notifications(text,timestamp with time zone,integer,integer)'
+  ) IS NULL OR to_regprocedure(
+    'public.deliver_booking_domain_notification(uuid,text,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.fail_booking_domain_notification(uuid,text,text,timestamp with time zone)'
+  ) IS NULL THEN
+    RAISE EXCEPTION 'booking notification outbox functions are missing';
   END IF;
 END $$;
 
@@ -323,6 +333,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-booking-authorization-completion.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-booking-notification-outbox.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"
