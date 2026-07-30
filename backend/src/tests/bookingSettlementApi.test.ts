@@ -44,8 +44,22 @@ const correlationId = '00000000-0000-4000-8000-000000000304';
 describe('booking settlement API contract', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('reads a tenant-scoped settlement summary', async () => {
-    (bookingSettlementService.read as jest.Mock).mockResolvedValue({ state: 'eligible' } as never);
+  it('reads a tenant-scoped, perspective-safe settlement statement', async () => {
+    const statement = {
+      perspective: 'customer',
+      settlement_state: 'eligible',
+      statement: {
+        paid_amount_minor: 100_000,
+        refundable_amount_minor: 75_000,
+        refunded_amount_minor: 10_000,
+        contested_amount_minor: 15_000,
+        released_amount_minor: 0,
+        refund_state: 'succeeded',
+        dispute_state: 'under_review',
+      },
+      finance_statement: null,
+    };
+    (bookingSettlementService.read as jest.Mock).mockResolvedValue(statement as never);
     const res = response();
     await getBookingSettlement({
       params: { id: bookingId },
@@ -55,7 +69,7 @@ describe('booking settlement API contract', () => {
     expect(bookingSettlementService.read).toHaveBeenCalledWith(bookingId, organizationId, actorId);
     expect(res.json).toHaveBeenCalledWith({
       success: true,
-      data: { state: 'eligible' },
+      data: statement,
     });
   });
 

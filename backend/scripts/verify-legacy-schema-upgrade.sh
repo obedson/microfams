@@ -172,6 +172,14 @@ if [[ "$booking_authorization_completion_present" == "f" ]]; then
   migrations+=(install_booking_authorization_completion.sql)
 fi
 
+booking_operational_statements_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regprocedure(
+    'public.read_booking_settlement_statement(uuid,uuid,uuid)') IS NOT NULL")"
+if [[ "$booking_operational_statements_present" == "f" ]]; then
+  migrations+=(install_booking_operational_statements.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \

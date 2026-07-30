@@ -132,7 +132,7 @@ export const bookingSettlementService = {
   },
 
   async read(bookingId: string, organizationId: string, actorId: string) {
-    const { data, error } = await supabase.rpc('read_booking_settlement_summary', {
+    const { data, error } = await supabase.rpc('read_booking_settlement_statement', {
       p_booking_id: bookingId,
       p_acting_organization_id: organizationId,
       p_actor_id: actorId,
