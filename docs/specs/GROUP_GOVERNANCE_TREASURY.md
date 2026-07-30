@@ -1,6 +1,7 @@
 # Micro Fams V1 Group Governance and Treasury Specification
 
-Status: proposed for product-owner approval.
+Status: approved. GT-01 through GT-12 were approved by the product owner on
+2026-07-30.
 
 ## Purpose
 
@@ -370,23 +371,23 @@ The product owner must approve or amend every proposed decision:
 
 | Decision | Recommendation | Status |
 | --- | --- | --- |
-| GT-01 | Groups are tenant-contained governed subentities; users may join multiple groups | Proposed |
-| GT-02 | Versioned memberships/offices, due process, no automatic transfer of personal funds | Proposed |
-| GT-03 | Immutable voting snapshots and decision-specific quorum/threshold defaults | Proposed |
-| GT-04 | Contributions are classified by economic ownership before collection | Proposed |
-| GT-05 | Versioned contribution cycles with partial/excess/penalty and close rules | Proposed |
-| GT-06 | Reserved funds, two-person maker-checker, and two-thirds default treasury approval | Proposed |
-| GT-07 | Journal-derived group accounts, statements, privacy, and reversal-only corrections | Proposed |
-| GT-08 | Versioned projects, budgets, restricted funds, milestones, and close | Proposed |
-| GT-09 | Effective-dated committees and quorum-backed immutable meeting decisions | Proposed |
-| GT-10 | Versioned documents and auditable shared-asset custody/lifecycle | Proposed |
-| GT-11 | Backend flags, provider-neutral virtual accounts, permissions, and durable notifications | Proposed |
-| GT-12 | Quarantined FC-08 migration plus complete test, observability, and recovery evidence | Proposed |
+| GT-01 | Groups are tenant-contained governed subentities; users may join multiple groups | Approved |
+| GT-02 | Versioned memberships/offices, due process, no automatic transfer of personal funds | Approved |
+| GT-03 | Immutable voting snapshots and decision-specific quorum/threshold defaults | Approved |
+| GT-04 | Contributions are classified by economic ownership before collection | Approved |
+| GT-05 | Versioned contribution cycles with partial/excess/penalty and close rules | Approved |
+| GT-06 | Reserved funds, two-person maker-checker, and two-thirds default treasury approval | Approved |
+| GT-07 | Journal-derived group accounts, statements, privacy, and reversal-only corrections | Approved |
+| GT-08 | Versioned projects, budgets, restricted funds, milestones, and close | Approved |
+| GT-09 | Effective-dated committees and quorum-backed immutable meeting decisions | Approved |
+| GT-10 | Versioned documents and auditable shared-asset custody/lifecycle | Approved |
+| GT-11 | Backend flags, provider-neutral virtual accounts, permissions, and durable notifications | Approved |
+| GT-12 | Quarantined FC-08 migration plus complete test, observability, and recovery evidence | Approved |
 
-Approval status: `pending`
+Approval status: `approved`
 
-Approved by: _pending_
+Approved by: Product owner (recorded from the Codex task)
 
-Approval date: _pending_
+Approval date: 2026-07-30
 
 Approved exceptions: _none recorded_
