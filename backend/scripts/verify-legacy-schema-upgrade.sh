@@ -190,6 +190,16 @@ if [[ "$booking_notification_outbox_present" == "f" ]]; then
   migrations+=(install_booking_notification_outbox.sql)
 fi
 
+group_lifecycle_foundation_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regclass('public.group_lifecycle_events') IS NOT NULL
+    AND to_regclass('public.group_legacy_reviews') IS NOT NULL
+    AND to_regprocedure(
+      'public.transition_group_lifecycle(uuid,uuid,uuid,text,text,integer,uuid,timestamp with time zone)') IS NOT NULL")"
+if [[ "$group_lifecycle_foundation_present" == "f" ]]; then
+  migrations+=(install_group_lifecycle_foundation.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \

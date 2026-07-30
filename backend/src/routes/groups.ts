@@ -8,6 +8,7 @@ import { WalletService } from '../services/walletService.js';
 import { Response } from 'express';
 import supabase from '../utils/supabase.js';
 import { resolveTenant, TenantRequest } from '../middleware/tenant.js';
+import { requireFeature } from '../middleware/requireFeature.js';
 
 const walletService = new WalletService();
 const router = Router();
@@ -19,35 +20,50 @@ const joinGroupLimiter = rateLimit({
   message: { error: 'Too many join attempts, please try again later' }
 });
 
-router.get('/search', async (req, res, next) => {
+router.get('/search', async (req: TenantRequest, res: Response, next) => {
   try {
     const { state_id, lga_id } = req.query;
-    const groups = await GroupModel.findNearby(state_id as string, lga_id as string);
+    const groups = await GroupModel.findPublicNearby(
+      state_id as string, lga_id as string,
+    );
     res.json(groups);
   } catch (error) {
     next(error);
   }
 });
 
-router.get('/can-create', authenticateToken, resolveTenant, async (req: TenantRequest, res: Response, next) => {
-  try {
-    const result = await GroupModel.canCreateGroup(req.user.id);
-    res.json(result);
-  } catch (error) {
-    next(error);
-  }
-});
+router.get(
+  '/can-create',
+  authenticateToken,
+  resolveTenant,
+  async (req: TenantRequest, res: Response, next) => {
+    try {
+      const result = await GroupModel.canCreateGroup(req.user.id);
+      res.json(result);
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
-router.get('/:id', async (req, res, next) => {
+router.get('/:id', async (req: TenantRequest, res: Response, next) => {
   try {
-    const group = await GroupModel.findById(req.params.id);
+    const group = await GroupModel.findPublicById(req.params.id);
+    if (!group) return res.status(404).json({ error: 'Group not found' });
     res.json(group);
   } catch (error) {
     next(error);
   }
 });
 
-router.post('/', authenticateToken, resolveTenant, validate(createGroupSchema), async (req: TenantRequest, res: Response, next) => {
+router.use(authenticateToken as any);
+router.use(resolveTenant);
+
+router.post(
+  '/',
+  requireFeature('groups.membership.manage'),
+  validate(createGroupSchema),
+  async (req: TenantRequest, res: Response, next) => {
   try {
     const { canCreate, conditions } = await GroupModel.canCreateGroup(req.user.id);
     if (!canCreate) {
@@ -94,9 +110,15 @@ router.post('/', authenticateToken, resolveTenant, validate(createGroupSchema), 
     
     res.status(500).json({ error: error.message || 'Failed to create group' });
   }
-});
+  },
+);
 
-router.post('/:id/join', authenticateToken, resolveTenant, joinGroupLimiter, validate(joinGroupSchema), async (req: TenantRequest, res: Response, next) => {
+router.post(
+  '/:id/join',
+  requireFeature('groups.membership.manage'),
+  joinGroupLimiter,
+  validate(joinGroupSchema),
+  async (req: TenantRequest, res: Response, next) => {
   try {
     const { data: user } = await supabase
       .from('users')
@@ -124,9 +146,10 @@ router.post('/:id/join', authenticateToken, resolveTenant, joinGroupLimiter, val
     }
     res.status(500).json({ error: error.message || 'Failed to join group' });
   }
-});
+  },
+);
 
-router.post('/confirm-payment/:memberId', authenticateToken, resolveTenant, async (req: TenantRequest, res: Response, next) => {
+router.post('/confirm-payment/:memberId', async (req: TenantRequest, res: Response, next) => {
   try {
     const { data: member } = await supabase
       .from('group_members')
@@ -142,16 +165,16 @@ router.post('/confirm-payment/:memberId', authenticateToken, resolveTenant, asyn
   }
 });
 
-router.get('/:id/members', async (req, res, next) => {
+router.get('/:id/members', async (req: TenantRequest, res: Response, next) => {
   try {
-    const members = await GroupModel.getMembers(req.params.id);
+    const members = await GroupModel.getMembers(req.params.id, req.tenant!.id);
     res.json(members);
   } catch (error) {
     next(error);
   }
 });
 
-router.get('/:id/membership-status', authenticateToken, resolveTenant, async (req: TenantRequest, res: Response, next) => {
+router.get('/:id/membership-status', async (req: TenantRequest, res: Response, next) => {
   try {
     const { data, error } = await supabase
       .from('group_members')
