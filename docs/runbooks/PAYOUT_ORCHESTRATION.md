@@ -10,7 +10,7 @@ This runbook covers FC-05/FC-06 wallet payouts introduced by `create_payout_orch
 
 - Deterministic mode is available only outside production and never represents test money as live money.
 - Sandbox mode requires Interswitch client credentials and a webhook secret.
-- Live mode additionally requires `INTERSWITCH_LIVE_APPROVAL_ID`, `PAYOUT_RECONCILIATION_CERTIFIED=true`, and the backend `integration.interswitch.live` feature flag for the tenant.
+- Live mode additionally requires the complete activation checklist below and the backend `integration.interswitch.live` feature flag for the tenant. Missing evidence fails with `LIVE_PAYOUT_ACTIVATION_INCOMPLETE`; it never falls back to a simulated success.
 - New payout creation also requires `financial.wallets.transact` and `financial.payouts.create`.
 - Callback processing and status recovery use `financial.payouts.service_existing`; disabling acquisition must not stop servicing existing obligations.
 
@@ -21,6 +21,13 @@ Required secret names are documented without values:
 - `INTERSWITCH_WEBHOOK_SECRET`
 - `INTERSWITCH_AUTH_URL`, `INTERSWITCH_API_URL`, and `INTERSWITCH_MARKETPLACE_URL` when non-default endpoints are required
 - `INTERSWITCH_LIVE_APPROVAL_ID` for live routing
+- `INTERSWITCH_CREDENTIALS_VALIDATED=true` after sandbox/provider validation
+- `INTERSWITCH_BENEFICIARY_VALIDATION_CONFIGURED=true` after name-enquiry certification
+- `INTERSWITCH_WEBHOOK_VERIFIED=true` after signature and delivery certification
+- `INTERSWITCH_SETTLEMENT_ACCOUNT_ID` for the approved settlement destination
+- `PAYOUT_RECONCILIATION_CERTIFIED=true` after zero-variance certification
+- `PAYOUT_COMPLIANCE_OWNER` naming the accountable owner
+- `INTERSWITCH_ACTIVATION_EVIDENCE_ID` referencing the approval evidence
 - `DETERMINISTIC_PAYOUT_WEBHOOK_SECRET` for local and CI callback contract tests
 
 No provider credential is required for deterministic unit and schema tests.

@@ -29,6 +29,13 @@ Sandbox and live:
 - `PAYSTACK_PUBLIC_KEY`
 - `PAYSTACK_SECRET_KEY`
 - `PAYSTACK_WEBHOOK_SECRET` if issued/configured
+- `PAYSTACK_LIVE_APPROVAL_ID`
+- `PAYSTACK_CREDENTIALS_VALIDATED=true` only after provider validation
+- `PAYSTACK_WEBHOOK_VERIFIED=true` only after webhook certification
+- `PAYSTACK_SETTLEMENT_ACCOUNT_ID`
+- `PAYMENT_RECONCILIATION_CERTIFIED=true` only after reconciliation sign-off
+- `PAYMENT_COMPLIANCE_OWNER`
+- `PAYSTACK_ACTIVATION_EVIDENCE_ID`
 - merchant/business identifier and settlement account configured in the Paystack dashboard
 
 ## Interswitch
@@ -46,7 +53,13 @@ Sandbox and live, for enabled products:
 - merchant/settlement identifiers required for Virtual NUBAN, name enquiry, transfers, NIN/BVN, and transaction search
 - `PAYOUT_PROVIDER_MODE` (`deterministic`, `sandbox`, or `live`)
 - `INTERSWITCH_LIVE_APPROVAL_ID` before live routing
+- `INTERSWITCH_CREDENTIALS_VALIDATED=true` only after provider validation
+- `INTERSWITCH_BENEFICIARY_VALIDATION_CONFIGURED=true` only after name-enquiry certification
+- `INTERSWITCH_WEBHOOK_VERIFIED=true` only after webhook certification
+- `INTERSWITCH_SETTLEMENT_ACCOUNT_ID`
 - `PAYOUT_RECONCILIATION_CERTIFIED=true` only after the operational reconciliation sign-off
+- `PAYOUT_COMPLIANCE_OWNER`
+- `INTERSWITCH_ACTIVATION_EVIDENCE_ID`
 
 ## Identity and government verification
 

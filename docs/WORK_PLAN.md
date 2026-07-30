@@ -128,6 +128,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add BS-09 recovery servicing with evidenced maker-checker repayment, provider recovery, insurance, bounded future-settlement offsets and write-offs, plus late-payout-success reconciliation that never silently repays terminal payouts.
   - [x] Add BS-10A durable organization-scoped authorization decisions and audited API permission gates for dispute opening/resolution and settlement reads/releases, with privacy-minimized denial evidence.
   - [x] Add BS-10B payout read/servicing resource authorization, masked payout-state reads, and neutral organization-scoped independent dispute approval.
+  - [x] Add BS-11 acquisition/servicing feature-flag separation and fail-closed live payment/payout activation gates requiring complete provider, credential, beneficiary, webhook, settlement, reconciliation, compliance, and approval evidence.
 - [ ] Group treasury, contributions, projects, committees, meetings, voting, documents, and shared assets.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 

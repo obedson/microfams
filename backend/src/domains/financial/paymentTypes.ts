@@ -86,7 +86,7 @@ export interface PaymentAdapter {
 }
 
 export class PaymentConfigurationError extends Error {
-  constructor(message: string) {
+  constructor(message: string, readonly code = 'PAYMENT_CONFIGURATION_ERROR') {
     super(message);
     this.name = 'PaymentConfigurationError';
   }

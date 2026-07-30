@@ -51,7 +51,7 @@ export interface PayoutAdapter {
 }
 
 export class PayoutConfigurationError extends Error {
-  constructor(message: string) {
+  constructor(message: string, readonly code = 'PAYOUT_CONFIGURATION_ERROR') {
     super(message);
     this.name = 'PayoutConfigurationError';
   }
