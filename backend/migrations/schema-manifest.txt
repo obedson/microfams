@@ -77,3 +77,4 @@ install_booking_authorization_audit.sql
 install_booking_authorization_completion.sql
 install_booking_operational_statements.sql
 install_booking_notification_outbox.sql
+install_group_lifecycle_foundation.sql

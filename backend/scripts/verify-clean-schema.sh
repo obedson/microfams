@@ -61,7 +61,8 @@ BEGIN
       'booking_settlement_rules','booking_fee_rules','booking_settlement_holds',
       'booking_settlement_posting_links','booking_disputes',
       'booking_dispute_evidence','booking_dispute_events',
-      'booking_domain_notification_outbox'
+      'booking_domain_notification_outbox','group_lifecycle_events',
+      'group_legacy_reviews'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -336,6 +337,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-booking-notification-outbox.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-group-lifecycle-foundation.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"

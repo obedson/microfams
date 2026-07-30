@@ -1,5 +1,6 @@
 import supabase from '../utils/supabase.js';
 import { verifyPaystackPayment } from '../utils/paystack.js';
+import { evaluateGroupCreationEligibility } from '../domains/groups/groupPolicy.js';
 
 export class GroupModel {
   static async createWithPayment(groupData: any, userId: string, organizationId: string, paymentRef: string) {
@@ -52,8 +53,8 @@ export class GroupModel {
     return group;
   }
 
-  static async findNearby(stateId?: string, lgaId?: string) {
-    let query = supabase.from('groups').select('*').eq('is_active', true);
+  static async findPublicNearby(stateId?: string, lgaId?: string) {
+    let query = supabase.from('public_group_directory').select('*');
     if (stateId) query = query.eq('state_id', stateId);
     if (lgaId) query = query.eq('lga_id', lgaId);
     const { data, error } = await query;
@@ -61,13 +62,12 @@ export class GroupModel {
     return data;
   }
 
-  static async findById(id: string, organizationId?: string) {
-    let query = supabase
-      .from('groups')
-      .select('*, creator:users!creator_id(name, email)')
+  static async findPublicById(id: string) {
+    const query = supabase
+      .from('public_group_directory')
+      .select('*')
       .eq('id', id);
-    if (organizationId) query = query.eq('organization_id', organizationId);
-    const { data, error } = await query.single();
+    const { data, error } = await query.maybeSingle();
     if (error) throw error;
     return data;
   }
@@ -80,21 +80,10 @@ export class GroupModel {
       .eq('organization_id', organizationId)
       .maybeSingle();
     if (!group) throw new Error('Group not found in the active organization');
-    // Ensure user doesn't already belong to a group
-    const { count: groupCount, error: countError } = await supabase
-      .from('group_members')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .neq('status', 'expelled'); // They can join another if they have been expelled from their previous one.
-
-    if (countError) throw countError;
-    if (groupCount && groupCount > 0) {
-      throw new Error('You can only belong to one group at a time.');
-    }
-
     const { data, error } = await supabase
       .from('group_members')
-      .insert({ 
+      .insert({
+        organization_id: organizationId,
         group_id: groupId, 
         user_id: userId,
         payment_reference: paymentRef,
@@ -115,11 +104,12 @@ export class GroupModel {
     return data;
   }
 
-  static async getMembers(groupId: string) {
+  static async getMembers(groupId: string, organizationId: string) {
     const { data, error } = await supabase
       .from('group_members')
-      .select('*, user:users(id, name, email, role)')
+      .select('*, groups!inner(organization_id), user:users(id, name, email, role)')
       .eq('group_id', groupId)
+      .eq('groups.organization_id', organizationId)
       .eq('payment_status', 'paid');
     if (error) throw error;
     return data;
@@ -128,13 +118,20 @@ export class GroupModel {
   static async canCreateGroup(userId: string) {
     const { data: user, error } = await supabase
       .from('users')
-      .select('nin_verified, is_platform_subscriber, role, paid_referrals_count')
+      .select('nin_verified, is_platform_subscriber, role')
       .eq('id', userId)
       .single();
     if (error) throw error;
     
     // Admins can always create groups
-    if (user.role === 'admin') return { canCreate: true, conditions: { nin_verified: true, is_platform_subscriber: true, paid_invitees: 2, not_in_group: true } };
+    if (user.role === 'admin') return {
+      canCreate: true,
+      conditions: {
+        nin_verified: true,
+        is_platform_subscriber: true,
+        paid_invitees: 2,
+      },
+    };
 
     // Count referred users who are platform subscribers (paid invitees)
     const { count: paidInviteesCount } = await supabase
@@ -143,24 +140,18 @@ export class GroupModel {
       .eq('referred_by', userId)
       .eq('is_platform_subscriber', true);
 
-    // Count user's current groups
-    const { count: groupCount } = await supabase
-      .from('group_members')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .neq('status', 'expelled');
-
     const conditions = {
       nin_verified: !!user.nin_verified,
       is_platform_subscriber: !!user.is_platform_subscriber,
       paid_invitees: paidInviteesCount || 0,
-      not_in_group: (groupCount || 0) === 0
     };
 
-    const canCreate = conditions.nin_verified && 
-                      conditions.is_platform_subscriber && 
-                      conditions.paid_invitees >= 2 &&
-                      conditions.not_in_group;
+    const canCreate = evaluateGroupCreationEligibility({
+      role: user.role,
+      ninVerified: conditions.nin_verified,
+      platformSubscriber: conditions.is_platform_subscriber,
+      paidInvitees: conditions.paid_invitees,
+    });
 
     return { canCreate, conditions };
   }

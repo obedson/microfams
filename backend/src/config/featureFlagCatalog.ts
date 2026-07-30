@@ -15,6 +15,13 @@ const flag = (
 });
 
 export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
+  flag('groups.membership.manage', 'groups', 'Create groups and manage tenant-scoped memberships.', { defaultEnabled: true }),
+  flag('groups.governance.manage', 'groups', 'Create and execute group governance decisions.'),
+  flag('groups.contributions.accept_new', 'groups', 'Open contribution cycles and accept new group contributions.', { risk: 'regulated' }),
+  flag('groups.contributions.service_existing', 'groups', 'Service, reconcile, refund, and report existing contributions.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
+  flag('groups.treasury.create_disbursement', 'groups', 'Create new group treasury disbursement exposure.', { risk: 'regulated' }),
+  flag('groups.treasury.service_existing', 'groups', 'Service, reconcile, reverse, and report existing group disbursements.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
+  flag('groups.assets.manage', 'groups', 'Manage governed shared-asset custody and lifecycle.'),
   flag('booking.reservations.create', 'booking', 'Create atomic property reservation holds.', { defaultEnabled: true }),
   flag('booking.lifecycle.manage', 'booking', 'Approve and complete bookings through the canonical lifecycle command.', { defaultEnabled: true }),
   flag('booking.settlements.create', 'booking', 'Create new booking settlement obligations.', { risk: 'regulated' }),
