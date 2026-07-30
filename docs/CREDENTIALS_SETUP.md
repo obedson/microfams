@@ -18,6 +18,7 @@ Provide values once through GitHub Codespaces secrets for development and the de
 - `JWT_REFRESH_SECRET`
 - `FIELD_ENCRYPTION_KEY`
 - `WEBHOOK_ENCRYPTION_KEY`
+- `BOOKING_PAYOUT_DESTINATION_ENCRYPTION_KEY` (base64-encoded 32-byte key)
 - `APP_BASE_URL`
 - `API_BASE_URL`
 
@@ -43,6 +44,9 @@ Sandbox and live, for enabled products:
 - `INTERSWITCH_WEBHOOK_SECRET`
 - `INTERSWITCH_TRANSFER_FEE_KOBO`
 - merchant/settlement identifiers required for Virtual NUBAN, name enquiry, transfers, NIN/BVN, and transaction search
+- `PAYOUT_PROVIDER_MODE` (`deterministic`, `sandbox`, or `live`)
+- `INTERSWITCH_LIVE_APPROVAL_ID` before live routing
+- `PAYOUT_RECONCILIATION_CERTIFIED=true` only after the operational reconciliation sign-off
 
 ## Identity and government verification
 

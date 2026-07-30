@@ -44,7 +44,11 @@ export class PayoutService {
     private readonly featureFlags = new FeatureFlagService(new SupabaseFeatureFlagRepository()),
   ) {}
 
-  private async assertLiveRoutingEnabled(adapter: PayoutAdapter, organizationId: string, actorId?: string): Promise<void> {
+  async assertRoutingEnabled(
+    adapter: PayoutAdapter,
+    organizationId: string,
+    actorId?: string,
+  ): Promise<void> {
     if (adapter.environment !== 'live') return;
     assertLivePayoutActivationConfigured();
     const runtimeEnvironment = process.env.NODE_ENV;
@@ -61,13 +65,13 @@ export class PayoutService {
 
   async validateDestination(organizationId: string, actorId: string, accountNumber: string, bankCode: string) {
     const adapter = this.adapterFactory();
-    await this.assertLiveRoutingEnabled(adapter, organizationId, actorId);
+    await this.assertRoutingEnabled(adapter, organizationId, actorId);
     return adapter.validateDestination(accountNumber, bankCode);
   }
 
   async createAndSubmit(input: CreatePayoutInput) {
     const adapter = this.adapterFactory();
-    await this.assertLiveRoutingEnabled(adapter, input.organizationId, input.actorId);
+    await this.assertRoutingEnabled(adapter, input.organizationId, input.actorId);
     const beneficiaryFingerprint = sha256(`${input.bankCode}:${input.accountNumber}`);
     await financialRuleService.enforce({
       organizationId: input.organizationId,
@@ -120,6 +124,55 @@ export class PayoutService {
       return publicPayout(pending);
     }
     return this.applyProviderResult(payout.id, requestHash, result);
+  }
+
+  async submitBookingPayout(input: {
+    payout: any;
+    organizationId: string;
+    actorId: string;
+    accountNumber: string;
+    bankCode: string;
+    accountName: string;
+  }) {
+    const adapter = this.adapterFactory();
+    await this.assertRoutingEnabled(adapter, input.organizationId, input.actorId);
+    if (adapter.name !== input.payout.provider_name
+      || adapter.environment !== input.payout.provider_environment
+    ) throw new Error('Configured payout adapter does not match the stored payout');
+    if (input.payout.state !== 'reserved') return publicPayout(input.payout);
+
+    const command: PayoutSubmissionCommand = {
+      internalReference: input.payout.internal_reference,
+      amountMinor: Number(input.payout.amount_minor),
+      currency: input.payout.currency,
+      narration: `Micro Fams booking supplier payout ${input.payout.internal_reference}`,
+      destination: {
+        accountNumber: input.accountNumber,
+        bankCode: input.bankCode,
+        accountName: input.accountName,
+      },
+    };
+    const requestHash = sha256(JSON.stringify({
+      internalReference: command.internalReference,
+      amountMinor: command.amountMinor,
+      currency: command.currency,
+      beneficiaryFingerprint: input.payout.beneficiary_fingerprint,
+      provider: adapter.name,
+      environment: adapter.environment,
+    }));
+    let result: ProviderPayoutResult;
+    try {
+      result = await adapter.submit(command);
+    } catch {
+      const pending = await this.markSubmitted(
+        input.payout.id,
+        requestHash,
+        undefined,
+        true,
+      );
+      return publicPayout(pending);
+    }
+    return this.applyProviderResult(input.payout.id, requestHash, result);
   }
 
   async ingestWebhook(rawBody: Buffer, signature: string) {
@@ -205,7 +258,10 @@ export class PayoutService {
   private async applyProviderResult(payoutId: string, requestHash: string, result: ProviderPayoutResult) {
     if (result.status === 'failed') {
       const submitted = await this.markSubmitted(payoutId, requestHash, result.providerReference, false);
-      const { data, error } = await supabase.rpc('fail_wallet_payout', {
+      const failureFunction = submitted.source_type === 'booking_settlement'
+        ? 'fail_booking_supplier_payout'
+        : 'fail_wallet_payout';
+      const { data, error } = await supabase.rpc(failureFunction, {
         p_payout_id: submitted.id,
         p_failure_code: result.failureCode ?? 'PROVIDER_FAILED',
         p_failure_reason: result.failureReason ?? 'Provider reported payout failure',
@@ -221,12 +277,31 @@ export class PayoutService {
       result.status === 'processing',
     );
     if (result.status !== 'succeeded') return publicPayout(submitted);
-    const { data, error } = await supabase.rpc('succeed_wallet_payout', {
-      p_payout_id: submitted.id,
-      p_provider_reference: result.providerReference ?? submitted.provider_reference ?? submitted.internal_reference,
-      p_amount_minor: result.amountMinor,
-      p_currency: result.currency,
-    });
+    const providerReference = result.providerReference
+      ?? submitted.provider_reference
+      ?? submitted.internal_reference;
+    const successCommand = submitted.source_type === 'booking_settlement'
+      ? {
+        p_payout_id: submitted.id,
+        p_internal_reference: submitted.internal_reference,
+        p_provider_reference: providerReference,
+        p_amount_minor: result.amountMinor,
+        p_currency: result.currency,
+        p_beneficiary_fingerprint: submitted.beneficiary_fingerprint,
+        p_organization_id: submitted.organization_id,
+        p_provider_name: submitted.provider_name,
+        p_provider_environment: submitted.provider_environment,
+      }
+      : {
+        p_payout_id: submitted.id,
+        p_provider_reference: providerReference,
+        p_amount_minor: result.amountMinor,
+        p_currency: result.currency,
+      };
+    const successFunction = submitted.source_type === 'booking_settlement'
+      ? 'succeed_booking_supplier_payout'
+      : 'succeed_wallet_payout';
+    const { data, error } = await supabase.rpc(successFunction, successCommand);
     if (error || !data) throw error ?? new Error('Payout success could not be applied');
     return publicPayout(data);
   }

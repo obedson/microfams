@@ -123,6 +123,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add effective-dated settlement and fee rules, maker-checker activation, completion-time eligibility snapshots, hold-aware release checks, and balanced cross-tenant supplier/platform accounting.
   - [x] Add BS-06 customer/support dispute opening, atomic contested-amount freezes, append-only malware-aware evidence, and tenant-safe timelines.
   - [x] Add BS-07 versioned response rules and notices, monotonic dispute review, conserved maker-checker resolutions, pending-refund reservations, cumulative partial releases and recovery commands.
+  - [x] Add BS-08 encrypted verified provider beneficiaries, destination-change holds and independent approval, release-scoped supplier payouts, recoverable servicing, restoration on failure, and exact success postings.
 - [ ] Group treasury, contributions, projects, committees, meetings, voting, documents, and shared assets.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
