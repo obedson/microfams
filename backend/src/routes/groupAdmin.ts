@@ -6,12 +6,18 @@ import { resolveTenant } from '../middleware/tenant.js';
 import { requireFeature } from '../middleware/requireFeature.js';
 import { groupGovernanceController } from '../controllers/groupGovernanceController.js';
 import { groupInvitationController } from '../controllers/groupInvitationController.js';
+import { groupProposalController } from '../controllers/groupProposalController.js';
 
 const router = Router();
 const invitationCommandLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 20,
   message: { error: 'GROUP_INVITATION_RATE_LIMITED' },
+});
+const proposalCommandLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: 'GROUP_PROPOSAL_RATE_LIMITED' },
 });
 
 router.use(authenticateToken as any);
@@ -22,6 +28,13 @@ router.post('/:id/invitations', invitationCommandLimiter, requireFeature('groups
 router.post('/:id/invitations/accept', invitationCommandLimiter, requireFeature('groups.membership.manage'), groupInvitationController.accept);
 router.get('/:id/invitations', requireFeature('groups.membership.manage'), groupInvitationController.list);
 router.post('/:id/invitations/:invitationId/revoke', invitationCommandLimiter, requireFeature('groups.membership.manage'), groupInvitationController.revoke);
+router.get('/:id/proposals', requireFeature('groups.governance.manage'), groupProposalController.list);
+router.get('/:id/proposals/:proposalId', requireFeature('groups.governance.manage'), groupProposalController.get);
+router.post('/:id/proposals', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.create);
+router.post('/:id/proposals/:proposalId/open', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.open);
+router.post('/:id/proposals/:proposalId/votes', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.vote);
+router.post('/:id/proposals/:proposalId/close', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.close);
+router.post('/:id/proposals/:proposalId/cancel', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.cancel);
 router.get(
   '/:id/governance-setup',
   requireFeature('groups.governance.manage'),
