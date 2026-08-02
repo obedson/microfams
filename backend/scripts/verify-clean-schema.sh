@@ -357,6 +357,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
   < "$repo_root/backend/tests/schema/test-group-admission-payments.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-group-member-discipline-appeals.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"
 
 docker exec --interactive "$container" psql --username postgres --dbname microfams \

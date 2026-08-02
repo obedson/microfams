@@ -377,28 +377,6 @@ export const getMyHistory = async (req: TenantRequest, res: Response) => {
   }
 };
 
-export const suspendMember = async (req: TenantRequest, res: Response) => {
-  try {
-    const { memberId } = req.params;
-
-    const member = await ContributionModel.updateMemberStatus(memberId, 'suspended', req.tenant!.id);
-    res.json(member);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-export const expelMember = async (req: TenantRequest, res: Response) => {
-  try {
-    const { memberId } = req.params;
-
-    const member = await ContributionModel.updateMemberStatus(memberId, 'expelled', req.tenant!.id);
-    res.json(member);
-  } catch (error: any) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
 export const getContributionById = async (req: TenantRequest, res: Response) => {
   try {
     const { id } = req.params;

@@ -1,37 +1,35 @@
 import React, { useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { groupAdminApi } from '../services/groupAdminAPI';
-import { Users, DollarSign, Settings, UserMinus, ShieldAlert, BarChart3, Clock, ArrowLeft, Edit3, CheckCircle, XCircle } from 'lucide-react';
+import { CreateGroupDisciplineCaseInput, groupAdminApi } from '../services/groupAdminAPI';
+import GroupDisciplineCaseForm from '../components/groups/GroupDisciplineCaseForm';
+import { Users, DollarSign, Settings, ShieldAlert, BarChart3, Clock, ArrowLeft, Edit3, CheckCircle, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function GroupAdminDashboard() {
   const { id: groupId } = useParams<{ id: string }>();
   const queryClient = useQueryClient();
-  const [isEditing, setIsOpen] = useState(false);
+  const [disciplineMember, setDisciplineMember] = useState<any | null>(null);
 
   const { data: dashboard, isLoading } = useQuery({
     queryKey: ['group-admin-dashboard', groupId],
     queryFn: () => groupAdminApi.getAdminDashboard(groupId!).then((res: any) => res.data)
   });
 
-  const voteMutation = useMutation({
-    mutationFn: ({ memberId, type }: { memberId: string, type: 'SUSPEND' | 'EXPEL' }) => 
-      groupAdminApi.castVote(groupId!, memberId, type),
-    onSuccess: (res: any) => {
-      if (res.data.executed) {
-        toast.success('Action executed successfully (Threshold reached)');
-      } else {
-        toast.success(`Vote cast! ${res.data.voteCount}/${res.data.threshold} reached.`);
-      }
+  const disciplineMutation = useMutation({
+    mutationFn: (value: CreateGroupDisciplineCaseInput) =>
+      groupAdminApi.createDisciplineCase(groupId!, disciplineMember.id, value),
+    onSuccess: () => {
+      toast.success('Notice issued and a proposal draft created.');
+      setDisciplineMember(null);
       queryClient.invalidateQueries({ queryKey: ['group-admin-dashboard', groupId] });
     },
-    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to cast vote')
+    onError: (err: any) => toast.error(err.response?.data?.error || 'Failed to create discipline review')
   });
 
   if (isLoading) return <div className="p-8 text-center">Loading Dashboard...</div>;
 
-  const { group, stats, wallet, members, pendingVotes } = dashboard;
+  const { group, stats, wallet, members, disciplineCases = [] } = dashboard;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
@@ -135,20 +133,15 @@ export default function GroupAdminDashboard() {
                       </td>
                       <td className="px-6 py-4 text-right">
                         <div className="flex justify-end gap-2">
-                          <button 
-                            onClick={() => voteMutation.mutate({ memberId: member.user_id, type: 'SUSPEND' })}
-                            className="p-2 text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
-                            title="Vote to Suspend"
-                          >
-                            <ShieldAlert size={18} />
-                          </button>
-                          <button 
-                            onClick={() => voteMutation.mutate({ memberId: member.user_id, type: 'EXPEL' })}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Vote to Expel"
-                          >
-                            <UserMinus size={18} />
-                          </button>
+                          {['active', 'suspended'].includes(member.status) && (
+                            <button
+                              onClick={() => setDisciplineMember(member)}
+                              className="inline-flex items-center gap-2 px-3 py-2 text-amber-700 hover:bg-amber-50 rounded-lg transition-colors text-xs font-semibold"
+                              title="Start a noticed, proposal-backed discipline review"
+                            >
+                              <ShieldAlert size={16} /> Start review
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -200,18 +193,16 @@ export default function GroupAdminDashboard() {
             )}
           </div>
 
-          {pendingVotes.length > 0 && (
+          {disciplineCases.length > 0 && (
             <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
               <h3 className="font-bold text-red-900 mb-4 flex items-center gap-2">
-                <ShieldAlert size={18} /> Active Votes
+                <ShieldAlert size={18} /> Discipline reviews
               </h3>
               <div className="space-y-3">
-                {pendingVotes.map((vote: any) => (
-                  <div key={vote.id} className="bg-white p-3 rounded-xl shadow-sm border border-red-50">
-                    <p className="text-xs font-bold text-gray-900">{vote.action_type}: {vote.target?.name}</p>
-                    <div className="mt-2 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-red-500" style={{ width: '40%' }} />
-                    </div>
+                {disciplineCases.map((disciplineCase: any) => (
+                  <div key={disciplineCase.id} className="bg-white p-3 rounded-xl shadow-sm border border-red-50">
+                    <p className="text-xs font-bold text-gray-900 capitalize">{disciplineCase.proposed_action} · {disciplineCase.state.replaceAll('_', ' ')}</p>
+                    <p className="text-xs text-gray-600 mt-1">{disciplineCase.public_notice}</p>
                   </div>
                 ))}
               </div>
@@ -219,6 +210,18 @@ export default function GroupAdminDashboard() {
           )}
         </div>
       </div>
+      {disciplineMember && (
+        <div role="dialog" aria-modal="true" className="fixed inset-0 z-50 bg-black/50 p-4 flex items-center justify-center">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+            <GroupDisciplineCaseForm
+              memberName={disciplineMember.user?.name || 'Member'}
+              submitting={disciplineMutation.isLoading}
+              onCancel={() => setDisciplineMember(null)}
+              onSubmit={(value) => disciplineMutation.mutate(value)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

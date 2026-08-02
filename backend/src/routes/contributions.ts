@@ -30,10 +30,6 @@ router.get('/contributions/:id', authenticateToken, resolveTenant, contributionC
 router.get('/contributions/:id/penalty', authenticateToken, resolveTenant, contributionController.getPenalty);
 router.get('/contributions/my-history', authenticateToken, resolveTenant, contributionController.getMyHistory);
 
-// Admin actions
-router.post('/contributions/members/:memberId/suspend', authenticateToken, resolveTenant, contributionController.suspendMember);
-router.post('/contributions/members/:memberId/expel', authenticateToken, resolveTenant, contributionController.expelMember);
-
 // Group Booking Integration
 router.get('/user/group-funds', authenticateToken, resolveTenant, contributionController.getUserGroupFunds);
 router.get('/groups/:groupId/booking-discount', authenticateToken, resolveTenant, contributionController.calculateGroupDiscount);

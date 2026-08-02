@@ -8,6 +8,7 @@ import { groupGovernanceController } from '../controllers/groupGovernanceControl
 import { groupInvitationController } from '../controllers/groupInvitationController.js';
 import { groupProposalController } from '../controllers/groupProposalController.js';
 import { groupAdmissionController } from '../controllers/groupAdmissionController.js';
+import { groupDisciplineController } from '../controllers/groupDisciplineController.js';
 
 const router = Router();
 const invitationCommandLimiter = rateLimit({
@@ -40,6 +41,25 @@ router.get('/:id/entry-requirements/current', requireFeature('groups.membership.
 router.post('/:id/entry-requirements/initial', proposalCommandLimiter, requireFeature('groups.membership.manage'), groupAdmissionController.adoptInitial);
 router.get('/:id/members/:memberId/admission', requireFeature('groups.membership.manage'), groupAdmissionController.getStatus);
 router.post('/:id/members/:memberId/admission/execute', proposalCommandLimiter, requireFeature('groups.membership.manage'), groupAdmissionController.execute);
+router.get('/:id/members/:memberId/discipline-cases', groupDisciplineController.listForMember);
+router.post(
+  '/:id/members/:memberId/discipline-cases',
+  proposalCommandLimiter,
+  requireFeature('groups.membership.manage'),
+  requireFeature('groups.governance.manage'),
+  groupDisciplineController.create,
+);
+router.get('/:id/discipline-cases/:caseId', groupDisciplineController.get);
+router.post(
+  '/:id/discipline-cases/:caseId/execute',
+  proposalCommandLimiter,
+  requireFeature('groups.membership.manage'),
+  requireFeature('groups.governance.manage'),
+  groupDisciplineController.execute,
+);
+// Appeals are a servicing right, so filing and decisions remain available after acquisition flags change.
+router.post('/:id/discipline-cases/:caseId/appeals', proposalCommandLimiter, groupDisciplineController.appeal);
+router.post('/:id/discipline-appeals/:appealId/decision', proposalCommandLimiter, groupDisciplineController.decideAppeal);
 router.get(
   '/:id/governance-setup',
   requireFeature('groups.governance.manage'),
@@ -65,12 +85,6 @@ router.put(
   requireFeature('groups.membership.manage'),
   groupAdminController.updateGroup,
 );
-router.post(
-  '/:id/members/:memberId/vote',
-  requireFeature('groups.governance.manage'),
-  groupAdminController.castVote,
-);
-router.get('/:id/votes', groupAdminController.getVotes);
 router.get('/:id/member/dashboard', groupAdminController.getMemberDashboard);
 
 export default router;

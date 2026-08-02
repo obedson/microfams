@@ -1,6 +1,5 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { supabase } from '../utils/supabase.js';
-import { GroupModel } from '../models/Group.js';
 import Joi from 'joi';
 import { TenantRequest } from '../middleware/tenant.js';
 
@@ -11,15 +10,20 @@ class GroupAdminController {
   async getAdminDashboard(req: TenantRequest, res: Response) {
     const groupId = req.params.id;
     try {
-      // 1. Verify access (Owner or Platform Admin)
-      const { data: membership } = await supabase
-        .from('group_members')
-        .select('role')
-        .eq('group_id', groupId)
-        .eq('user_id', req.user!.id)
-        .single();
-
-      if (req.user!.role !== 'admin' && membership?.role !== 'owner') {
+      const [membershipResult, tenantMembershipResult] = await Promise.all([
+        supabase.from('group_members').select('role')
+          .eq('organization_id', req.tenant!.id).eq('group_id', groupId)
+          .eq('user_id', req.user!.id).eq('status', 'active').maybeSingle(),
+        supabase.from('organization_memberships').select('role,permissions')
+          .eq('organization_id', req.tenant!.id).eq('user_id', req.user!.id)
+          .eq('status', 'active').maybeSingle(),
+      ]);
+      const tenantMembership = tenantMembershipResult.data;
+      const canManage = membershipResult.data?.role === 'owner'
+        || tenantMembership?.role === 'owner' || tenantMembership?.role === 'admin'
+        || (tenantMembership?.permissions ?? []).includes('groups.membership.discipline.manage')
+        || (tenantMembership?.permissions ?? []).includes('groups.governance.manage');
+      if (!canManage) {
         return res.status(403).json({ error: 'Access denied. Group admin permissions required.' });
       }
 
@@ -35,8 +39,9 @@ class GroupAdminController {
       const { count: memberCount } = await supabase
         .from('group_members')
         .select('*', { count: 'exact', head: true })
+        .eq('organization_id', req.tenant!.id)
         .eq('group_id', groupId)
-        .eq('payment_status', 'paid');
+        .eq('status', 'active');
 
       // 3. Fetch Wallet/NUBAN Details
       const { data: nuban } = await supabase
@@ -57,20 +62,23 @@ class GroupAdminController {
       const { data: members } = await supabase
         .from('group_members')
         .select('*, user:users(id, name, email, profile_picture_url, nin_verified)')
+        .eq('organization_id', req.tenant!.id)
         .eq('group_id', groupId);
 
-      // 6. Fetch Pending Action Votes
-      const { data: pendingVotes } = await supabase
-        .from('group_member_action_votes')
-        .select('*, target:users!target_user_id(name)')
-        .eq('group_id', groupId);
+      const { data: disciplineCases } = await supabase
+        .from('group_member_discipline_cases')
+        .select('id,membership_id,target_user_id,proposed_action,state,reason_code,public_notice,response_due_at,proposal_id,appeal_deadline,created_at')
+        .eq('organization_id', req.tenant!.id)
+        .eq('group_id', groupId)
+        .order('created_at', { ascending: false })
+        .limit(50);
 
       res.json({
         group,
         stats: { memberCount },
         wallet: { nuban, transactions },
         members,
-        pendingVotes
+        disciplineCases: disciplineCases ?? []
       });
     } catch (error: any) {
       res.status(500).json({ error: error.message });
@@ -94,14 +102,19 @@ class GroupAdminController {
 
     try {
       // Permission check
-      const { data: membership } = await supabase
-        .from('group_members')
-        .select('role')
-        .eq('group_id', groupId)
-        .eq('user_id', req.user!.id)
-        .single();
-
-      if (req.user!.role !== 'admin' && membership?.role !== 'owner') {
+      const [membershipResult, tenantMembershipResult] = await Promise.all([
+        supabase.from('group_members').select('role')
+          .eq('organization_id', req.tenant!.id).eq('group_id', groupId)
+          .eq('user_id', req.user!.id).eq('status', 'active').maybeSingle(),
+        supabase.from('organization_memberships').select('role,permissions')
+          .eq('organization_id', req.tenant!.id).eq('user_id', req.user!.id)
+          .eq('status', 'active').maybeSingle(),
+      ]);
+      const tenantMembership = tenantMembershipResult.data;
+      const canManage = membershipResult.data?.role === 'owner'
+        || tenantMembership?.role === 'owner' || tenantMembership?.role === 'admin'
+        || (tenantMembership?.permissions ?? []).includes('groups.membership.manage');
+      if (!canManage) {
         return res.status(403).json({ error: 'Access denied' });
       }
 
@@ -120,53 +133,6 @@ class GroupAdminController {
   }
 
   /**
-   * Requirement 5.8, 5.9: Cast Member Action Vote
-   */
-  async castVote(req: TenantRequest, res: Response) {
-    const { id: groupId, memberId: targetMemberId } = req.params;
-    const { actionType } = req.body;
-
-    if (!['SUSPEND', 'EXPEL'].includes(actionType)) {
-      return res.status(400).json({ error: 'Invalid action type' });
-    }
-
-    try {
-      const { data: ownedGroup } = await supabase.from('groups').select('id')
-        .eq('id', groupId).eq('organization_id', req.tenant!.id).maybeSingle();
-      if (!ownedGroup) return res.status(404).json({ error: 'Group not found' });
-      const result = await GroupModel.castMemberActionVote({
-        groupId,
-        actionType,
-        targetMemberId,
-        voterId: req.user!.id
-      });
-
-      res.json(result);
-    } catch (error: any) {
-      const status = error.statusCode || 500;
-      res.status(status).json({ error: error.message });
-    }
-  }
-
-  /**
-   * Requirement 5.6: Get Votes
-   */
-  async getVotes(req: TenantRequest, res: Response) {
-    try {
-      const { data, error } = await supabase
-        .from('group_member_action_votes')
-        .select('*, groups!inner(organization_id), target:users!target_user_id(name), voter:users!voter_id(name)')
-        .eq('group_id', req.params.id)
-        .eq('groups.organization_id', req.tenant!.id);
-
-      if (error) throw error;
-      res.json(data);
-    } catch (error: any) {
-      res.status(500).json({ error: error.message });
-    }
-  }
-
-  /**
    * Requirement 6.1 - 6.7: Get Member Dashboard Data
    */
   async getMemberDashboard(req: TenantRequest, res: Response) {
@@ -176,6 +142,7 @@ class GroupAdminController {
       const { data: membership } = await supabase
         .from('group_members')
         .select('*')
+        .eq('organization_id', req.tenant!.id)
         .eq('group_id', groupId)
         .eq('user_id', req.user!.id)
         .eq('payment_status', 'paid')
@@ -198,6 +165,7 @@ class GroupAdminController {
       const { data: members } = await supabase
         .from('group_members')
         .select('user:users(name)')
+        .eq('organization_id', req.tenant!.id)
         .eq('group_id', groupId)
         .eq('payment_status', 'paid');
 
