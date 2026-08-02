@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { Users, MapPin, DollarSign, AlertCircle, Sparkles, ShieldAlert } from 'lucide-react';
 import { apiClient } from '../api/client';
 import { useAuthStore } from '../store/authStore';
@@ -9,7 +9,6 @@ export default function GroupDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useAuthStore();
-  const [isJoining, setIsJoining] = useState(false);
 
   const { data: group, isLoading, error } = useQuery({
     queryKey: ['group', id],
@@ -39,23 +38,6 @@ export default function GroupDetail() {
     },
     enabled: !!user && !!group,
     retry: false
-  });
-
-  const joinMutation = useMutation({
-    mutationFn: async () => {
-      const { data } = await apiClient.post(`/groups/${id}/join`, {
-        payment_reference: `GRP-${Date.now()}`,
-        amount: group.entry_fee
-      });
-      return data;
-    },
-    onSuccess: (membership) => {
-      window.location.href = `/payment?type=group&id=${membership.id}&amount=${group.entry_fee}`;
-    },
-    onError: (error: any) => {
-      console.error('Join error:', error);
-      alert(error.response?.data?.error || 'Failed to join group');
-    }
   });
 
   if (isLoading) {
@@ -165,7 +147,7 @@ export default function GroupDetail() {
               >
                 Login to Join
               </button>
-            ) : membershipStatus?.payment_status === 'paid' ? (
+            ) : membershipStatus?.status === 'active' && membershipStatus?.payment_status === 'paid' ? (
               <div className="text-center">
                 <div className="bg-green-100 text-green-800 px-6 py-3 rounded-lg font-semibold mb-2">
                   ✓ Active Member
@@ -177,21 +159,23 @@ export default function GroupDetail() {
                   View Contributions →
                 </Link>
               </div>
-            ) : membershipStatus?.payment_status === 'pending' ? (
+            ) : membershipStatus?.status === 'pending_payment' ? (
               <button
-                onClick={() => window.location.href = `/payment?type=group&id=${membershipStatus.id}&amount=${group.entry_fee}&groupId=${id}`}
+                onClick={() => window.location.href = `/payment?type=group&id=${membershipStatus.id}&groupId=${id}`}
                 className="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700"
               >
                 Complete Payment
               </button>
+            ) : membershipStatus?.status === 'applicant' ? (
+              <div className="max-w-xs text-right">
+                <p className="font-semibold text-amber-800">Admission review in progress</p>
+                <p className="text-xs text-amber-700 mt-1">Payment becomes available only after the group approves your admission.</p>
+              </div>
             ) : (
-              <button
-                onClick={() => joinMutation.mutate()}
-                disabled={joinMutation.isPending}
-                className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 disabled:bg-gray-400"
-              >
-                {joinMutation.isPending ? 'Processing...' : 'Join Group'}
-              </button>
+              <div className="max-w-xs text-right" role="note">
+                <p className="font-semibold text-gray-900 flex items-center justify-end gap-2"><ShieldAlert size={18} /> Membership is by invitation</p>
+                <p className="text-xs text-gray-600 mt-1">A group officer must invite you before admission can be reviewed.</p>
+              </div>
             )}
           </div>
         </div>

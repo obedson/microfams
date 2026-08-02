@@ -81,4 +81,22 @@ describe('group public projection and tenant API', () => {
       'group-1', 'organization-1',
     );
   });
+
+  it('does not expose the legacy direct-join command', async () => {
+    await request(app)
+      .post('/api/groups/group-1/join')
+      .send({ payment_reference: 'untrusted-reference' })
+      .expect(404);
+
+    expect(GroupModel.joinGroup).not.toHaveBeenCalled();
+  });
+
+  it('does not expose the legacy manual payment-confirmation command', async () => {
+    await request(app)
+      .post('/api/groups/group-1/confirm-payment/member-1')
+      .send({ payment_reference: 'untrusted-reference' })
+      .expect(404);
+
+    expect(GroupModel.confirmPayment).not.toHaveBeenCalled();
+  });
 });

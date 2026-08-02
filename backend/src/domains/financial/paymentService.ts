@@ -323,7 +323,7 @@ export class PaymentService {
     try {
       let updated: any;
       if (payload.status === 'reversed') {
-        const { error: reversalError } = await supabase.rpc('reverse_inbound_payment', {
+        const { data: reversal, error: reversalError } = await supabase.rpc('reverse_inbound_payment', {
           p_payment_id: event.payment_id,
           p_provider_event_id: event.provider_event_id ?? event.raw_event_hash,
           p_internal_reference: `REV-${event.payment_id}-${event.id}`,
@@ -331,7 +331,10 @@ export class PaymentService {
           p_reason: 'Provider reported payment reversal',
           p_occurred_at: payload.occurredAt ?? event.received_at,
         });
-        if (reversalError) throw reversalError;
+        if (reversalError || !reversal) throw reversalError ?? new Error('Payment reversal was not recorded');
+        if (event.payments.source_type === 'group_membership') {
+          await GroupModel.applyPaymentReversal(event.payment_id, reversal.id);
+        }
         updated = publicPayment(event.payments);
       } else {
         updated = await this.applyProviderResult(event.payment_id, payload);
@@ -678,7 +681,12 @@ export class PaymentService {
       return;
     }
     if (payment.sourceType === 'group_membership') {
-      await GroupModel.confirmPayment(payment.sourceId);
+      await GroupModel.confirmPayment(
+        payment.sourceId,
+        payment.organizationId,
+        payment.id,
+        payment.id,
+      );
       return;
     }
     if (payment.sourceType === 'contribution') {

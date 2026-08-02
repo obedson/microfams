@@ -14,6 +14,7 @@ BEGIN
  PERFORM appoint_initial_group_office(org,gid,owner,'secretary',owner_member,NULL,'00000000-0000-4000-8000-000000000313','2026-08-02T09:02:00Z');
  PERFORM appoint_initial_group_office(org,gid,owner,'treasurer',owner_member,NULL,'00000000-0000-4000-8000-000000000314','2026-08-02T09:03:00Z');
  PERFORM activate_group_with_constitution(org,gid,owner,1,'00000000-0000-4000-8000-000000000315','2026-08-02T09:04:00Z');
+ PERFORM adopt_initial_group_entry_requirements(org,gid,owner,100000,'NGN','none','{}','00000000-0000-4000-8000-000000000320','2026-08-02T09:04:30Z');
  invitation:=(create_group_membership_invitation(org,gid,owner,invitee,repeat('a',64),'2026-08-09T09:00:00Z','00000000-0000-4000-8000-000000000316','2026-08-02T09:05:00Z')->>'invitation_id')::UUID;
  retry_result:=create_group_membership_invitation(org,gid,owner,invitee,repeat('c',64),'2026-08-09T09:00:00Z','00000000-0000-4000-8000-000000000316','2026-08-02T09:05:00Z');
  IF (retry_result->>'created')::BOOLEAN OR (retry_result->>'invitation_id')::UUID<>invitation THEN RAISE EXCEPTION 'invitation creation retry was not idempotent'; END IF;

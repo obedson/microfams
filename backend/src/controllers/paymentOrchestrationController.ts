@@ -78,6 +78,9 @@ export const requestRefund = asyncHandler(async (req: Request, res: Response) =>
   if (storedPayment.source_type === 'booking') {
     throw createError('Booking refunds must use the booking cancellation/refund workflow', 409);
   }
+  if (storedPayment.source_type === 'group_membership') {
+    throw createError('Membership-fee refunds must use the approved membership exit workflow', 409);
+  }
   if (!req.body.approval_reference) throw createError('Refund approval reference is required', 400);
   const { data: permitted, error: permissionError } = await supabase.rpc('has_financial_permission', {
     p_org: request.tenant!.id,

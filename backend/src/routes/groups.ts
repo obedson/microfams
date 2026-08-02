@@ -1,8 +1,7 @@
 import { Router } from 'express';
-import rateLimit from 'express-rate-limit';
 import { authenticateToken, AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
-import { createGroupSchema, joinGroupSchema } from '../utils/validation.js';
+import { createGroupSchema } from '../utils/validation.js';
 import { GroupModel } from '../models/Group.js';
 import { Response } from 'express';
 import supabase from '../utils/supabase.js';
@@ -10,13 +9,6 @@ import { resolveTenant, TenantRequest } from '../middleware/tenant.js';
 import { requireFeature } from '../middleware/requireFeature.js';
 
 const router = Router();
-
-// Rate limiters
-const joinGroupLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5,
-  message: { error: 'Too many join attempts, please try again later' }
-});
 
 router.get('/search', async (req: TenantRequest, res: Response, next) => {
   try {
@@ -104,58 +96,6 @@ router.post(
   },
 );
 
-router.post(
-  '/:id/join',
-  requireFeature('groups.membership.manage'),
-  joinGroupLimiter,
-  validate(joinGroupSchema),
-  async (req: TenantRequest, res: Response, next) => {
-  try {
-    const { data: user } = await supabase
-      .from('users')
-      .select('nin_verified')
-      .eq('id', req.user.id)
-      .single();
-
-    if (!user?.nin_verified) {
-      return res.status(403).json({ error: 'You must verify your NIN before joining a group.' });
-    }
-
-    const { payment_reference, amount } = req.body;
-    
-    const membership = await GroupModel.joinGroup(
-      req.params.id,
-      req.user.id,
-      req.tenant!.id,
-      payment_reference,
-      amount
-    );
-    res.json(membership);
-  } catch (error: any) {
-    if (error.message?.includes('duplicate key') || error.code === '23505') {
-      return res.status(400).json({ error: 'You are already a member of this group' });
-    }
-    res.status(500).json({ error: error.message || 'Failed to join group' });
-  }
-  },
-);
-
-router.post('/confirm-payment/:memberId', async (req: TenantRequest, res: Response, next) => {
-  try {
-    const { data: member } = await supabase
-      .from('group_members')
-      .select('id, groups!inner(organization_id)')
-      .eq('id', req.params.memberId)
-      .eq('groups.organization_id', req.tenant!.id)
-      .maybeSingle();
-    if (!member) return res.status(404).json({ error: 'Membership not found' });
-    const membership = await GroupModel.confirmPayment(req.params.memberId);
-    res.json(membership);
-  } catch (error) {
-    next(error);
-  }
-});
-
 router.get('/:id/members', async (req: TenantRequest, res: Response, next) => {
   try {
     const members = await GroupModel.getMembers(req.params.id, req.tenant!.id);
@@ -169,7 +109,7 @@ router.get('/:id/membership-status', async (req: TenantRequest, res: Response, n
   try {
     const { data, error } = await supabase
       .from('group_members')
-      .select('id, payment_status, amount_paid, groups!inner(organization_id)')
+      .select('id, status, state_version, payment_status, amount_paid, groups!inner(organization_id)')
       .eq('group_id', req.params.id)
       .eq('user_id', req.user.id)
       .eq('groups.organization_id', req.tenant!.id)

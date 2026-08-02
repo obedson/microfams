@@ -1,0 +1,36 @@
+BEGIN;
+DO $$
+DECLARE org UUID;owner UUID;voter UUID;applicant UUID;gid UUID;owner_member UUID;invite UUID;member UUID;proposal UUID;snapshot UUID;payment payments;activated group_members;reversal payment_reversals;rule UUID;
+BEGIN
+ SELECT organization_id,user_id INTO org,owner FROM organization_memberships WHERE status='active' AND role='owner' ORDER BY created_at LIMIT 1;
+ INSERT INTO users(email,password,name,role) VALUES('gt02b2-'||replace(gen_random_uuid()::text,'-','')||'@example.test','test','Admission Voter','farmer') RETURNING id INTO voter;
+ INSERT INTO users(email,password,name,role) VALUES('gt02b2-'||replace(gen_random_uuid()::text,'-','')||'@example.test','test','Admission Applicant','farmer') RETURNING id INTO applicant;
+ INSERT INTO organization_memberships(organization_id,user_id,role,status,joined_at) VALUES(org,voter,'member','active',NOW()),(org,applicant,'member','active',NOW());
+ INSERT INTO groups(name,category,creator_id,organization_id,max_members) VALUES('GT02B2 Group','cooperative',owner,org,10) RETURNING id INTO gid;
+ INSERT INTO group_members(organization_id,group_id,user_id,role,status,is_active,payment_status,amount_paid) VALUES(org,gid,owner,'owner','active',TRUE,'paid',1000) RETURNING id INTO owner_member;
+ INSERT INTO group_members(organization_id,group_id,user_id,role,status,is_active,payment_status,amount_paid) VALUES(org,gid,voter,'member','active',TRUE,'paid',1000);
+ PERFORM adopt_initial_group_constitution(org,gid,owner,'GT02B2 Constitution',jsonb_build_object('minimum_members',2,'ordinary_quorum_bps',5000,'ordinary_approval_bps',5001,'special_quorum_bps',6667,'special_approval_bps',6667,'vote_change_allowed',false),'00000000-0000-4000-8000-000000000511','2026-08-02T14:00:00Z');
+ PERFORM appoint_initial_group_office(org,gid,owner,'chair',owner_member,NULL,'00000000-0000-4000-8000-000000000512','2026-08-02T14:01:00Z');PERFORM appoint_initial_group_office(org,gid,owner,'secretary',owner_member,NULL,'00000000-0000-4000-8000-000000000513','2026-08-02T14:02:00Z');PERFORM appoint_initial_group_office(org,gid,owner,'treasurer',owner_member,NULL,'00000000-0000-4000-8000-000000000514','2026-08-02T14:03:00Z');PERFORM activate_group_with_constitution(org,gid,owner,1,'00000000-0000-4000-8000-000000000515','2026-08-02T14:04:00Z');
+ rule:=adopt_initial_group_entry_requirements(org,gid,owner,100000,'NGN','none','{}','00000000-0000-4000-8000-000000000516','2026-08-02T14:05:00Z');
+ IF (SELECT capacity_limit FROM group_entry_requirement_versions WHERE id=rule)<>10 THEN RAISE EXCEPTION 'entry capacity was not versioned';END IF;
+ invite:=(create_group_membership_invitation(org,gid,owner,applicant,repeat('d',64),'2026-08-09T14:00:00Z','00000000-0000-4000-8000-000000000517','2026-08-02T14:06:00Z')->>'invitation_id')::UUID;
+ member:=accept_group_membership_invitation(org,gid,applicant,repeat('d',64),'00000000-0000-4000-8000-000000000518','2026-08-02T14:07:00Z');
+ IF (SELECT entry_requirement_version_id FROM group_members WHERE id=member)<>rule THEN RAISE EXCEPTION 'invitation rule snapshot was not preserved';END IF;
+ proposal:=create_group_proposal(org,gid,owner,'membership_action','Admit the applicant after reviewing the submitted eligibility evidence.','[]',jsonb_build_object('action','admit','membership_id',member),ARRAY[applicant],'2026-08-02T15:00:00Z','2026-08-02T16:00:00Z','00000000-0000-4000-8000-000000000519','2026-08-02T14:08:00Z');
+ snapshot:=open_group_proposal(org,gid,owner,proposal,1,'00000000-0000-4000-8000-000000000520','2026-08-02T15:00:00Z');
+ PERFORM cast_group_proposal_vote(org,gid,owner,proposal,'approve','00000000-0000-4000-8000-000000000521','2026-08-02T15:01:00Z');
+ PERFORM close_group_proposal(org,gid,owner,proposal,2,'00000000-0000-4000-8000-000000000522','2026-08-02T16:00:00Z');
+ activated:=execute_group_membership_admission(org,gid,owner,member,proposal,1,'00000000-0000-4000-8000-000000000523','2026-08-02T16:01:00Z');
+ IF activated.status<>'pending_payment' OR activated.is_active OR (SELECT state FROM group_proposals WHERE id=proposal)<>'executed' THEN RAISE EXCEPTION 'approved fee-bearing admission was not executed';END IF;
+ SELECT * INTO payment FROM create_payment_intent(org,'group_membership',member,applicant,'MEM-GT02B2-0001','membership-payment-0001','deterministic','deterministic','NGN',100000,'00000000-0000-4000-8000-000000000524',applicant);
+ PERFORM mark_payment_initialized(payment.id,repeat('a',64),'deterministic-gt02b2','requires_action','2026-08-04T16:00:00Z');SELECT * INTO payment FROM succeed_inbound_payment(payment.id,'deterministic-gt02b2',100000,'NGN');
+ activated:=activate_paid_group_membership(org,gid,applicant,member,payment.id,'00000000-0000-4000-8000-000000000525','2026-08-02T16:02:00Z');
+ IF activated.status<>'active' OR activated.payment_status<>'paid' OR NOT activated.is_active OR NOT EXISTS(SELECT 1 FROM group_membership_payment_allocations WHERE payment_id=payment.id AND state='allocated') THEN RAISE EXCEPTION 'verified membership payment was not allocated and activated';END IF;
+ BEGIN UPDATE group_members SET payment_status='failed' WHERE id=member;RAISE EXCEPTION 'membership payment state was directly mutated';EXCEPTION WHEN OTHERS THEN IF SQLERRM='membership payment state was directly mutated' THEN RAISE;END IF;IF SQLERRM NOT LIKE '%GROUP_MEMBERSHIP_ENGINE_REQUIRED%' THEN RAISE;END IF;END;
+ SELECT * INTO reversal FROM reverse_inbound_payment(payment.id,'gt02b2-reversal','REV-GT02B2-0001',100000,'Provider reversal','2026-08-02T16:03:00Z');activated:=reverse_group_membership_payment_allocation(payment.id,reversal.id,'2026-08-02T16:03:00Z');
+ IF activated.payment_status<>'failed' OR NOT EXISTS(SELECT 1 FROM group_membership_payment_allocations WHERE payment_id=payment.id AND state='reversed' AND reversal_journal_entry_id IS NOT NULL) THEN RAISE EXCEPTION 'membership reversal servicing is incomplete';END IF;
+ IF to_regprocedure('public.confirm_group_payment_transaction(uuid)') IS NOT NULL THEN RAISE EXCEPTION 'legacy manual payment confirmation remains callable';END IF;
+ BEGIN PERFORM activate_paid_group_membership(gen_random_uuid(),gid,applicant,member,payment.id,gen_random_uuid(),'2026-08-02T16:04:00Z');RAISE EXCEPTION 'cross-tenant membership activation succeeded';EXCEPTION WHEN OTHERS THEN IF SQLERRM='cross-tenant membership activation succeeded' THEN RAISE;END IF;IF SQLERRM NOT LIKE '%GROUP_%' THEN RAISE;END IF;END;
+END $$;
+ROLLBACK;
+SELECT 'group admission and entry payment schema tests passed' AS result;
