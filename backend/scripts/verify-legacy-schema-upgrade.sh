@@ -210,6 +210,11 @@ if [[ "$group_constitution_offices_present" == "f" ]]; then
   migrations+=(install_group_constitution_offices.sql)
 fi
 
+group_membership_invitations_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.group_membership_invitations') IS NOT NULL AND to_regclass('public.group_membership_events') IS NOT NULL AND to_regprocedure('public.accept_group_membership_invitation(uuid,uuid,uuid,text,uuid,timestamp with time zone)') IS NOT NULL")"
+if [[ "$group_membership_invitations_present" == "f" ]]; then
+  migrations+=(install_group_membership_invitations.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
