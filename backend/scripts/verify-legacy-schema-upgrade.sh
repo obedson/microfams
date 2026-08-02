@@ -215,6 +215,11 @@ if [[ "$group_membership_invitations_present" == "f" ]]; then
   migrations+=(install_group_membership_invitations.sql)
 fi
 
+group_proposals_voting_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.group_proposals') IS NOT NULL AND to_regclass('public.group_voting_snapshots') IS NOT NULL AND to_regclass('public.group_vote_history') IS NOT NULL AND to_regprocedure('public.close_group_proposal(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)') IS NOT NULL")"
+if [[ "$group_proposals_voting_present" == "f" ]]; then
+  migrations+=(install_group_proposals_voting.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -279,7 +284,12 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
         'public.read_booking_supplier_payout(uuid,uuid,uuid)') IS NULL
       OR to_regprocedure(
         'public.decide_booking_dispute_resolution_authorized(uuid,uuid,uuid,boolean,text,text,uuid)') IS NULL
-    THEN RAISE EXCEPTION 'required trust and booking schema was not installed'; END IF;
+      OR to_regclass('public.group_proposals') IS NULL
+      OR to_regclass('public.group_voting_snapshots') IS NULL
+      OR to_regclass('public.group_vote_history') IS NULL
+      OR to_regprocedure(
+        'public.cancel_group_proposal(uuid,uuid,uuid,uuid,integer,text,uuid,timestamp with time zone)') IS NULL
+    THEN RAISE EXCEPTION 'required trust, booking, and group schema was not installed'; END IF;
   END \$\$;" >/dev/null
 
 echo "legacy schema upgrade dry run passed"
