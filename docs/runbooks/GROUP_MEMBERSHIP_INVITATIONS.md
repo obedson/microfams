@@ -1,0 +1,7 @@
+# Group Membership Invitations Runbook
+
+GT-02B1 invitations are bound to one organization, group, constitution, and intended user. The API returns the cryptographically random token once with `Cache-Control: no-store`; only its SHA-256 digest is persisted. Deliver the token through an approved private channel and never place it in logs, analytics, or durable notification payloads.
+
+Managers may list metadata or revoke a pending invitation with an evidenced reason and idempotency key. Acceptance is single-use, requires the intended authenticated user and active tenant membership, rechecks group lifecycle and capacity, and creates an `applicant` rather than an active member. Admission approval, payment, discipline, exit settlement, and appeals remain later GT-02 increments.
+
+Retries with the same idempotency key return the original invitation identifier but never synthesize a replacement token; `tokenAvailable` is false on replay. If the one-time response was lost, revoke the invitation and issue a new command with a new idempotency key. Expired, revoked, accepted, wrong-user, wrong-group, suspended-group, and capacity failures create no membership. Membership and invitation evidence is immutable; corrections use later commands. Rollback is permitted before live invitations exist. Afterwards preserve evidence and disable new invitations with `groups.membership.manage` while servicing already-issued tokens according to the approved incident decision.

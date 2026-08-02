@@ -1,0 +1,32 @@
+BEGIN;
+DO $$
+DECLARE org UUID; owner UUID; invitee UUID; invitee_two UUID; gid UUID; owner_member UUID; invitation UUID; revoked_invitation UUID; member UUID; replay UUID; retry_result JSONB;
+BEGIN
+ SELECT organization_id,user_id INTO org,owner FROM organization_memberships WHERE status='active' AND role='owner' ORDER BY created_at LIMIT 1;
+ INSERT INTO users(email,password,name,role) VALUES('gt02b-'||replace(gen_random_uuid()::text,'-','')||'@example.test','test','GT02B Invitee','farmer') RETURNING id INTO invitee;
+ INSERT INTO users(email,password,name,role) VALUES('gt02b-'||replace(gen_random_uuid()::text,'-','')||'@example.test','test','GT02B Revoked Invitee','farmer') RETURNING id INTO invitee_two;
+ INSERT INTO organization_memberships(organization_id,user_id,role,status,joined_at) VALUES(org,invitee,'member','active',NOW());
+ INSERT INTO organization_memberships(organization_id,user_id,role,status,joined_at) VALUES(org,invitee_two,'member','active',NOW());
+ INSERT INTO groups(name,category,creator_id,organization_id,max_members) VALUES('GT02B Group','cooperative',owner,org,10) RETURNING id INTO gid;
+ INSERT INTO group_members(organization_id,group_id,user_id,role,status,is_active,payment_status,amount_paid) VALUES(org,gid,owner,'owner','active',TRUE,'paid',1000) RETURNING id INTO owner_member;
+ PERFORM adopt_initial_group_constitution(org,gid,owner,'GT02B Constitution',jsonb_build_object('minimum_members',1,'ordinary_quorum_bps',5000,'ordinary_approval_bps',5001,'special_quorum_bps',6667,'special_approval_bps',6667,'vote_change_allowed',false),'00000000-0000-4000-8000-000000000311','2026-08-02T09:00:00Z');
+ PERFORM appoint_initial_group_office(org,gid,owner,'chair',owner_member,NULL,'00000000-0000-4000-8000-000000000312','2026-08-02T09:01:00Z');
+ PERFORM appoint_initial_group_office(org,gid,owner,'secretary',owner_member,NULL,'00000000-0000-4000-8000-000000000313','2026-08-02T09:02:00Z');
+ PERFORM appoint_initial_group_office(org,gid,owner,'treasurer',owner_member,NULL,'00000000-0000-4000-8000-000000000314','2026-08-02T09:03:00Z');
+ PERFORM activate_group_with_constitution(org,gid,owner,1,'00000000-0000-4000-8000-000000000315','2026-08-02T09:04:00Z');
+ invitation:=(create_group_membership_invitation(org,gid,owner,invitee,repeat('a',64),'2026-08-09T09:00:00Z','00000000-0000-4000-8000-000000000316','2026-08-02T09:05:00Z')->>'invitation_id')::UUID;
+ retry_result:=create_group_membership_invitation(org,gid,owner,invitee,repeat('c',64),'2026-08-09T09:00:00Z','00000000-0000-4000-8000-000000000316','2026-08-02T09:05:00Z');
+ IF (retry_result->>'created')::BOOLEAN OR (retry_result->>'invitation_id')::UUID<>invitation THEN RAISE EXCEPTION 'invitation creation retry was not idempotent'; END IF;
+ IF EXISTS(SELECT 1 FROM group_membership_invitations WHERE id=invitation AND token_digest<>repeat('a',64)) THEN RAISE EXCEPTION 'invitation digest mismatch'; END IF;
+ member:=accept_group_membership_invitation(org,gid,invitee,repeat('a',64),'00000000-0000-4000-8000-000000000317','2026-08-02T09:06:00Z');
+ replay:=accept_group_membership_invitation(org,gid,invitee,repeat('a',64),'00000000-0000-4000-8000-000000000317','2026-08-02T09:06:00Z');
+ IF member<>replay OR NOT EXISTS(SELECT 1 FROM group_members WHERE id=member AND status='applicant' AND NOT is_active) THEN RAISE EXCEPTION 'invitation acceptance evidence incomplete'; END IF;
+ BEGIN PERFORM accept_group_membership_invitation(org,gid,invitee,repeat('a',64),gen_random_uuid(),'2026-08-02T09:07:00Z');RAISE EXCEPTION 'single-use invitation reused';EXCEPTION WHEN OTHERS THEN IF SQLERRM='single-use invitation reused' THEN RAISE; END IF;IF SQLERRM NOT LIKE '%GROUP_INVITATION_UNAVAILABLE%' THEN RAISE; END IF;END;
+ BEGIN UPDATE group_membership_events SET reason_code='TAMPERED' WHERE membership_id=member;RAISE EXCEPTION 'membership evidence mutated';EXCEPTION WHEN OTHERS THEN IF SQLERRM='membership evidence mutated' THEN RAISE; END IF;IF SQLERRM NOT LIKE '%GROUP_MEMBERSHIP_ENGINE_REQUIRED%' THEN RAISE; END IF;END;
+ revoked_invitation:=(create_group_membership_invitation(org,gid,owner,invitee_two,repeat('b',64),'2026-08-09T09:00:00Z','00000000-0000-4000-8000-000000000318','2026-08-02T09:08:00Z')->>'invitation_id')::UUID;
+ PERFORM revoke_group_membership_invitation(org,gid,owner,revoked_invitation,'INVITATION_CANCELLED','00000000-0000-4000-8000-000000000319','2026-08-02T09:09:00Z');
+ IF NOT EXISTS(SELECT 1 FROM group_membership_invitations WHERE id=revoked_invitation AND state='revoked' AND revoked_at IS NOT NULL) OR NOT EXISTS(SELECT 1 FROM group_membership_events WHERE invitation_id=revoked_invitation AND event_type='INVITATION_REVOKED') THEN RAISE EXCEPTION 'invitation revocation evidence incomplete'; END IF;
+ BEGIN PERFORM accept_group_membership_invitation(org,gid,invitee_two,repeat('b',64),gen_random_uuid(),'2026-08-02T09:10:00Z');RAISE EXCEPTION 'revoked invitation accepted';EXCEPTION WHEN OTHERS THEN IF SQLERRM='revoked invitation accepted' THEN RAISE; END IF;IF SQLERRM NOT LIKE '%GROUP_INVITATION_UNAVAILABLE%' THEN RAISE; END IF;END;
+END $$;
+ROLLBACK;
+SELECT 'group membership invitation schema tests passed' AS result;
