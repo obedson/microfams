@@ -36,13 +36,13 @@ BEGIN
   PERFORM appoint_initial_group_office(org,gid,owner,'treasurer',owner_member,NULL,'00000000-0000-4000-8000-000000000414','2026-08-02T09:03:00Z');
   PERFORM activate_group_with_constitution(org,gid,owner,1,'00000000-0000-4000-8000-000000000415','2026-08-02T09:04:00Z');
 
-  proposal:=create_group_proposal(org,gid,owner,'membership_action','Suspend a member while documented misconduct is reviewed.','["evidence://case/1"]','{"action":"suspend"}',ARRAY[conflicted],'2026-08-02T10:00:00Z','2026-08-02T11:00:00Z','00000000-0000-4000-8000-000000000416','2026-08-02T09:05:00Z');
-  IF proposal<>create_group_proposal(org,gid,owner,'membership_action','Suspend a member while documented misconduct is reviewed.','["evidence://case/1"]','{"action":"suspend"}',ARRAY[conflicted],'2026-08-02T10:00:00Z','2026-08-02T11:00:00Z','00000000-0000-4000-8000-000000000416','2026-08-02T09:05:00Z') THEN RAISE EXCEPTION 'proposal creation was not idempotent'; END IF;
+  proposal:=create_group_proposal(org,gid,owner,'constitution_amendment','Amend the constitution while excluding a directly conflicted member.','["evidence://case/1"]','{"action":"amend_constitution"}',ARRAY[conflicted],'2026-08-02T10:00:00Z','2026-08-02T11:00:00Z','00000000-0000-4000-8000-000000000416','2026-08-02T09:05:00Z');
+  IF proposal<>create_group_proposal(org,gid,owner,'constitution_amendment','Amend the constitution while excluding a directly conflicted member.','["evidence://case/1"]','{"action":"amend_constitution"}',ARRAY[conflicted],'2026-08-02T10:00:00Z','2026-08-02T11:00:00Z','00000000-0000-4000-8000-000000000416','2026-08-02T09:05:00Z') THEN RAISE EXCEPTION 'proposal creation was not idempotent'; END IF;
   snapshot:=open_group_proposal(org,gid,owner,proposal,1,'00000000-0000-4000-8000-000000000417','2026-08-02T10:00:00Z');
   SELECT * INTO snap FROM group_voting_snapshots WHERE id=snapshot;
-  IF snap.eligible_count<>2 OR snap.excluded_count<>1 OR snap.rule_kind<>'discipline'
+  IF snap.eligible_count<>2 OR snap.excluded_count<>1 OR snap.rule_kind<>'special'
     OR snap.quorum_count<>2 OR snap.approval_count<>2
-  THEN RAISE EXCEPTION 'immutable discipline snapshot thresholds are wrong'; END IF;
+  THEN RAISE EXCEPTION 'immutable special snapshot thresholds are wrong'; END IF;
   IF NOT EXISTS(SELECT 1 FROM group_voter_snapshot_members WHERE snapshot_id=snapshot AND user_id=conflicted AND NOT eligible AND exclusion_reason='DIRECT_CONFLICT') THEN RAISE EXCEPTION 'conflict exclusion was not evidenced'; END IF;
 
   BEGIN

@@ -172,26 +172,6 @@ export class ContributionModel {
     return data;
   }
 
-  // Update member status
-  static async updateMemberStatus(memberId: string, status: string, organizationId?: string) {
-    let ownershipQuery = supabase
-      .from('group_members')
-      .select('id, groups!inner(organization_id)')
-      .eq('id', memberId);
-    if (organizationId) ownershipQuery = ownershipQuery.eq('groups.organization_id', organizationId);
-    const { data: ownedMember } = await ownershipQuery.maybeSingle();
-    if (!ownedMember) throw new Error('Member not found in the active organization');
-    const { data, error } = await supabase
-      .from('group_members')
-      .update({ member_status: status })
-      .eq('id', memberId)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
-  }
-
   // Mark overdue contributions
   static async markOverdueContributions() {
     const now = new Date().toISOString();

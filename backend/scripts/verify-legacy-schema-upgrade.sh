@@ -225,6 +225,11 @@ if [[ "$group_admission_payments_present" == "f" ]]; then
   migrations+=(install_group_admission_payments.sql)
 fi
 
+group_member_discipline_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.group_member_discipline_cases') IS NOT NULL AND to_regclass('public.group_member_discipline_appeals') IS NOT NULL AND to_regprocedure('public.execute_group_member_discipline(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)') IS NOT NULL")"
+if [[ "$group_member_discipline_present" == "f" ]]; then
+  migrations+=(install_group_member_discipline_appeals.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -298,6 +303,10 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
       OR to_regclass('public.group_membership_payment_allocations') IS NULL
       OR to_regprocedure(
         'public.activate_paid_group_membership(uuid,uuid,uuid,uuid,uuid,uuid,timestamp with time zone)') IS NULL
+      OR to_regclass('public.group_member_discipline_cases') IS NULL
+      OR to_regclass('public.group_member_discipline_appeals') IS NULL
+      OR to_regprocedure(
+        'public.execute_group_member_discipline(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)') IS NULL
     THEN RAISE EXCEPTION 'required trust, booking, and group schema was not installed'; END IF;
   END \$\$;" >/dev/null
 

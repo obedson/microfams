@@ -138,6 +138,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add GT-02B1 tenant-bound hashed, expiring, single-use membership invitations and applicant-state evidence.
   - [x] Add GT-03A tenant-bound proposals, immutable eligible-voter and conflict snapshots, append-only ballots, deterministic thresholds, cancellation, and evidenced decisions.
   - [x] Add GT-02B2 versioned entry requirements, proposal-backed applicant admission, verified payment-gated activation, fee allocation journals, and reversal-safe membership servicing.
+  - [x] Add GT-02C noticed, proposal-backed suspension and expulsion, independent appeal servicing, immutable evidence, and remove legacy direct discipline paths.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education

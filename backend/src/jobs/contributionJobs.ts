@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { ContributionModel } from '../models/Contribution.js';
 import supabase from '../utils/supabase.js';
-import { sendPaymentReminder, sendOverdueNotice, sendSuspensionNotice, sendExpulsionNotice } from '../services/notificationService.js';
+import { sendPaymentReminder, sendOverdueNotice } from '../services/notificationService.js';
 
 // Run on 1st of each month at 00:00
 export const createMonthlyCycles = cron.schedule('0 0 1 * *', async () => {
@@ -103,98 +103,6 @@ export const checkOverduePayments = cron.schedule('0 9 * * *', async () => {
   scheduled: false
 });
 
-// Run daily at 10:00
-export const autoSuspendMembers = cron.schedule('0 10 * * *', async () => {
-  console.log('Auto-suspending members...');
-  
-  try {
-    const { data: members, error: fetchError } = await supabase
-      .from('group_members')
-      .select(`
-        *,
-        group:groups(auto_suspend_after, organization_id),
-        user:users(email, name)
-      `)
-      .eq('member_status', 'active');
-
-    if (fetchError) {
-      console.error('Error fetching members:', fetchError);
-      return;
-    }
-
-    if (!members || members.length === 0) {
-      console.log('No active members found');
-      return;
-    }
-
-    let suspendedCount = 0;
-
-    for (const member of members) {
-      try {
-        if (member.missed_payments_count >= member.group.auto_suspend_after) {
-          await ContributionModel.updateMemberStatus(member.id, 'suspended', member.group.organization_id);
-          await sendSuspensionNotice(member.user_id);
-          suspendedCount++;
-        }
-      } catch (itemError) {
-        console.error(`Error suspending member ${member.id}:`, itemError);
-      }
-    }
-    
-    console.log(`Suspended ${suspendedCount} members`);
-  } catch (error) {
-    console.error('Error auto-suspending members:', error);
-  }
-}, {
-  scheduled: false
-});
-
-// Run daily at 11:00
-export const autoExpelMembers = cron.schedule('0 11 * * *', async () => {
-  console.log('Auto-expelling members...');
-  
-  try {
-    const { data: members, error: fetchError } = await supabase
-      .from('group_members')
-      .select(`
-        *,
-        group:groups(auto_expel_after, organization_id),
-        user:users(email, name)
-      `)
-      .in('member_status', ['active', 'suspended']);
-
-    if (fetchError) {
-      console.error('Error fetching members:', fetchError);
-      return;
-    }
-
-    if (!members || members.length === 0) {
-      console.log('No members to check for expulsion');
-      return;
-    }
-
-    let expelledCount = 0;
-
-    for (const member of members) {
-      try {
-        if (member.missed_payments_count >= member.group.auto_expel_after) {
-          await ContributionModel.updateMemberStatus(member.id, 'expelled', member.group.organization_id);
-          await sendExpulsionNotice(member.user_id);
-          expelledCount++;
-        }
-      } catch (itemError) {
-        console.error(`Error expelling member ${member.id}:`, itemError);
-      }
-    }
-    
-    console.log(`Expelled ${expelledCount} members`);
-  } catch (error) {
-    console.error('Error auto-expelling members:', error);
-  }
-}, {
-  scheduled: false
-});
-
 // Run daily at 08:00 - Send reminders 3 days before deadline
 export const sendPaymentReminders = cron.schedule('0 8 * * *', async () => {
   console.log('Sending payment reminders...');
@@ -233,8 +141,6 @@ export const startCronJobs = () => {
   try {
     createMonthlyCycles.start();
     checkOverduePayments.start();
-    autoSuspendMembers.start();
-    autoExpelMembers.start();
     sendPaymentReminders.start();
     console.log('Contribution cron jobs started');
   } catch (error) {
