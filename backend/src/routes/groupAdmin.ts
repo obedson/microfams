@@ -7,6 +7,7 @@ import { requireFeature } from '../middleware/requireFeature.js';
 import { groupGovernanceController } from '../controllers/groupGovernanceController.js';
 import { groupInvitationController } from '../controllers/groupInvitationController.js';
 import { groupProposalController } from '../controllers/groupProposalController.js';
+import { groupAdmissionController } from '../controllers/groupAdmissionController.js';
 
 const router = Router();
 const invitationCommandLimiter = rateLimit({
@@ -35,6 +36,10 @@ router.post('/:id/proposals/:proposalId/open', proposalCommandLimiter, requireFe
 router.post('/:id/proposals/:proposalId/votes', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.vote);
 router.post('/:id/proposals/:proposalId/close', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.close);
 router.post('/:id/proposals/:proposalId/cancel', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.cancel);
+router.get('/:id/entry-requirements/current', requireFeature('groups.membership.manage'), groupAdmissionController.getCurrentRequirements);
+router.post('/:id/entry-requirements/initial', proposalCommandLimiter, requireFeature('groups.membership.manage'), groupAdmissionController.adoptInitial);
+router.get('/:id/members/:memberId/admission', requireFeature('groups.membership.manage'), groupAdmissionController.getStatus);
+router.post('/:id/members/:memberId/admission/execute', proposalCommandLimiter, requireFeature('groups.membership.manage'), groupAdmissionController.execute);
 router.get(
   '/:id/governance-setup',
   requireFeature('groups.governance.manage'),

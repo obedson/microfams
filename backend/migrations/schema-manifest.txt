@@ -81,3 +81,4 @@ install_group_lifecycle_foundation.sql
 install_group_constitution_offices.sql
 install_group_membership_invitations.sql
 install_group_proposals_voting.sql
+install_group_admission_payments.sql

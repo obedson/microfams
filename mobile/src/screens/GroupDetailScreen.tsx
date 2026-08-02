@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { RouteProp, useRoute } from '@react-navigation/native';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import { API_URL } from '../api/client';
-import { useAuthStore } from '../store/authStore';
 import { RootStackParamList } from '../navigation/types';
 
 interface Group {
@@ -17,15 +16,10 @@ interface Group {
   entry_fee: number;
 }
 
-interface ApiError {
-  error?: string;
-}
-
 export default function GroupDetailScreen() {
   const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(true);
   const route = useRoute<RouteProp<RootStackParamList, 'GroupDetail'>>();
-  const { token } = useAuthStore();
   const { id } = route.params;
 
   useEffect(() => {
@@ -43,21 +37,10 @@ export default function GroupDetailScreen() {
     }
   };
 
-  const handleJoin = async () => {
-    try {
-      const { data } = await axios.post(
-        `${API_URL}/groups/${id}/join`,
-        {},
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      Alert.alert('Success', 'Payment initiated. Complete payment to join.');
-    } catch (error) {
-      const message = error instanceof AxiosError
-        ? (error.response?.data as ApiError | undefined)?.error
-        : undefined;
-      Alert.alert('Error', message || 'Failed to join group');
-    }
-  };
+  const explainAdmission = () => Alert.alert(
+    'Membership is by invitation',
+    'A group officer must invite you. Admission is reviewed before any entry payment becomes due.',
+  );
 
   if (loading) return <View style={styles.center}><Text>Loading...</Text></View>;
   if (!group) return <View style={styles.center}><Text>Group not found</Text></View>;
@@ -90,8 +73,8 @@ export default function GroupDetailScreen() {
         </View>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleJoin}>
-        <Text style={styles.buttonText}>Join Group</Text>
+      <TouchableOpacity style={styles.button} onPress={explainAdmission}>
+        <Text style={styles.buttonText}>Membership by Invitation</Text>
       </TouchableOpacity>
     </ScrollView>
   );

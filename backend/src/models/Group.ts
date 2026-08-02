@@ -96,10 +96,30 @@ export class GroupModel {
     return data;
   }
 
-  static async confirmPayment(memberId: string) {
+  static async confirmPayment(memberId: string, organizationId: string, paymentId: string, correlationId: string) {
+    const { data: member, error: memberError } = await supabase.from('group_members')
+      .select('group_id,user_id').eq('id', memberId)
+      .eq('organization_id', organizationId).maybeSingle();
+    if (memberError || !member) throw memberError ?? new Error('Group membership not found');
     const { data, error } = await supabase
-      .rpc('confirm_group_payment_transaction', { p_member_id: memberId });
+      .rpc('activate_paid_group_membership', {
+        p_organization_id: organizationId,
+        p_group_id: member.group_id,
+        p_actor_id: member.user_id,
+        p_membership_id: memberId,
+        p_payment_id: paymentId,
+        p_correlation_id: correlationId,
+      });
     
+    if (error) throw error;
+    return data;
+  }
+
+  static async applyPaymentReversal(paymentId: string, reversalId: string) {
+    const { data, error } = await supabase.rpc('reverse_group_membership_payment_allocation', {
+      p_payment_id: paymentId,
+      p_reversal_id: reversalId,
+    });
     if (error) throw error;
     return data;
   }

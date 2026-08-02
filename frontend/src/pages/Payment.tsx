@@ -22,7 +22,9 @@ export default function Payment() {
 
   const type = searchParams.get('type');
   const id = searchParams.get('id');
-  const amount = searchParams.get('amount');
+  const groupId = searchParams.get('groupId');
+  const providerReference = searchParams.get('reference') || searchParams.get('trxref');
+  const [groupPaymentKey] = useState(() => `group-payment-${Date.now()}-${Math.random().toString(36).slice(2)}`);
 
   useEffect(() => {
     if (!user) {
@@ -104,34 +106,26 @@ export default function Payment() {
   const initializeGroupPayment = async () => {
     try {
       setLoading(true);
-      
-      if (!window.PaystackPop) {
-        const script = document.createElement('script');
-        script.src = 'https://js.paystack.co/v1/inline.js';
-        script.async = true;
-        document.body.appendChild(script);
-        await new Promise((resolve) => { script.onload = resolve; });
-      }
+
+      if (!id || !groupId) throw new Error('Membership payment link is incomplete');
 
       const { data } = await apiClient.post('/payments/initialize-group', {
-        member_id: id,
-        amount: Number(amount)
+        group_id: groupId,
+        member_id: id
+      }, {
+        headers: { 'Idempotency-Key': groupPaymentKey }
       });
-
-      const handler = window.PaystackPop.setup({
-        key: process.env.REACT_APP_PAYSTACK_PUBLIC_KEY!,
-        email: user?.email,
-        amount: Number(amount) * 100,
-        ref: data.reference,
-        callback: (response: any) => {
-          verifyGroupJoinPayment(response.reference);
-        },
-        onClose: () => {
-          setLoading(false);
-        }
-      });
-
-      handler.openIframe();
+      const payment = data.data || data;
+      if (payment.authorizationUrl) {
+        window.location.assign(payment.authorizationUrl);
+        return;
+      }
+      if (payment.state === 'succeeded') {
+        await verifyGroupJoinPayment(payment.internalReference);
+        return;
+      }
+      alert('Payment initialization is processing. Retry from this page if no checkout opens.');
+      setLoading(false);
     } catch (error: any) {
       console.error('Payment init error:', error);
       alert(error.response?.data?.error || 'Failed to initialize payment');
@@ -141,14 +135,21 @@ export default function Payment() {
 
   const verifyGroupJoinPayment = async (reference: string) => {
     try {
-      await apiClient.post(`/groups/confirm-payment/${id}`);
-      navigate('/groups');
+      const { data } = await apiClient.get(`/payments/verify/${encodeURIComponent(reference)}`);
+      if (!data.success) throw new Error('Payment has not completed');
+      navigate(`/groups/${groupId}`);
     } catch (error) {
       console.error('Payment verification error:', error);
       alert('Payment verification failed. Please contact support.');
-      navigate('/groups');
+      navigate(`/groups/${groupId || ''}`);
     }
   };
+
+  useEffect(() => {
+    if (!bookingId && type === 'group' && providerReference && id && groupId) {
+      verifyGroupJoinPayment(providerReference);
+    }
+  }, [bookingId, groupId, id, providerReference, type]);
 
   if (loading) {
     return (
@@ -159,16 +160,16 @@ export default function Payment() {
     );
   }
 
-  // Auto-redirect for group join payments (legacy behavior)
-  if (!bookingId && type === 'contribution') {
+  if (!bookingId && type === 'group') {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Complete Contribution</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Complete Membership Payment</h2>
+        <p className="text-gray-600 mb-6">The approved fee and currency are loaded securely from your admission record.</p>
         <button 
           onClick={initializeGroupPayment}
           className="bg-primary-600 text-white px-8 py-3 rounded-lg font-bold hover:bg-primary-700 transition-colors"
         >
-          Pay ₦{Number(amount).toLocaleString()} Now
+          Continue to Secure Checkout
         </button>
       </div>
     );
