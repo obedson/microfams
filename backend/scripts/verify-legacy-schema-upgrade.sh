@@ -230,6 +230,11 @@ if [[ "$group_member_discipline_present" == "f" ]]; then
   migrations+=(install_group_member_discipline_appeals.sql)
 fi
 
+group_office_lifecycle_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regprocedure('public.execute_group_office_proposal(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)') IS NOT NULL AND to_regprocedure('public.delegate_group_office(uuid,uuid,uuid,text,uuid,uuid,timestamp with time zone,uuid,timestamp with time zone)') IS NOT NULL")"
+if [[ "$group_office_lifecycle_present" == "f" ]]; then
+  migrations+=(install_group_office_lifecycle.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \

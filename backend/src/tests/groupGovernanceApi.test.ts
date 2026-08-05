@@ -8,6 +8,11 @@ jest.mock('../services/groupGovernanceService.js', () => ({
     appointInitialOffice: jest.fn(),
     activate: jest.fn(),
     getSetup: jest.fn(),
+    executeOfficeProposal: jest.fn(),
+    delegateOffice: jest.fn(),
+    endDelegation: jest.fn(),
+    serviceExpiredOffices: jest.fn(),
+    getOfficeLifecycle: jest.fn(),
   },
 }));
 
@@ -22,6 +27,7 @@ const organizationId = '00000000-0000-4000-8000-000000000201';
 const groupId = '00000000-0000-4000-8000-000000000202';
 const actorId = '00000000-0000-4000-8000-000000000203';
 const memberId = '00000000-0000-4000-8000-000000000204';
+const proposalId = '00000000-0000-4000-8000-000000000205';
 
 const request = (overrides: Record<string, unknown> = {}) => ({
   tenant: { id: organizationId },
@@ -94,5 +100,48 @@ describe('group governance setup API', () => {
     await groupGovernanceController.getSetup(request() as any, res);
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith({ error: 'Group not found' });
+  });
+
+  it('executes an approved office proposal in resolved tenant context', async () => {
+    (groupGovernanceService.executeOfficeProposal as jest.Mock)
+      .mockResolvedValue({ id: proposalId } as never);
+    const res = response();
+    await groupGovernanceController.executeOfficeProposal(request({
+      params: { id: groupId, proposalId }, body: { expectedVersion: 3 },
+    }) as any, res);
+    expect(groupGovernanceService.executeOfficeProposal).toHaveBeenCalledWith(
+      { organizationId, groupId, actorId }, proposalId,
+      { expectedVersion: 3, idempotencyKey: 'governance-command-001' },
+    );
+  });
+
+  it('creates a bounded temporary delegation without trusting actor input', async () => {
+    (groupGovernanceService.delegateOffice as jest.Mock)
+      .mockResolvedValue({ delegationId: proposalId } as never);
+    const res = response();
+    await groupGovernanceController.delegateOffice(request({
+      params: { id: groupId, officeKey: 'chair' },
+      body: {
+        assignmentId: proposalId, delegateMemberId: memberId,
+        delegationEndsAt: '2099-09-01T00:00:00Z', actorId: 'attacker',
+      },
+    }) as any, res);
+    expect(groupGovernanceService.delegateOffice).toHaveBeenCalledWith(
+      { organizationId, groupId, actorId },
+      expect.objectContaining({
+        officeKey: 'chair', assignmentId: proposalId, delegateMemberId: memberId,
+      }),
+    );
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('maps an active-office separation conflict to 409', async () => {
+    (groupGovernanceService.executeOfficeProposal as jest.Mock)
+      .mockRejectedValue(new Error('GROUP_OFFICE_SEPARATION_CONFLICT') as never);
+    const res = response();
+    await groupGovernanceController.executeOfficeProposal(request({
+      params: { id: groupId, proposalId }, body: { expectedVersion: 3 },
+    }) as any, res);
+    expect(res.status).toHaveBeenCalledWith(409);
   });
 });

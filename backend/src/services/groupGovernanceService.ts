@@ -76,6 +76,84 @@ export class GroupGovernanceService {
     return data;
   }
 
+  async executeOfficeProposal(
+    context: GroupGovernanceContext,
+    proposalId: string,
+    input: { expectedVersion: number; idempotencyKey: string },
+  ) {
+    const { data, error } = await supabase.rpc('execute_group_office_proposal', {
+      p_organization_id: context.organizationId,
+      p_group_id: context.groupId,
+      p_actor_id: context.actorId,
+      p_proposal_id: proposalId,
+      p_expected_version: input.expectedVersion,
+      p_correlation_id: correlationId(
+        context, `office-proposal:${proposalId}`, input.idempotencyKey,
+      ),
+    });
+    if (error) throw error;
+    return data;
+  }
+
+  async delegateOffice(
+    context: GroupGovernanceContext,
+    input: {
+      officeKey: string; assignmentId: string; delegateMemberId: string;
+      delegationEndsAt: string; idempotencyKey: string;
+    },
+  ) {
+    const { data, error } = await supabase.rpc('delegate_group_office', {
+      p_organization_id: context.organizationId,
+      p_group_id: context.groupId,
+      p_actor_id: context.actorId,
+      p_office_key: input.officeKey,
+      p_assignment_id: input.assignmentId,
+      p_delegate_member_id: input.delegateMemberId,
+      p_delegation_ends_at: input.delegationEndsAt,
+      p_correlation_id: correlationId(
+        context, `office:${input.officeKey}:delegate`, input.idempotencyKey,
+      ),
+    });
+    if (error) throw error;
+    return { delegationId: data };
+  }
+
+  async endDelegation(
+    context: GroupGovernanceContext,
+    input: {
+      officeKey: string; delegationId: string; reasonCode: string;
+      idempotencyKey: string;
+    },
+  ) {
+    const { data, error } = await supabase.rpc('end_group_office_delegation', {
+      p_organization_id: context.organizationId,
+      p_group_id: context.groupId,
+      p_actor_id: context.actorId,
+      p_office_key: input.officeKey,
+      p_delegation_id: input.delegationId,
+      p_reason_code: input.reasonCode,
+      p_correlation_id: correlationId(
+        context, `office:${input.officeKey}:end-delegation`, input.idempotencyKey,
+      ),
+    });
+    if (error) throw error;
+    return { delegationId: data };
+  }
+
+  async serviceExpiredOffices(
+    context: GroupGovernanceContext,
+    input: { idempotencyKey: string },
+  ) {
+    const { data, error } = await supabase.rpc('service_expired_group_offices', {
+      p_organization_id: context.organizationId,
+      p_group_id: context.groupId,
+      p_actor_id: context.actorId,
+      p_correlation_id: correlationId(context, 'office:service-expired', input.idempotencyKey),
+    });
+    if (error) throw error;
+    return data;
+  }
+
   async getSetup(context: GroupGovernanceContext) {
     const [groupResult, tenantMembershipResult, groupMembershipResult] = await Promise.all([
       supabase.from('groups')
@@ -131,6 +209,38 @@ export class GroupGovernanceService {
       group,
       constitution: constitutionResult.data,
       activeOffices: officesResult.data ?? [],
+    };
+  }
+
+  async getOfficeLifecycle(context: GroupGovernanceContext) {
+    const setup = await this.getSetup(context);
+    if (!setup) return null;
+    const [definitionsResult, assignmentsResult] = await Promise.all([
+      supabase.from('group_office_definitions').select(
+        'id,constitution_id,office_key,display_name,required_for_activation,permissions,term_required,max_term_days,delegation_allowed,max_delegation_days,incompatible_office_keys',
+      ).eq('organization_id', context.organizationId).eq('group_id', context.groupId),
+      supabase.from('group_office_assignments').select(
+        'id,constitution_id,office_key,member_id,user_id,state,term_starts_at,term_ends_at,delegated_from_assignment_id,appointed_by,appointment_basis,ended_at,end_reason_code,created_at',
+      ).eq('organization_id', context.organizationId).eq('group_id', context.groupId)
+        .order('created_at', { ascending: false }).limit(500),
+    ]);
+    const error = definitionsResult.error ?? assignmentsResult.error;
+    if (error) throw error;
+    const now = Date.now();
+    const assignments = assignmentsResult.data ?? [];
+    const current = assignments.filter((assignment: any) => (
+      ['active', 'delegated'].includes(assignment.state)
+      && (!assignment.term_ends_at || new Date(assignment.term_ends_at).getTime() > now)
+    ));
+    const definitions = definitionsResult.data ?? [];
+    return {
+      ...setup,
+      definitions,
+      current,
+      vacancies: definitions.filter((definition: any) => (
+        !current.some((assignment: any) => assignment.office_key === definition.office_key)
+      )).map((definition: any) => definition.office_key),
+      history: assignments,
     };
   }
 }

@@ -37,6 +37,27 @@ router.post('/:id/proposals/:proposalId/open', proposalCommandLimiter, requireFe
 router.post('/:id/proposals/:proposalId/votes', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.vote);
 router.post('/:id/proposals/:proposalId/close', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.close);
 router.post('/:id/proposals/:proposalId/cancel', proposalCommandLimiter, requireFeature('groups.governance.manage'), groupProposalController.cancel);
+router.post(
+  '/:id/proposals/:proposalId/office-execution', proposalCommandLimiter,
+  requireFeature('groups.governance.manage'), groupGovernanceController.executeOfficeProposal,
+);
+router.get(
+  '/:id/offices/lifecycle',
+  requireFeature('groups.governance.manage'),
+  groupGovernanceController.getOfficeLifecycle,
+);
+router.post(
+  '/:id/offices/service-expired', proposalCommandLimiter,
+  requireFeature('groups.governance.manage'), groupGovernanceController.serviceExpired,
+);
+router.post(
+  '/:id/offices/:officeKey/delegations', proposalCommandLimiter,
+  requireFeature('groups.governance.manage'), groupGovernanceController.delegateOffice,
+);
+router.post(
+  '/:id/offices/:officeKey/delegations/:assignmentId/end', proposalCommandLimiter,
+  requireFeature('groups.governance.manage'), groupGovernanceController.endDelegation,
+);
 router.get('/:id/entry-requirements/current', requireFeature('groups.membership.manage'), groupAdmissionController.getCurrentRequirements);
 router.post('/:id/entry-requirements/initial', proposalCommandLimiter, requireFeature('groups.membership.manage'), groupAdmissionController.adoptInitial);
 router.get('/:id/members/:memberId/admission', requireFeature('groups.membership.manage'), groupAdmissionController.getStatus);

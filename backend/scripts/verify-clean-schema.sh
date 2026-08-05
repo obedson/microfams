@@ -89,6 +89,16 @@ BEGIN
   ) IS NULL THEN
     RAISE EXCEPTION 'booking notification outbox functions are missing';
   END IF;
+  IF to_regprocedure(
+    'public.execute_group_office_proposal(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.delegate_group_office(uuid,uuid,uuid,text,uuid,uuid,timestamp with time zone,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.end_group_office_delegation(uuid,uuid,uuid,text,uuid,text,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.service_expired_group_offices(uuid,uuid,uuid,uuid,timestamp with time zone)'
+  ) IS NULL THEN RAISE EXCEPTION 'group office lifecycle functions are missing';
+  END IF;
 END $$;
 
 DO $$
@@ -358,6 +368,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-group-member-discipline-appeals.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-group-office-lifecycle.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"
