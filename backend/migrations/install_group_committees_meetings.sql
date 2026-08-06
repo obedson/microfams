@@ -197,6 +197,7 @@ DECLARE
   v_committee_id UUID;
   v_group groups;
   v_previous_setting TEXT;
+  v_previous_governance TEXT;
 BEGIN
   SELECT resource_id INTO v_committee_id FROM group_governance_events
   WHERE organization_id = p_organization_id AND correlation_id = p_correlation_id
@@ -230,7 +231,9 @@ BEGIN
   ) THEN RAISE EXCEPTION 'GROUP_COMMITTEE_PERMISSION_NOT_DELEGABLE'; END IF;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
+  v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
   PERFORM set_config('microfams.group_committee_engine', 'on', TRUE);
+  PERFORM set_config('microfams.group_governance_engine', 'on', TRUE);
   INSERT INTO group_committees(
     organization_id, group_id, constitution_id, committee_key, display_name,
     mandate, delegated_permissions, spending_ceiling_minor_units,
@@ -252,6 +255,7 @@ BEGIN
     jsonb_build_object('committee_key', p_committee_key), p_correlation_id, p_occurred_at
   );
   PERFORM set_config('microfams.group_committee_engine', COALESCE(v_previous_setting, ''), TRUE);
+  PERFORM set_config('microfams.group_governance_engine', COALESCE(v_previous_governance, ''), TRUE);
   RETURN v_committee_id;
 END;
 $$;
@@ -272,6 +276,7 @@ DECLARE
   v_committee group_committees;
   v_member group_members;
   v_previous_setting TEXT;
+  v_previous_governance TEXT;
 BEGIN
   SELECT resource_id INTO v_membership_id FROM group_governance_events
   WHERE organization_id = p_organization_id AND correlation_id = p_correlation_id
@@ -306,7 +311,9 @@ BEGIN
   ) THEN RAISE EXCEPTION 'GROUP_COMMITTEE_CHAIR_ALREADY_SERVING'; END IF;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
+  v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
   PERFORM set_config('microfams.group_committee_engine', 'on', TRUE);
+  PERFORM set_config('microfams.group_governance_engine', 'on', TRUE);
   INSERT INTO group_committee_members(
     organization_id, group_id, committee_id, member_id, user_id, committee_role,
     starts_at, appointed_by, created_at
@@ -327,6 +334,7 @@ BEGIN
     ), p_correlation_id, p_occurred_at
   );
   PERFORM set_config('microfams.group_committee_engine', COALESCE(v_previous_setting, ''), TRUE);
+  PERFORM set_config('microfams.group_governance_engine', COALESCE(v_previous_governance, ''), TRUE);
   RETURN v_membership_id;
 END;
 $$;
@@ -345,6 +353,7 @@ DECLARE
   v_result_id UUID;
   v_membership group_committee_members;
   v_previous_setting TEXT;
+  v_previous_governance TEXT;
 BEGIN
   SELECT resource_id INTO v_result_id FROM group_governance_events
   WHERE organization_id = p_organization_id AND correlation_id = p_correlation_id
@@ -364,7 +373,9 @@ BEGIN
   THEN RAISE EXCEPTION 'GROUP_COMMITTEE_MEMBERSHIP_WINDOW_INVALID'; END IF;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
+  v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
   PERFORM set_config('microfams.group_committee_engine', 'on', TRUE);
+  PERFORM set_config('microfams.group_governance_engine', 'on', TRUE);
   UPDATE group_committee_members
   SET ends_at = p_occurred_at, end_reason_code = p_reason_code
   WHERE id = v_membership.id;
@@ -380,6 +391,7 @@ BEGIN
     ), p_correlation_id, p_occurred_at
   );
   PERFORM set_config('microfams.group_committee_engine', COALESCE(v_previous_setting, ''), TRUE);
+  PERFORM set_config('microfams.group_governance_engine', COALESCE(v_previous_governance, ''), TRUE);
   RETURN v_membership.id;
 END;
 $$;
@@ -398,6 +410,7 @@ DECLARE
   v_result_id UUID;
   v_committee group_committees;
   v_previous_setting TEXT;
+  v_previous_governance TEXT;
 BEGIN
   SELECT resource_id INTO v_result_id FROM group_governance_events
   WHERE organization_id = p_organization_id AND correlation_id = p_correlation_id
@@ -419,7 +432,9 @@ BEGIN
   ) THEN RAISE EXCEPTION 'GROUP_COMMITTEE_HAS_SCHEDULED_MEETINGS'; END IF;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
+  v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
   PERFORM set_config('microfams.group_committee_engine', 'on', TRUE);
+  PERFORM set_config('microfams.group_governance_engine', 'on', TRUE);
   UPDATE group_committee_members
   SET ends_at = p_occurred_at, end_reason_code = 'COMMITTEE_DISSOLVED'
   WHERE committee_id = p_committee_id AND ends_at IS NULL;
@@ -437,6 +452,7 @@ BEGIN
     jsonb_build_object('reason_code', p_reason_code), p_correlation_id, p_occurred_at
   );
   PERFORM set_config('microfams.group_committee_engine', COALESCE(v_previous_setting, ''), TRUE);
+  PERFORM set_config('microfams.group_governance_engine', COALESCE(v_previous_governance, ''), TRUE);
   RETURN v_committee.id;
 END;
 $$;
@@ -466,6 +482,7 @@ DECLARE
   v_group groups;
   v_eligible INTEGER;
   v_previous_setting TEXT;
+  v_previous_governance TEXT;
 BEGIN
   SELECT resource_id INTO v_meeting_id FROM group_governance_events
   WHERE organization_id = p_organization_id AND correlation_id = p_correlation_id
@@ -515,7 +532,9 @@ BEGIN
   IF v_eligible = 0 THEN RAISE EXCEPTION 'GROUP_MEETING_NO_ELIGIBLE_ATTENDEES'; END IF;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
+  v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
   PERFORM set_config('microfams.group_committee_engine', 'on', TRUE);
+  PERFORM set_config('microfams.group_governance_engine', 'on', TRUE);
   INSERT INTO group_meetings(
     organization_id, group_id, committee_id, meeting_type, title, agenda,
     scheduled_at, notice_issued_at, required_notice_hours, emergency_reason,
@@ -541,6 +560,7 @@ BEGIN
     ), p_correlation_id, p_occurred_at
   );
   PERFORM set_config('microfams.group_committee_engine', COALESCE(v_previous_setting, ''), TRUE);
+  PERFORM set_config('microfams.group_governance_engine', COALESCE(v_previous_governance, ''), TRUE);
   RETURN v_meeting_id;
 END;
 $$;
@@ -563,6 +583,7 @@ DECLARE
   v_meeting group_meetings;
   v_member group_members;
   v_previous_setting TEXT;
+  v_previous_governance TEXT;
 BEGIN
   SELECT resource_id INTO v_attendance_id FROM group_governance_events
   WHERE organization_id = p_organization_id AND correlation_id = p_correlation_id
@@ -595,7 +616,9 @@ BEGIN
   ) THEN RAISE EXCEPTION 'GROUP_MEETING_ATTENDANCE_ALREADY_RECORDED'; END IF;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
+  v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
   PERFORM set_config('microfams.group_committee_engine', 'on', TRUE);
+  PERFORM set_config('microfams.group_governance_engine', 'on', TRUE);
   INSERT INTO group_meeting_attendance(
     organization_id, group_id, meeting_id, member_id, user_id,
     attendance_status, recorded_by, recorded_at
@@ -615,6 +638,7 @@ BEGIN
     ), p_correlation_id, p_occurred_at
   );
   PERFORM set_config('microfams.group_committee_engine', COALESCE(v_previous_setting, ''), TRUE);
+  PERFORM set_config('microfams.group_governance_engine', COALESCE(v_previous_governance, ''), TRUE);
   RETURN v_attendance_id;
 END;
 $$;
@@ -635,6 +659,7 @@ DECLARE
   v_present INTEGER;
   v_quorum_met BOOLEAN;
   v_previous_setting TEXT;
+  v_previous_governance TEXT;
 BEGIN
   SELECT meeting.* INTO v_meeting
   FROM group_governance_events AS event
@@ -661,7 +686,9 @@ BEGIN
     >= v_meeting.eligible_attendee_count * v_meeting.quorum_numerator;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
+  v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
   PERFORM set_config('microfams.group_committee_engine', 'on', TRUE);
+  PERFORM set_config('microfams.group_governance_engine', 'on', TRUE);
   UPDATE group_meetings
   SET state = 'held', held_at = p_occurred_at, quorum_met = v_quorum_met,
     state_version = state_version + 1, updated_at = p_occurred_at
@@ -680,6 +707,7 @@ BEGIN
     ), p_correlation_id, p_occurred_at
   );
   PERFORM set_config('microfams.group_committee_engine', COALESCE(v_previous_setting, ''), TRUE);
+  PERFORM set_config('microfams.group_governance_engine', COALESCE(v_previous_governance, ''), TRUE);
   RETURN v_meeting;
 END;
 $$;
@@ -699,6 +727,7 @@ DECLARE
   v_result_id UUID;
   v_meeting group_meetings;
   v_previous_setting TEXT;
+  v_previous_governance TEXT;
 BEGIN
   SELECT resource_id INTO v_result_id FROM group_governance_events
   WHERE organization_id = p_organization_id AND correlation_id = p_correlation_id
@@ -718,7 +747,9 @@ BEGIN
   THEN RAISE EXCEPTION 'GROUP_MEETING_VERSION_CONFLICT'; END IF;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
+  v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
   PERFORM set_config('microfams.group_committee_engine', 'on', TRUE);
+  PERFORM set_config('microfams.group_governance_engine', 'on', TRUE);
   UPDATE group_meetings
   SET state = 'cancelled', cancelled_at = p_occurred_at,
     cancellation_reason_code = p_reason_code,
@@ -734,6 +765,7 @@ BEGIN
     jsonb_build_object('reason_code', p_reason_code), p_correlation_id, p_occurred_at
   );
   PERFORM set_config('microfams.group_committee_engine', COALESCE(v_previous_setting, ''), TRUE);
+  PERFORM set_config('microfams.group_governance_engine', COALESCE(v_previous_governance, ''), TRUE);
   RETURN v_meeting.id;
 END;
 $$;
@@ -758,6 +790,7 @@ DECLARE
   v_kind TEXT := 'minutes';
   v_version INTEGER;
   v_previous_setting TEXT;
+  v_previous_governance TEXT;
 BEGIN
   SELECT resource_id INTO v_minutes_id FROM group_governance_events
   WHERE organization_id = p_organization_id AND correlation_id = p_correlation_id
@@ -798,7 +831,9 @@ BEGIN
   FROM group_meeting_minutes WHERE meeting_id = p_meeting_id;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
+  v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
   PERFORM set_config('microfams.group_committee_engine', 'on', TRUE);
+  PERFORM set_config('microfams.group_governance_engine', 'on', TRUE);
   INSERT INTO group_meeting_minutes(
     organization_id, group_id, meeting_id, version, minutes_kind,
     corrects_minutes_id, content, resolutions, state, created_by,
@@ -820,6 +855,7 @@ BEGIN
     ), p_correlation_id, p_occurred_at
   );
   PERFORM set_config('microfams.group_committee_engine', COALESCE(v_previous_setting, ''), TRUE);
+  PERFORM set_config('microfams.group_governance_engine', COALESCE(v_previous_governance, ''), TRUE);
   RETURN v_minutes_id;
 END;
 $$;
@@ -837,6 +873,7 @@ DECLARE
   v_result_id UUID;
   v_minutes group_meeting_minutes;
   v_previous_setting TEXT;
+  v_previous_governance TEXT;
 BEGIN
   SELECT resource_id INTO v_result_id FROM group_governance_events
   WHERE organization_id = p_organization_id AND correlation_id = p_correlation_id
@@ -856,7 +893,9 @@ BEGIN
   THEN RAISE EXCEPTION 'GROUP_MEETING_MINUTES_INDEPENDENT_APPROVAL_REQUIRED'; END IF;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
+  v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
   PERFORM set_config('microfams.group_committee_engine', 'on', TRUE);
+  PERFORM set_config('microfams.group_governance_engine', 'on', TRUE);
   UPDATE group_meeting_minutes
   SET state = 'approved', approved_by = p_actor_id, approved_at = p_occurred_at,
     updated_at = p_occurred_at
@@ -873,6 +912,7 @@ BEGIN
     ), p_correlation_id, p_occurred_at
   );
   PERFORM set_config('microfams.group_committee_engine', COALESCE(v_previous_setting, ''), TRUE);
+  PERFORM set_config('microfams.group_governance_engine', COALESCE(v_previous_governance, ''), TRUE);
   RETURN v_minutes.id;
 END;
 $$;
