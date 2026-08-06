@@ -9,6 +9,7 @@ import { groupInvitationController } from '../controllers/groupInvitationControl
 import { groupProposalController } from '../controllers/groupProposalController.js';
 import { groupAdmissionController } from '../controllers/groupAdmissionController.js';
 import { groupDisciplineController } from '../controllers/groupDisciplineController.js';
+import { groupCommitteeController } from '../controllers/groupCommitteeController.js';
 
 const router = Router();
 const invitationCommandLimiter = rateLimit({
@@ -107,5 +108,60 @@ router.put(
   groupAdminController.updateGroup,
 );
 router.get('/:id/member/dashboard', groupAdminController.getMemberDashboard);
+
+const committeeCommandLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: 'GROUP_COMMITTEE_RATE_LIMITED' },
+});
+
+router.get(
+  '/:id/committees',
+  requireFeature('groups.governance.manage'), groupCommitteeController.getOverview,
+);
+router.post(
+  '/:id/committees', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'), groupCommitteeController.createCommittee,
+);
+router.post(
+  '/:id/committees/:committeeId/members', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'), groupCommitteeController.addMember,
+);
+router.post(
+  '/:id/committees/:committeeId/dissolve', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'), groupCommitteeController.dissolveCommittee,
+);
+router.post(
+  '/:id/committee-memberships/:membershipId/end', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'), groupCommitteeController.endMembership,
+);
+router.post(
+  '/:id/meetings', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'), groupCommitteeController.scheduleMeeting,
+);
+router.get(
+  '/:id/meetings/:meetingId',
+  requireFeature('groups.governance.manage'), groupCommitteeController.getMeeting,
+);
+router.post(
+  '/:id/meetings/:meetingId/attendance', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'), groupCommitteeController.recordAttendance,
+);
+router.post(
+  '/:id/meetings/:meetingId/hold', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'), groupCommitteeController.holdMeeting,
+);
+router.post(
+  '/:id/meetings/:meetingId/cancel', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'), groupCommitteeController.cancelMeeting,
+);
+router.post(
+  '/:id/meetings/:meetingId/minutes', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'), groupCommitteeController.draftMinutes,
+);
+router.post(
+  '/:id/meeting-minutes/:minutesId/approve', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'), groupCommitteeController.approveMinutes,
+);
 
 export default router;
