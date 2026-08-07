@@ -10,6 +10,7 @@ import { groupProposalController } from '../controllers/groupProposalController.
 import { groupAdmissionController } from '../controllers/groupAdmissionController.js';
 import { groupDisciplineController } from '../controllers/groupDisciplineController.js';
 import { groupContributionController } from '../controllers/groupContributionController.js';
+import { groupContributionCycleController } from '../controllers/groupContributionCycleController.js';
 
 const router = Router();
 const invitationCommandLimiter = rateLimit({
@@ -87,6 +88,44 @@ router.post(
   '/:id/contribution-products/:productId/allocations', contributionCommandLimiter,
   requireFeature('groups.contributions.service_existing'),
   groupContributionController.allocatePayment,
+);
+// Cycles: reads are a membership right for the same reason product reads are —
+// a member must be able to see what they were billed and why.
+router.get('/:id/contribution-cycles', groupContributionCycleController.listCycles);
+router.get('/:id/contribution-cycles/:cycleId', groupContributionCycleController.getCycle);
+// Opening a cycle bills members, so it is acquisition and governance-gated.
+router.post(
+  '/:id/contribution-cycles', contributionCommandLimiter,
+  requireFeature('groups.contributions.accept_new'),
+  requireFeature('groups.governance.manage'),
+  groupContributionCycleController.openCycle,
+);
+// Adjusting an obligation and closing a cycle are servicing: they must remain
+// available when acquisition is switched off, or an open cycle can never be
+// reconciled or closed.
+router.post(
+  '/:id/contribution-obligations/:obligationId/adjustments', contributionCommandLimiter,
+  requireFeature('groups.contributions.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupContributionCycleController.adjustObligation,
+);
+router.post(
+  '/:id/contribution-cycles/:cycleId/transitions', contributionCommandLimiter,
+  requireFeature('groups.contributions.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupContributionCycleController.transitionCycle,
+);
+router.post(
+  '/:id/contribution-cycles/:cycleId/close', contributionCommandLimiter,
+  requireFeature('groups.contributions.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupContributionCycleController.closeCycle,
+);
+router.post(
+  '/:id/contribution-cycles/:cycleId/cancel', contributionCommandLimiter,
+  requireFeature('groups.contributions.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupContributionCycleController.cancelCycle,
 );
 router.get('/:id/entry-requirements/current', requireFeature('groups.membership.manage'), groupAdmissionController.getCurrentRequirements);
 router.post('/:id/entry-requirements/initial', proposalCommandLimiter, requireFeature('groups.membership.manage'), groupAdmissionController.adoptInitial);
