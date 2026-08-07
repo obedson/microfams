@@ -5,6 +5,7 @@ DECLARE
   org UUID; owner UUID; deputy UUID; member_user UUID; foreign_org UUID;
   gid UUID; owner_member UUID; deputy_member UUID; plain_member UUID;
   committee UUID; membership UUID; meeting UUID; minutes UUID; addendum UUID;
+  proposal UUID; decided group_proposals;
   held group_meetings;
 BEGIN
   SELECT organization_id,user_id INTO org,owner
