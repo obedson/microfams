@@ -235,6 +235,11 @@ if [[ "$group_office_lifecycle_present" == "f" ]]; then
   migrations+=(install_group_office_lifecycle.sql)
 fi
 
+group_contributions_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.group_contribution_products') IS NOT NULL AND to_regclass('public.group_contribution_rule_versions') IS NOT NULL AND to_regprocedure('public.allocate_group_contribution_payment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamp with time zone)') IS NOT NULL")"
+if [[ "$group_contributions_present" == "f" ]]; then
+  migrations+=(install_group_contributions.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -312,6 +317,13 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
       OR to_regclass('public.group_member_discipline_appeals') IS NULL
       OR to_regprocedure(
         'public.execute_group_member_discipline(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)') IS NULL
+      OR to_regclass('public.group_contribution_products') IS NULL
+      OR to_regclass('public.group_contribution_rule_versions') IS NULL
+      OR to_regclass('public.group_contribution_allocations') IS NULL
+      OR to_regprocedure(
+        'public.execute_group_contribution_rule_proposal(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)') IS NULL
+      OR to_regprocedure(
+        'public.allocate_group_contribution_payment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamp with time zone)') IS NULL
     THEN RAISE EXCEPTION 'required trust, booking, and group schema was not installed'; END IF;
   END \$\$;" >/dev/null
 

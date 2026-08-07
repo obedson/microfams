@@ -88,6 +88,7 @@ run_all_queries.sql
 backend/schema.sql
 
 # Test scripts and results
+test_router.sh
 backend/test-interswitch.ts
 backend/test-nin-api.cjs
 backend/test-nin-api.ts

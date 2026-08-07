@@ -7,6 +7,7 @@ import {
 } from '../domains/groups/proposalRules.js';
 import { groupProposalService } from '../services/groupProposalService.js';
 import { normalizeOfficeProposalPayload } from '../domains/groups/officeRules.js';
+import { normalizeContributionProposalPayload } from '../domains/groups/contributionRules.js';
 
 const idempotencyKey = (req: TenantRequest) => {
   const value = req.header('Idempotency-Key');
@@ -82,9 +83,9 @@ export const groupProposalController = {
   async create(req: TenantRequest, res: Response) {
     try {
       const value = validate(createSchema, req.body);
-      const executionPayload = normalizeOfficeProposalPayload(
+      const executionPayload = normalizeContributionProposalPayload(
         value.proposalType,
-        value.executionPayload,
+        normalizeOfficeProposalPayload(value.proposalType, value.executionPayload),
       );
       const result = await groupProposalService.create(context(req), {
         ...value, executionPayload,

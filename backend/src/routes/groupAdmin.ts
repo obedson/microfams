@@ -9,6 +9,7 @@ import { groupInvitationController } from '../controllers/groupInvitationControl
 import { groupProposalController } from '../controllers/groupProposalController.js';
 import { groupAdmissionController } from '../controllers/groupAdmissionController.js';
 import { groupDisciplineController } from '../controllers/groupDisciplineController.js';
+import { groupContributionController } from '../controllers/groupContributionController.js';
 
 const router = Router();
 const invitationCommandLimiter = rateLimit({
@@ -20,6 +21,11 @@ const proposalCommandLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,
   message: { error: 'GROUP_PROPOSAL_RATE_LIMITED' },
+});
+const contributionCommandLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: 'GROUP_CONTRIBUTION_RATE_LIMITED' },
 });
 
 router.use(authenticateToken as any);
@@ -57,6 +63,30 @@ router.post(
 router.post(
   '/:id/offices/:officeKey/delegations/:assignmentId/end', proposalCommandLimiter,
   requireFeature('groups.governance.manage'), groupGovernanceController.endDelegation,
+);
+router.post(
+  '/:id/proposals/:proposalId/contribution-execution', proposalCommandLimiter,
+  requireFeature('groups.governance.manage'), groupContributionController.executeRuleProposal,
+);
+// Disclosure is a membership right: any active member may read the classified
+// products and the terms in force, so these reads are not governance-gated.
+router.get('/:id/contribution-products', groupContributionController.listProducts);
+router.get('/:id/contribution-products/:productId', groupContributionController.getProduct);
+router.get(
+  '/:id/contribution-products/:productId/allocations',
+  groupContributionController.listAllocations,
+);
+// Taking new contribution money is acquisition and gated accordingly.
+router.post(
+  '/:id/contribution-products/:productId/payments', contributionCommandLimiter,
+  requireFeature('groups.contributions.accept_new'), groupContributionController.initializePayment,
+);
+// Allocating an already-captured payment is servicing: it must stay available
+// when acquisition is switched off, or confirmed money strands unposted.
+router.post(
+  '/:id/contribution-products/:productId/allocations', contributionCommandLimiter,
+  requireFeature('groups.contributions.service_existing'),
+  groupContributionController.allocatePayment,
 );
 router.get('/:id/entry-requirements/current', requireFeature('groups.membership.manage'), groupAdmissionController.getCurrentRequirements);
 router.post('/:id/entry-requirements/initial', proposalCommandLimiter, requireFeature('groups.membership.manage'), groupAdmissionController.adoptInitial);
