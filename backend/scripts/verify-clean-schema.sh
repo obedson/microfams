@@ -65,7 +65,9 @@ BEGIN
       'group_legacy_reviews','group_proposals','group_voting_snapshots',
       'group_voter_snapshot_members','group_vote_history','group_proposal_events',
       'group_entry_requirement_versions','group_entry_requirement_events',
-      'group_membership_payment_allocations'
+      'group_membership_payment_allocations','group_committees',
+      'group_committee_members','group_meetings','group_meeting_attendance',
+      'group_meeting_minutes'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -98,6 +100,28 @@ BEGIN
   ) IS NULL OR to_regprocedure(
     'public.service_expired_group_offices(uuid,uuid,uuid,uuid,timestamp with time zone)'
   ) IS NULL THEN RAISE EXCEPTION 'group office lifecycle functions are missing';
+  END IF;
+  IF to_regprocedure(
+    'public.execute_group_committee_proposal(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.add_group_committee_member(uuid,uuid,uuid,uuid,uuid,text,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.end_group_committee_membership(uuid,uuid,uuid,uuid,text,uuid,timestamp with time zone)'
+  ) IS NULL THEN RAISE EXCEPTION 'group committee functions are missing';
+  END IF;
+  IF to_regprocedure(
+    'public.schedule_group_meeting(uuid,uuid,uuid,text,uuid,text,jsonb,timestamp with time zone,integer,text,text,integer,integer,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.record_group_meeting_attendance(uuid,uuid,uuid,uuid,uuid,text,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.hold_group_meeting(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.cancel_group_meeting(uuid,uuid,uuid,uuid,integer,text,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.draft_group_meeting_minutes(uuid,uuid,uuid,uuid,text,jsonb,uuid,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.approve_group_meeting_minutes(uuid,uuid,uuid,uuid,uuid,timestamp with time zone)'
+  ) IS NULL THEN RAISE EXCEPTION 'group meeting functions are missing';
   END IF;
 END $$;
 
@@ -371,6 +395,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-group-office-lifecycle.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-group-committees-meetings.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"
