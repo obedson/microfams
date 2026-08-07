@@ -99,3 +99,4 @@ backend/run_consensus_migration.mjs
 
 # PDF receipts
 *.pdf
+test_router.sh
