@@ -2,6 +2,7 @@ import fc from 'fast-check';
 import {
   normalizeCommitteePermissions,
   normalizeSpendingCeiling,
+  normalizeCommitteeProposalPayload,
   assertMeetingNotice,
   isQuorumMet,
   GROUP_COMMITTEE_DELEGABLE_PERMISSIONS,
@@ -139,6 +140,65 @@ describe('group committee and meeting rules', () => {
         requiredNoticeHours: 48,
         now,
       })).toThrow('GROUP_MEETING_SCHEDULE_INVALID');
+    });
+  });
+
+  describe('normalizeCommitteeProposalPayload', () => {
+    const committeeId = '00000000-0000-4000-8000-000000000801';
+
+    it('normalizes a create mandate to the database contract', () => {
+      expect(normalizeCommitteeProposalPayload('committee_mandate', {
+        action: 'create',
+        committeeKey: 'finance',
+        displayName: 'Finance Committee',
+        mandate: 'Review treasury activity.',
+        delegatedPermissions: ['groups.committee.recommend'],
+        spendingCeilingMinorUnits: 500000,
+        spendingCeilingCurrency: 'NGN',
+        termEndsAt: '2027-01-01T00:00:00Z',
+      })).toEqual({
+        action: 'create',
+        committee_key: 'finance',
+        display_name: 'Finance Committee',
+        mandate: 'Review treasury activity.',
+        delegated_permissions: ['groups.committee.recommend'],
+        spending_ceiling_minor_units: '500000',
+        spending_ceiling_currency: 'NGN',
+        reporting_duties: null,
+        term_ends_at: '2027-01-01T00:00:00.000Z',
+      });
+    });
+
+    it('refuses a mandate carrying a non-delegable permission', () => {
+      expect(() => normalizeCommitteeProposalPayload('committee_mandate', {
+        action: 'create',
+        committeeKey: 'seizure',
+        displayName: 'Seizure Committee',
+        mandate: 'Attempt to seize governance rights.',
+        delegatedPermissions: ['groups.governance.manage'],
+      })).toThrow('GROUP_COMMITTEE_PERMISSION_NOT_DELEGABLE');
+    });
+
+    it('requires an immutable target and reason for dissolution', () => {
+      expect(normalizeCommitteeProposalPayload('committee_mandate', {
+        action: 'dissolve', committeeId, reasonCode: 'MANDATE_COMPLETE',
+      })).toEqual({
+        action: 'dissolve', committee_id: committeeId, reason_code: 'MANDATE_COMPLETE',
+      });
+      expect(() => normalizeCommitteeProposalPayload('committee_mandate', {
+        action: 'dissolve', committeeId, reasonCode: 'not-uppercase',
+      })).toThrow('GROUP_COMMITTEE_PROPOSAL_PAYLOAD_INVALID');
+    });
+
+    it('rejects an unknown mandate action', () => {
+      expect(() => normalizeCommitteeProposalPayload('committee_mandate', {
+        action: 'seize', committeeId,
+      })).toThrow('GROUP_COMMITTEE_PROPOSAL_PAYLOAD_INVALID');
+    });
+
+    it('leaves unrelated proposal payloads intact', () => {
+      expect(normalizeCommitteeProposalPayload('ordinary', { project: 'dryer' }))
+        .toEqual({ project: 'dryer' });
     });
   });
 

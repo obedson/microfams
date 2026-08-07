@@ -47,28 +47,63 @@ BEGIN
   PERFORM activate_group_with_constitution(org,gid,owner,1,
     '00000000-0000-4000-8000-000000000905','2026-08-06T09:04:00Z');
 
-  -- Committee creation, idempotency, and non-delegable permission refusal.
-  committee:=create_group_committee(org,gid,owner,'finance','Finance Committee',
-    'Review treasury activity and report to the group.',
-    ARRAY['groups.committee.recommend','groups.committee.report'],
-    500000,'NGN','Quarterly report to the general meeting.','2027-08-06T09:00:00Z',
+  -- A committee mandate is defined only by an approved, closed proposal.
+  proposal:=create_group_proposal(org,gid,owner,'committee_mandate',
+    'Establish a finance committee to review treasury activity and report back.','[]',
+    jsonb_build_object('action','create','committee_key','finance',
+      'display_name','Finance Committee',
+      'mandate','Review treasury activity and report to the group.',
+      'delegated_permissions',jsonb_build_array('groups.committee.recommend','groups.committee.report'),
+      'spending_ceiling_minor_units','500000','spending_ceiling_currency','NGN',
+      'reporting_duties','Quarterly report to the general meeting.',
+      'term_ends_at','2027-08-06T09:00:00Z'),
+    ARRAY[]::UUID[],'2026-08-06T10:00:00Z','2026-08-06T11:00:00Z',
     '00000000-0000-4000-8000-000000000906','2026-08-06T09:05:00Z');
-  IF NOT EXISTS(SELECT 1 FROM group_committees WHERE id=committee AND state='active'
-    AND committee_key='finance' AND spending_ceiling_minor_units=500000
-    AND spending_ceiling_currency='NGN' AND constitution_id IS NOT NULL)
-  THEN RAISE EXCEPTION 'committee creation did not record its mandate'; END IF;
-  IF committee<>create_group_committee(org,gid,owner,'finance','Finance Committee',
-    'Review treasury activity and report to the group.',
-    ARRAY['groups.committee.recommend','groups.committee.report'],
-    500000,'NGN','Quarterly report to the general meeting.','2027-08-06T09:00:00Z',
-    '00000000-0000-4000-8000-000000000906','2026-08-06T09:05:00Z')
-  THEN RAISE EXCEPTION 'committee creation was not idempotent'; END IF;
+  PERFORM open_group_proposal(org,gid,owner,proposal,1,
+    '00000000-0000-4000-8000-000000000926','2026-08-06T10:00:00Z');
+  PERFORM cast_group_proposal_vote(org,gid,owner,proposal,'approve',
+    '00000000-0000-4000-8000-000000000927','2026-08-06T10:05:00Z');
+  PERFORM cast_group_proposal_vote(org,gid,deputy,proposal,'approve',
+    '00000000-0000-4000-8000-000000000928','2026-08-06T10:06:00Z');
+  SELECT * INTO decided FROM close_group_proposal(org,gid,owner,proposal,2,
+    '00000000-0000-4000-8000-000000000929','2026-08-06T11:00:00Z');
+  IF decided.state<>'approved' THEN RAISE EXCEPTION 'committee mandate proposal was not approved'; END IF;
+  SELECT * INTO decided FROM execute_group_committee_proposal(org,gid,owner,proposal,3,
+    '00000000-0000-4000-8000-000000000930','2026-08-06T11:01:00Z');
+  committee:=(decided.result->>'executed_resource_id')::UUID;
+  IF decided.state<>'executed' OR NOT EXISTS(
+    SELECT 1 FROM group_committees WHERE id=committee AND state='active'
+      AND committee_key='finance' AND spending_ceiling_minor_units=500000
+      AND spending_ceiling_currency='NGN' AND mandate_proposal_id=proposal
+  ) THEN RAISE EXCEPTION 'approved committee mandate did not execute atomically'; END IF;
+  IF (SELECT id FROM execute_group_committee_proposal(org,gid,owner,proposal,3,
+    '00000000-0000-4000-8000-000000000930','2026-08-06T11:01:00Z'))<>proposal
+  THEN RAISE EXCEPTION 'committee mandate execution was not idempotent'; END IF;
 
+  -- A committee cannot be created outside the proposal path.
+  IF to_regprocedure('public.create_group_committee(uuid,uuid,uuid,text,text,text,text[],bigint,text,text,timestamp with time zone,uuid,timestamp with time zone)') IS NOT NULL
+    OR to_regprocedure('public.dissolve_group_committee(uuid,uuid,uuid,uuid,text,uuid,timestamp with time zone)') IS NOT NULL
+  THEN RAISE EXCEPTION 'a direct committee mandate command still exists'; END IF;
+
+  -- A mandate carrying a non-delegable permission fails closed at execution.
+  proposal:=create_group_proposal(org,gid,owner,'committee_mandate',
+    'Establish a committee that attempts to hold group governance rights.','[]',
+    jsonb_build_object('action','create','committee_key','seizure',
+      'display_name','Seizure Committee','mandate','Attempt to hold a governance right.',
+      'delegated_permissions',jsonb_build_array('groups.governance.manage')),
+    ARRAY[]::UUID[],'2026-08-06T12:00:00Z','2026-08-06T13:00:00Z',
+    '00000000-0000-4000-8000-000000000931','2026-08-06T11:05:00Z');
+  PERFORM open_group_proposal(org,gid,owner,proposal,1,
+    '00000000-0000-4000-8000-000000000932','2026-08-06T12:00:00Z');
+  PERFORM cast_group_proposal_vote(org,gid,owner,proposal,'approve',
+    '00000000-0000-4000-8000-000000000933','2026-08-06T12:05:00Z');
+  PERFORM cast_group_proposal_vote(org,gid,deputy,proposal,'approve',
+    '00000000-0000-4000-8000-000000000934','2026-08-06T12:06:00Z');
+  PERFORM close_group_proposal(org,gid,owner,proposal,2,
+    '00000000-0000-4000-8000-000000000935','2026-08-06T13:00:00Z');
   BEGIN
-    PERFORM create_group_committee(org,gid,owner,'seizure','Seizure Committee',
-      'Attempt to hold a governance right the group cannot delegate.',
-      ARRAY['groups.governance.manage'],NULL,NULL,NULL,NULL,
-      '00000000-0000-4000-8000-000000000907','2026-08-06T09:06:00Z');
+    PERFORM execute_group_committee_proposal(org,gid,owner,proposal,3,
+      '00000000-0000-4000-8000-000000000936','2026-08-06T13:01:00Z');
     RAISE EXCEPTION 'non-delegable committee permission was accepted';
   EXCEPTION WHEN OTHERS THEN
     IF SQLERRM='non-delegable committee permission was accepted' THEN RAISE; END IF;
@@ -176,9 +211,23 @@ BEGIN
     AND minutes_kind='addendum' AND corrects_minutes_id=minutes AND version=2)
   THEN RAISE EXCEPTION 'a correction did not create a linked addendum'; END IF;
 
-  -- Dissolution ends sitting memberships and blocks a reused active key.
-  PERFORM dissolve_group_committee(org,gid,owner,committee,'MANDATE_COMPLETE',
-    '00000000-0000-4000-8000-000000000924','2026-08-12T09:00:00Z');
+  -- Dissolution is also proposal-executed and closes sitting memberships.
+  proposal:=create_group_proposal(org,gid,owner,'committee_mandate',
+    'Dissolve the finance committee now that its mandate is complete.','[]',
+    jsonb_build_object('action','dissolve','committee_id',committee,
+      'reason_code','MANDATE_COMPLETE'),
+    ARRAY[]::UUID[],'2026-08-12T10:00:00Z','2026-08-12T11:00:00Z',
+    '00000000-0000-4000-8000-000000000937','2026-08-12T09:00:00Z');
+  PERFORM open_group_proposal(org,gid,owner,proposal,1,
+    '00000000-0000-4000-8000-000000000938','2026-08-12T10:00:00Z');
+  PERFORM cast_group_proposal_vote(org,gid,owner,proposal,'approve',
+    '00000000-0000-4000-8000-000000000939','2026-08-12T10:05:00Z');
+  PERFORM cast_group_proposal_vote(org,gid,deputy,proposal,'approve',
+    '00000000-0000-4000-8000-000000000940','2026-08-12T10:06:00Z');
+  PERFORM close_group_proposal(org,gid,owner,proposal,2,
+    '00000000-0000-4000-8000-000000000941','2026-08-12T11:00:00Z');
+  PERFORM execute_group_committee_proposal(org,gid,owner,proposal,3,
+    '00000000-0000-4000-8000-000000000942','2026-08-12T11:01:00Z');
   IF EXISTS(SELECT 1 FROM group_committee_members WHERE committee_id=committee AND ends_at IS NULL)
     OR NOT EXISTS(SELECT 1 FROM group_committees WHERE id=committee AND state='dissolved'
       AND dissolution_reason_code='MANDATE_COMPLETE')
@@ -189,14 +238,14 @@ BEGIN
   WHERE organization_id<>org ORDER BY created_at LIMIT 1;
   IF foreign_org IS NOT NULL THEN
     BEGIN
-      PERFORM create_group_committee(foreign_org,gid,owner,'audit','Audit Committee',
-        'Attempt cross-tenant committee creation.',ARRAY[]::TEXT[],NULL,NULL,NULL,NULL,
-        '00000000-0000-4000-8000-000000000925','2026-08-12T09:01:00Z');
-      RAISE EXCEPTION 'a foreign organization created a committee';
+      PERFORM add_group_committee_member(foreign_org,gid,owner,committee,plain_member,'member',
+        '00000000-0000-4000-8000-000000000943','2026-08-12T11:02:00Z');
+      RAISE EXCEPTION 'a foreign organization serviced a committee';
     EXCEPTION WHEN OTHERS THEN
-      IF SQLERRM='a foreign organization created a committee' THEN RAISE; END IF;
+      IF SQLERRM='a foreign organization serviced a committee' THEN RAISE; END IF;
       IF SQLERRM NOT LIKE '%GROUP_GOVERNANCE_PERMISSION_DENIED%'
-        AND SQLERRM NOT LIKE '%GROUP_NOT_FOUND%' THEN RAISE; END IF;
+        AND SQLERRM NOT LIKE '%GROUP_NOT_FOUND%'
+        AND SQLERRM NOT LIKE '%GROUP_COMMITTEE_NOT_ACTIVE%' THEN RAISE; END IF;
     END;
   END IF;
 END $$;

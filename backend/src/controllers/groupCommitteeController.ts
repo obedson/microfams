@@ -21,18 +21,9 @@ const idempotencyKey = (req: TenantRequest) => {
 
 const reasonCode = Joi.string().pattern(/^[A-Z][A-Z0-9_]{2,63}$/);
 
-const committeeSchema = Joi.object({
-  committeeKey: Joi.string().pattern(/^[a-z][a-z0-9_]{1,47}$/).required(),
-  displayName: Joi.string().trim().min(1).max(200).required(),
-  mandate: Joi.string().trim().min(1).max(5000).required(),
-  delegatedPermissions: Joi.array()
-    .items(Joi.string().valid(...GROUP_COMMITTEE_DELEGABLE_PERMISSIONS)).default([]),
-  spendingCeilingMinorUnits: Joi.number().integer().min(0).allow(null),
-  spendingCeilingCurrency: Joi.string().pattern(/^[A-Z]{3}$/).allow(null),
-  reportingDuties: Joi.string().trim().max(2000).allow(null, ''),
-  termEndsAt: Joi.date().iso().greater('now').allow(null),
-})
-  .and('spendingCeilingMinorUnits', 'spendingCeilingCurrency');
+const executionSchema = Joi.object({
+  expectedVersion: Joi.number().integer().min(1).required(),
+});
 
 const committeeMemberSchema = Joi.object({
   memberId: Joi.string().uuid().required(),
@@ -120,18 +111,15 @@ const sendError = (res: Response, error: any) => {
 };
 
 export const groupCommitteeController = {
-  async createCommittee(req: TenantRequest, res: Response) {
-    const { error, value } = committeeSchema.validate(req.body, {
-      abortEarly: false, stripUnknown: true,
-    });
+  async executeCommitteeProposal(req: TenantRequest, res: Response) {
+    const { error, value } = executionSchema.validate(req.body, { stripUnknown: true });
     if (error) return res.status(400).json({ error: error.message });
     try {
-      const result = await groupCommitteeService.createCommittee(context(req), {
-        ...value,
-        termEndsAt: value.termEndsAt ? value.termEndsAt.toISOString() : null,
-        idempotencyKey: idempotencyKey(req),
-      });
-      return res.status(201).json({ success: true, data: result });
+      const result = await groupCommitteeService.executeCommitteeProposal(
+        context(req), routeUuid(req.params.proposalId, 'GROUP_PROPOSAL_ID_INVALID'),
+        { expectedVersion: value.expectedVersion, idempotencyKey: idempotencyKey(req) },
+      );
+      return res.json({ success: true, data: result });
     } catch (commandError) {
       return sendError(res, commandError);
     }
@@ -165,23 +153,6 @@ export const groupCommitteeController = {
         membershipId: routeUuid(
           req.params.membershipId, 'GROUP_COMMITTEE_MEMBERSHIP_ID_INVALID',
         ),
-        reasonCode: value.reasonCode,
-        idempotencyKey: idempotencyKey(req),
-      });
-      return res.json({ success: true, data: result });
-    } catch (commandError) {
-      return sendError(res, commandError);
-    }
-  },
-
-  async dissolveCommittee(req: TenantRequest, res: Response) {
-    const { error, value } = reasonSchema.validate(req.body, {
-      abortEarly: false, stripUnknown: true,
-    });
-    if (error) return res.status(400).json({ error: error.message });
-    try {
-      const result = await groupCommitteeService.dissolveCommittee(context(req), {
-        committeeId: routeUuid(req.params.committeeId, 'GROUP_COMMITTEE_ID_INVALID'),
         reasonCode: value.reasonCode,
         idempotencyKey: idempotencyKey(req),
       });
