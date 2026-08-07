@@ -102,13 +102,11 @@ BEGIN
   ) IS NULL THEN RAISE EXCEPTION 'group office lifecycle functions are missing';
   END IF;
   IF to_regprocedure(
-    'public.create_group_committee(uuid,uuid,uuid,text,text,text,text[],bigint,text,text,timestamp with time zone,uuid,timestamp with time zone)'
+    'public.execute_group_committee_proposal(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)'
   ) IS NULL OR to_regprocedure(
     'public.add_group_committee_member(uuid,uuid,uuid,uuid,uuid,text,uuid,timestamp with time zone)'
   ) IS NULL OR to_regprocedure(
     'public.end_group_committee_membership(uuid,uuid,uuid,uuid,text,uuid,timestamp with time zone)'
-  ) IS NULL OR to_regprocedure(
-    'public.dissolve_group_committee(uuid,uuid,uuid,uuid,text,uuid,timestamp with time zone)'
   ) IS NULL THEN RAISE EXCEPTION 'group committee functions are missing';
   END IF;
   IF to_regprocedure(
