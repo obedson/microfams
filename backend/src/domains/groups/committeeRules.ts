@@ -16,6 +16,111 @@ export type GroupMeetingType = typeof GROUP_MEETING_TYPES[number];
 export type GroupAttendanceStatus = typeof GROUP_ATTENDANCE_STATUSES[number];
 export type GroupCommitteePermission = typeof GROUP_COMMITTEE_DELEGABLE_PERMISSIONS[number];
 
+export const GROUP_COMMITTEE_PROPOSAL_ACTIONS = ['create', 'amend', 'dissolve'] as const;
+export type GroupCommitteeProposalAction = typeof GROUP_COMMITTEE_PROPOSAL_ACTIONS[number];
+
+const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const committeeKeyPattern = /^[a-z][a-z0-9_]{1,47}$/;
+const reasonCodePattern = /^[A-Z][A-Z0-9_]{2,63}$/;
+
+const record = (value: unknown) => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new Error('GROUP_COMMITTEE_PROPOSAL_PAYLOAD_INVALID');
+  }
+  return value as Record<string, unknown>;
+};
+
+const optionalText = (value: unknown, code: string, max: number) => {
+  if (value === undefined || value === null || value === '') return null;
+  if (typeof value !== 'string' || value.length > max) throw new Error(code);
+  return value;
+};
+
+const optionalDate = (value: unknown) => {
+  if (value === undefined || value === null || value === '') return null;
+  if (typeof value !== 'string') throw new Error('GROUP_COMMITTEE_PROPOSAL_PAYLOAD_INVALID');
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    throw new Error('GROUP_COMMITTEE_PROPOSAL_PAYLOAD_INVALID');
+  }
+  return date.toISOString();
+};
+
+// Mirrors normalizeOfficeProposalPayload: the proposal stores the database
+// contract, so a committee mandate is fixed at proposal time and cannot be
+// reshaped between approval and execution.
+export const normalizeCommitteeProposalPayload = (
+  proposalType: string,
+  payload: unknown,
+): Record<string, unknown> => {
+  if (proposalType !== 'committee_mandate') return record(payload);
+  const value = record(payload);
+  const action = value.action;
+  if (typeof action !== 'string'
+    || !GROUP_COMMITTEE_PROPOSAL_ACTIONS.includes(action as GroupCommitteeProposalAction)) {
+    throw new Error('GROUP_COMMITTEE_PROPOSAL_PAYLOAD_INVALID');
+  }
+
+  if (action === 'create') {
+    const committeeKey = value.committeeKey ?? value.committee_key;
+    const displayName = value.displayName ?? value.display_name;
+    const mandate = value.mandate;
+    if (typeof committeeKey !== 'string' || !committeeKeyPattern.test(committeeKey)
+      || typeof displayName !== 'string' || !displayName.length || displayName.length > 200
+      || typeof mandate !== 'string' || !mandate.length || mandate.length > 5000) {
+      throw new Error('GROUP_COMMITTEE_PROPOSAL_PAYLOAD_INVALID');
+    }
+    const ceiling = normalizeSpendingCeiling(
+      value.spendingCeilingMinorUnits ?? value.spending_ceiling_minor_units,
+      value.spendingCeilingCurrency ?? value.spending_ceiling_currency,
+    );
+    return {
+      action,
+      committee_key: committeeKey,
+      display_name: displayName,
+      mandate,
+      delegated_permissions: normalizeCommitteePermissions(
+        value.delegatedPermissions ?? value.delegated_permissions,
+      ),
+      spending_ceiling_minor_units: ceiling.minorUnits === null
+        ? null : String(ceiling.minorUnits),
+      spending_ceiling_currency: ceiling.currency,
+      reporting_duties: optionalText(
+        value.reportingDuties ?? value.reporting_duties,
+        'GROUP_COMMITTEE_PROPOSAL_PAYLOAD_INVALID', 2000,
+      ),
+      term_ends_at: optionalDate(value.termEndsAt ?? value.term_ends_at),
+    };
+  }
+
+  const committeeId = value.committeeId ?? value.committee_id;
+  if (typeof committeeId !== 'string' || !uuidPattern.test(committeeId)) {
+    throw new Error('GROUP_COMMITTEE_PROPOSAL_PAYLOAD_INVALID');
+  }
+  if (action === 'dissolve') {
+    const reason = value.reasonCode ?? value.reason_code;
+    if (typeof reason !== 'string' || !reasonCodePattern.test(reason)) {
+      throw new Error('GROUP_COMMITTEE_PROPOSAL_PAYLOAD_INVALID');
+    }
+    return { action, committee_id: committeeId, reason_code: reason };
+  }
+
+  const ceiling = normalizeSpendingCeiling(
+    value.spendingCeilingMinorUnits ?? value.spending_ceiling_minor_units,
+    value.spendingCeilingCurrency ?? value.spending_ceiling_currency,
+  );
+  return {
+    action,
+    committee_id: committeeId,
+    delegated_permissions: normalizeCommitteePermissions(
+      value.delegatedPermissions ?? value.delegated_permissions,
+    ),
+    spending_ceiling_minor_units: ceiling.minorUnits === null
+      ? null : String(ceiling.minorUnits),
+    spending_ceiling_currency: ceiling.currency,
+  };
+};
+
 export interface QuorumInput {
   presentCount: number;
   eligibleCount: number;

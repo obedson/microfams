@@ -4,10 +4,9 @@ import { groupCommitteeService } from '../services/groupCommitteeService.js';
 
 jest.mock('../services/groupCommitteeService.js', () => ({
   groupCommitteeService: {
-    createCommittee: jest.fn(),
+    executeCommitteeProposal: jest.fn(),
     addMember: jest.fn(),
     endMembership: jest.fn(),
-    dissolveCommittee: jest.fn(),
     scheduleMeeting: jest.fn(),
     recordAttendance: jest.fn(),
     holdMeeting: jest.fn(),
@@ -46,70 +45,40 @@ const request = (overrides: Record<string, unknown> = {}) => ({
 describe('group committee and meeting API', () => {
   beforeEach(() => jest.clearAllMocks());
 
-  it('creates a committee under resolved tenant and actor context', async () => {
-    (groupCommitteeService.createCommittee as jest.Mock)
-      .mockResolvedValue({ committeeId } as never);
+  it('executes an approved committee mandate proposal in resolved tenant context', async () => {
+    (groupCommitteeService.executeCommitteeProposal as jest.Mock)
+      .mockResolvedValue({ id: committeeId, state: 'executed' } as never);
     const res = response();
-    await groupCommitteeController.createCommittee(request({
-      body: {
-        committeeKey: 'finance',
-        displayName: 'Finance Committee',
-        mandate: 'Review and recommend treasury activity.',
-        delegatedPermissions: ['groups.committee.recommend'],
-        organizationId: 'attacker',
-        actorId: 'attacker',
-      },
+    await groupCommitteeController.executeCommitteeProposal(request({
+      params: { id: groupId, proposalId: committeeId },
+      body: { expectedVersion: 3, organizationId: 'attacker', actorId: 'attacker' },
     }) as any, res);
-    expect(groupCommitteeService.createCommittee).toHaveBeenCalledWith(
-      { organizationId, groupId, actorId },
-      expect.objectContaining({
-        committeeKey: 'finance',
-        idempotencyKey: 'committee-command-001',
-      }),
+    expect(groupCommitteeService.executeCommitteeProposal).toHaveBeenCalledWith(
+      { organizationId, groupId, actorId }, committeeId,
+      { expectedVersion: 3, idempotencyKey: 'committee-command-001' },
     );
-    expect(res.status).toHaveBeenCalledWith(201);
   });
 
-  it('refuses a permission the group cannot delegate to a committee', async () => {
+  it('maps a stale committee proposal version to 409', async () => {
+    (groupCommitteeService.executeCommitteeProposal as jest.Mock)
+      .mockRejectedValue(new Error('GROUP_PROPOSAL_VERSION_CONFLICT') as never);
     const res = response();
-    await groupCommitteeController.createCommittee(request({
-      body: {
-        committeeKey: 'finance',
-        displayName: 'Finance Committee',
-        mandate: 'Attempt to seize governance rights.',
-        delegatedPermissions: ['groups.governance.manage'],
-      },
+    await groupCommitteeController.executeCommitteeProposal(request({
+      params: { id: groupId, proposalId: committeeId },
+      body: { expectedVersion: 2 },
     }) as any, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(groupCommitteeService.createCommittee).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(409);
   });
 
-  it('rejects a spending ceiling amount supplied without its currency', async () => {
+  it('requires idempotency before a committee proposal execution reaches persistence', async () => {
     const res = response();
-    await groupCommitteeController.createCommittee(request({
-      body: {
-        committeeKey: 'finance',
-        displayName: 'Finance Committee',
-        mandate: 'Review treasury activity.',
-        spendingCeilingMinorUnits: 500000,
-      },
-    }) as any, res);
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(groupCommitteeService.createCommittee).not.toHaveBeenCalled();
-  });
-
-  it('requires idempotency before a committee reaches persistence', async () => {
-    const res = response();
-    await groupCommitteeController.createCommittee(request({
-      body: {
-        committeeKey: 'finance',
-        displayName: 'Finance Committee',
-        mandate: 'Review treasury activity.',
-      },
+    await groupCommitteeController.executeCommitteeProposal(request({
+      params: { id: groupId, proposalId: committeeId },
+      body: { expectedVersion: 3 },
       header: () => undefined,
     }) as any, res);
     expect(res.status).toHaveBeenCalledWith(400);
-    expect(groupCommitteeService.createCommittee).not.toHaveBeenCalled();
+    expect(groupCommitteeService.executeCommitteeProposal).not.toHaveBeenCalled();
   });
 
   it('adds a committee member without trusting body-supplied context', async () => {

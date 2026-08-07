@@ -120,16 +120,13 @@ router.get(
   requireFeature('groups.governance.manage'), groupCommitteeController.getOverview,
 );
 router.post(
-  '/:id/committees', committeeCommandLimiter,
-  requireFeature('groups.governance.manage'), groupCommitteeController.createCommittee,
+  '/:id/proposals/:proposalId/committee-execution', committeeCommandLimiter,
+  requireFeature('groups.governance.manage'),
+  groupCommitteeController.executeCommitteeProposal,
 );
 router.post(
   '/:id/committees/:committeeId/members', committeeCommandLimiter,
   requireFeature('groups.governance.manage'), groupCommitteeController.addMember,
-);
-router.post(
-  '/:id/committees/:committeeId/dissolve', committeeCommandLimiter,
-  requireFeature('groups.governance.manage'), groupCommitteeController.dissolveCommittee,
 );
 router.post(
   '/:id/committee-memberships/:membershipId/end', committeeCommandLimiter,

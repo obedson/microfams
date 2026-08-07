@@ -22,41 +22,23 @@ const correlationId = (context: GroupCommitteeContext, command: string, key: str
 };
 
 export class GroupCommitteeService {
-  async createCommittee(
+  async executeCommitteeProposal(
     context: GroupCommitteeContext,
-    input: {
-      committeeKey: string;
-      displayName: string;
-      mandate: string;
-      delegatedPermissions?: unknown;
-      spendingCeilingMinorUnits?: number | null;
-      spendingCeilingCurrency?: string | null;
-      reportingDuties?: string | null;
-      termEndsAt?: string | null;
-      idempotencyKey: string;
-    },
+    proposalId: string,
+    input: { expectedVersion: number; idempotencyKey: string },
   ) {
-    const ceiling = normalizeSpendingCeiling(
-      input.spendingCeilingMinorUnits, input.spendingCeilingCurrency,
-    );
-    const { data, error } = await supabase.rpc('create_group_committee', {
+    const { data, error } = await supabase.rpc('execute_group_committee_proposal', {
       p_organization_id: context.organizationId,
       p_group_id: context.groupId,
       p_actor_id: context.actorId,
-      p_committee_key: input.committeeKey,
-      p_display_name: input.displayName,
-      p_mandate: input.mandate,
-      p_delegated_permissions: normalizeCommitteePermissions(input.delegatedPermissions),
-      p_spending_ceiling_minor_units: ceiling.minorUnits,
-      p_spending_ceiling_currency: ceiling.currency,
-      p_reporting_duties: input.reportingDuties ?? null,
-      p_term_ends_at: input.termEndsAt ?? null,
+      p_proposal_id: proposalId,
+      p_expected_version: input.expectedVersion,
       p_correlation_id: correlationId(
-        context, `committee:${input.committeeKey}`, input.idempotencyKey,
+        context, `committee-proposal:${proposalId}`, input.idempotencyKey,
       ),
     });
     if (error) throw error;
-    return { committeeId: data };
+    return data;
   }
 
   async addMember(
@@ -99,24 +81,6 @@ export class GroupCommitteeService {
     });
     if (error) throw error;
     return { membershipId: data };
-  }
-
-  async dissolveCommittee(
-    context: GroupCommitteeContext,
-    input: { committeeId: string; reasonCode: string; idempotencyKey: string },
-  ) {
-    const { data, error } = await supabase.rpc('dissolve_group_committee', {
-      p_organization_id: context.organizationId,
-      p_group_id: context.groupId,
-      p_actor_id: context.actorId,
-      p_committee_id: input.committeeId,
-      p_reason_code: input.reasonCode,
-      p_correlation_id: correlationId(
-        context, `committee:${input.committeeId}:dissolve`, input.idempotencyKey,
-      ),
-    });
-    if (error) throw error;
-    return { committeeId: data };
   }
 
   async scheduleMeeting(
