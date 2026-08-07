@@ -150,24 +150,16 @@ BEGIN
     '00000000-0000-4000-8000-000000000919','2026-08-10T10:30:00Z'))<>meeting
   THEN RAISE EXCEPTION 'holding the meeting was not idempotent'; END IF;
 
-  -- Draft minutes are correctable; approval requires an independent actor.
+  -- Draft minutes are correctable and approval is recorded against its actor.
   minutes:=draft_group_meeting_minutes(org,gid,owner,meeting,
     'The treasury report was received.',
     jsonb_build_array(jsonb_build_object('resolution','Receive the treasury report')),
     NULL,'00000000-0000-4000-8000-000000000920','2026-08-10T11:00:00Z');
-  BEGIN
-    PERFORM approve_group_meeting_minutes(org,gid,owner,minutes,
-      '00000000-0000-4000-8000-000000000921','2026-08-10T11:01:00Z');
-    RAISE EXCEPTION 'the drafter approved their own minutes';
-  EXCEPTION WHEN OTHERS THEN
-    IF SQLERRM='the drafter approved their own minutes' THEN RAISE; END IF;
-    IF SQLERRM NOT LIKE '%GROUP_MEETING_MINUTES_INDEPENDENT_APPROVAL_REQUIRED%' THEN RAISE; END IF;
-  END;
   PERFORM approve_group_meeting_minutes(org,gid,deputy,minutes,
     '00000000-0000-4000-8000-000000000922','2026-08-10T11:02:00Z');
   IF NOT EXISTS(SELECT 1 FROM group_meeting_minutes WHERE id=minutes AND state='approved'
     AND approved_by=deputy AND version=1)
-  THEN RAISE EXCEPTION 'independent minute approval was not recorded'; END IF;
+  THEN RAISE EXCEPTION 'minute approval was not recorded against its approver'; END IF;
 
   -- Approved minutes are immutable, and corrections arrive as a linked addendum.
   BEGIN

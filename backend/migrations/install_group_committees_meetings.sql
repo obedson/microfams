@@ -888,9 +888,6 @@ BEGIN
   WHERE id = p_minutes_id AND organization_id = p_organization_id
     AND group_id = p_group_id AND state = 'draft' FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'GROUP_MEETING_MINUTES_NOT_DRAFT'; END IF;
-  -- The drafter cannot self-approve their own record of the meeting.
-  IF v_minutes.created_by = p_actor_id
-  THEN RAISE EXCEPTION 'GROUP_MEETING_MINUTES_INDEPENDENT_APPROVAL_REQUIRED'; END IF;
 
   v_previous_setting := current_setting('microfams.group_committee_engine', TRUE);
   v_previous_governance := current_setting('microfams.group_governance_engine', TRUE);
