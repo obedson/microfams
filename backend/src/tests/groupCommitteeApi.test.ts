@@ -221,9 +221,9 @@ describe('group committee and meeting API', () => {
     expect(res.status).toHaveBeenCalledWith(201);
   });
 
-  it('maps self-approval of minutes to 409', async () => {
+  it('maps a non-draft minute approval to 409', async () => {
     (groupCommitteeService.approveMinutes as jest.Mock).mockRejectedValue(
-      new Error('GROUP_MEETING_MINUTES_INDEPENDENT_APPROVAL_REQUIRED') as never,
+      new Error('GROUP_MEETING_MINUTES_NOT_DRAFT') as never,
     );
     const res = response();
     await groupCommitteeController.approveMinutes(request({
