@@ -84,3 +84,6 @@ install_group_proposals_voting.sql
 install_group_admission_payments.sql
 install_group_member_discipline_appeals.sql
 install_group_office_lifecycle.sql
+install_group_contributions.sql
+install_group_contribution_cycles.sql
+install_group_treasury_disbursements.sql

@@ -65,7 +65,9 @@ BEGIN
       'group_legacy_reviews','group_proposals','group_voting_snapshots',
       'group_voter_snapshot_members','group_vote_history','group_proposal_events',
       'group_entry_requirement_versions','group_entry_requirement_events',
-      'group_membership_payment_allocations'
+      'group_membership_payment_allocations','group_contribution_products',
+      'group_contribution_rule_versions','group_contribution_adjustment_rules',
+      'group_contribution_allocations','group_contribution_events'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -98,6 +100,14 @@ BEGIN
   ) IS NULL OR to_regprocedure(
     'public.service_expired_group_offices(uuid,uuid,uuid,uuid,timestamp with time zone)'
   ) IS NULL THEN RAISE EXCEPTION 'group office lifecycle functions are missing';
+  END IF;
+  IF to_regprocedure(
+    'public.execute_group_contribution_rule_proposal(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.allocate_group_contribution_payment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.reverse_group_contribution_allocation(uuid,uuid,timestamp with time zone)'
+  ) IS NULL THEN RAISE EXCEPTION 'group contribution functions are missing';
   END IF;
 END $$;
 
@@ -371,6 +381,15 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-group-office-lifecycle.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-group-contributions.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-group-contribution-cycles.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-group-treasury-disbursements.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"
