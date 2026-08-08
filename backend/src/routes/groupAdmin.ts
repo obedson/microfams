@@ -11,6 +11,7 @@ import { groupAdmissionController } from '../controllers/groupAdmissionControlle
 import { groupDisciplineController } from '../controllers/groupDisciplineController.js';
 import { groupContributionController } from '../controllers/groupContributionController.js';
 import { groupContributionCycleController } from '../controllers/groupContributionCycleController.js';
+import { groupTreasuryController } from '../controllers/groupTreasuryController.js';
 
 const router = Router();
 const invitationCommandLimiter = rateLimit({
@@ -27,6 +28,11 @@ const contributionCommandLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 30,
   message: { error: 'GROUP_CONTRIBUTION_RATE_LIMITED' },
+});
+const treasuryCommandLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: { error: 'GROUP_TREASURY_RATE_LIMITED' },
 });
 
 router.use(authenticateToken as any);
@@ -126,6 +132,56 @@ router.post(
   requireFeature('groups.contributions.service_existing'),
   requireFeature('groups.governance.manage'),
   groupContributionCycleController.cancelCycle,
+);
+// Treasury: reads are a membership right. A member funds the treasury, so a
+// member must be able to see what it holds, what is committed, and where it went.
+router.get('/:id/treasury/available', groupTreasuryController.getAvailable);
+router.get('/:id/treasury/budgets', groupTreasuryController.listBudgets);
+router.get('/:id/treasury/disbursements', groupTreasuryController.listDisbursements);
+router.get(
+  '/:id/treasury/disbursements/:disbursementId', groupTreasuryController.getDisbursement,
+);
+router.get('/:id/treasury/reservations', groupTreasuryController.listReservations);
+// Activating a budget and requesting a spend create new exposure, so both are
+// gated on acquisition as well as governance.
+router.post(
+  '/:id/treasury/budgets/:budgetId/activate', treasuryCommandLimiter,
+  requireFeature('groups.treasury.create_disbursement'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.activateBudget,
+);
+router.post(
+  '/:id/treasury/disbursements', treasuryCommandLimiter,
+  requireFeature('groups.treasury.create_disbursement'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.requestDisbursement,
+);
+// Approving, executing, releasing, and reversing are servicing: they must stay
+// available when acquisition is switched off, or funds reserved before the
+// switch could never be paid out or returned to the available pool.
+router.post(
+  '/:id/treasury/disbursements/:disbursementId/approve', treasuryCommandLimiter,
+  requireFeature('groups.treasury.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.approveDisbursement,
+);
+router.post(
+  '/:id/treasury/disbursements/:disbursementId/execute', treasuryCommandLimiter,
+  requireFeature('groups.treasury.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.executeDisbursement,
+);
+router.post(
+  '/:id/treasury/disbursements/:disbursementId/release', treasuryCommandLimiter,
+  requireFeature('groups.treasury.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.releaseReservation,
+);
+router.post(
+  '/:id/treasury/disbursements/:disbursementId/reverse', treasuryCommandLimiter,
+  requireFeature('groups.treasury.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.reverseDisbursement,
 );
 router.get('/:id/entry-requirements/current', requireFeature('groups.membership.manage'), groupAdmissionController.getCurrentRequirements);
 router.post('/:id/entry-requirements/initial', proposalCommandLimiter, requireFeature('groups.membership.manage'), groupAdmissionController.adoptInitial);
