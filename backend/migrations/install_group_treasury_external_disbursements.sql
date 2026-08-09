@@ -281,6 +281,32 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_group_treasury_disbursement_payout
 --
 -- Reuses protect_group_treasury_evidence(): both tables are writable only while
 -- microfams.group_treasury_engine = 'on', which the functions below set.
+--
+-- The GT-06A body carried the budget-draft carve-out as a flat
+-- `TG_TABLE_NAME = 'group_treasury_budgets' AND ... AND OLD.state = 'draft'`.
+-- Postgres resolves OLD.state against the triggering table's row type at plan
+-- time, before the AND can short-circuit. group_treasury_late_payout_exceptions
+-- has no state column, so on the refusal path (engine off) the flat form raises
+-- an internal "record old has no field state" instead of the clean
+-- GROUP_TREASURY_ENGINE_REQUIRED. Nesting the OLD.state test so it is only
+-- planned for the budgets table restores the intended refusal for every locked
+-- table regardless of its columns; the engine-on early return is unchanged.
+CREATE OR REPLACE FUNCTION protect_group_treasury_evidence() RETURNS TRIGGER
+LANGUAGE plpgsql SET search_path = public AS $$
+BEGIN
+  IF current_setting('microfams.group_treasury_engine', TRUE) = 'on' THEN
+    RETURN CASE WHEN TG_OP = 'DELETE' THEN OLD ELSE NEW END;
+  END IF;
+  -- A budget is still editable while it is a draft; once active it is governed.
+  IF TG_TABLE_NAME = 'group_treasury_budgets' AND TG_OP = 'UPDATE' THEN
+    IF OLD.state = 'draft' THEN
+      RETURN NEW;
+    END IF;
+  END IF;
+  RAISE EXCEPTION 'GROUP_TREASURY_ENGINE_REQUIRED';
+END;
+$$;
+
 -- ---------------------------------------------------------------------------
 DROP TRIGGER IF EXISTS protect_group_treasury_beneficiaries
   ON group_treasury_beneficiaries;
