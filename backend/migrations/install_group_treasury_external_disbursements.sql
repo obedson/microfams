@@ -329,6 +329,10 @@ CREATE TRIGGER protect_group_treasury_late_payout_exceptions
 -- group_treasury_available_minor derives stays correct after the debit; this
 -- clearing asset is reconciled against provider settlement, not read as a
 -- treasury balance.
+--
+-- financial_accounts.code is capped at 40 chars. The 16-char group key leaves
+-- 17 for the suffix after 'GROUP.' and the separating dot, so the account is
+-- coded EXT_PAYOUT_CLEAR (the descriptive name carries the full wording).
 -- ---------------------------------------------------------------------------
 CREATE OR REPLACE FUNCTION group_treasury_external_clearing_account_id(
   p_organization_id UUID, p_group_id UUID
@@ -339,7 +343,7 @@ DECLARE v_group_key TEXT;
 BEGIN
   v_group_key := upper(substr(md5(p_group_id::TEXT), 1, 16));
   RETURN ensure_wallet_system_account(
-    p_organization_id, 'GROUP.' || v_group_key || '.EXTERNAL_PAYOUT_CLEARING',
+    p_organization_id, 'GROUP.' || v_group_key || '.EXT_PAYOUT_CLEAR',
     'Group treasury external payout provider clearing', 'asset', 'debit'
   );
 END;
