@@ -144,6 +144,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add GT-05A dated contribution cycles pinned to one immutable rule version, per-member obligations generated from the opening eligibility snapshot, evidenced adjustments that preserve the original amount, excess parked for explicit disposition, journal-derived dashboards, and accounting-period-gated immutable close.
   - [x] Add GT-06A budget-capped internal disbursements with journal-derived available funds, atomic approve-and-reserve, enforced maker/checker/beneficiary separation backed by a chair approval permission, disclosed low-value bands recorded whole, execution that revalidates the approval snapshot, and exactly-once reservation consume or release.
   - [ ] Add GT-06B external provider disbursements, provider timeout and reconciliation recovery, and disclosed emergency expenditure with mandatory ratification.
+  - [x] Add GT-09 proposal-executed committee mandates traceable to the authorizing vote, effective-dated committee membership with a single sitting chair, notice-validated meetings with snapshot-based quorum, attendance records that confer no approval, and immutable approved minutes corrected only by linked addenda.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education

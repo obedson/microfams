@@ -87,3 +87,4 @@ install_group_office_lifecycle.sql
 install_group_contributions.sql
 install_group_contribution_cycles.sql
 install_group_treasury_disbursements.sql
+install_group_committees_meetings.sql
