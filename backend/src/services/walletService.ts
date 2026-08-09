@@ -749,7 +749,7 @@ export class WalletService {
     // Notify Admin
     const { data: group } = await supabase.from('groups').select('creator_id, name').eq('id', groupAccount.group_id).single();
     if (group) {
-      this.sendWalletNotification(group.creator_id, `Group fund ${group.name} was credited with ${formatNgnMinor(amountMinor)}.`);
+      await this.sendWalletNotification(group.creator_id, `Group fund ${group.name} was credited with ${formatNgnMinor(amountMinor)}.`);
     }
   }
 
@@ -758,7 +758,7 @@ export class WalletService {
       const { data: user } = await supabase.from('users').select('email, name').eq('id', userId).single();
       if (!user) return;
 
-      // In-app notification placeholder
+      // Persist the in-app notification independently before attempting email delivery.
       await supabase.from('notifications').insert({
         user_id: userId,
         title: 'Wallet Update',

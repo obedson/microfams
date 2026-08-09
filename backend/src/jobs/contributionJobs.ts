@@ -4,7 +4,7 @@ import supabase from '../utils/supabase.js';
 import { sendPaymentReminder, sendOverdueNotice } from '../services/notificationService.js';
 
 // Run on 1st of each month at 00:00
-export const createMonthlyCycles = cron.schedule('0 0 1 * *', async () => {
+export const createMonthlyCycles = cron.createTask('0 0 1 * *', async () => {
   console.log('Creating monthly contribution cycles...');
   
   try {
@@ -27,12 +27,10 @@ export const createMonthlyCycles = cron.schedule('0 0 1 * *', async () => {
   } catch (error) {
     console.error('Error creating monthly cycles:', error);
   }
-}, {
-  scheduled: false
 });
 
 // Run daily at 09:00
-export const checkOverduePayments = cron.schedule('0 9 * * *', async () => {
+export const checkOverduePayments = cron.createTask('0 9 * * *', async () => {
   console.log('Checking overdue payments...');
   
   try {
@@ -99,12 +97,10 @@ export const checkOverduePayments = cron.schedule('0 9 * * *', async () => {
   } catch (error) {
     console.error('Error checking overdue payments:', error);
   }
-}, {
-  scheduled: false
 });
 
 // Run daily at 08:00 - Send reminders 3 days before deadline
-export const sendPaymentReminders = cron.schedule('0 8 * * *', async () => {
+export const sendPaymentReminders = cron.createTask('0 8 * * *', async () => {
   console.log('Sending payment reminders...');
   
   try {
@@ -133,8 +129,6 @@ export const sendPaymentReminders = cron.schedule('0 8 * * *', async () => {
   } catch (error) {
     console.error('Error sending payment reminders:', error);
   }
-}, {
-  scheduled: false
 });
 
 export const startCronJobs = () => {

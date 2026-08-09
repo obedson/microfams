@@ -17,10 +17,11 @@
     "react-dom": "^18.2.0",
     "react-hook-form": "7.48.2",
     "react-hot-toast": "^2.6.0",
-    "react-router-dom": "^6.8.1",
+    "react-router-dom": "^7.18.2",
     "zustand": "^4.4.7"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@testing-library/jest-dom": "^6.1.4",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^14.5.1",
@@ -38,7 +39,8 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "typecheck": "tsc --noEmit",
-    "test:ci": "react-scripts test --watchAll=false --runInBand"
+    "test:ci": "react-scripts test --watchAll=false --runInBand",
+    "test:e2e": "playwright test"
   },
   "browserslist": {
     "production": [

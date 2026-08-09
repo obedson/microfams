@@ -7,6 +7,46 @@ export class SecurityService {
   private static readonly ENCRYPTION_ALGORITHM = 'aes-256-cbc';
   private static readonly KEY = crypto.scryptSync(process.env.JWT_SECRET || 'fallback-secret', 'salt', 32);
 
+  private static encodeBase32(value: Buffer): string {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    let bits = '';
+    for (const byte of value) bits += byte.toString(2).padStart(8, '0');
+    let encoded = '';
+    for (let offset = 0; offset < bits.length; offset += 5) {
+      encoded += alphabet[parseInt(bits.slice(offset, offset + 5).padEnd(5, '0'), 2)];
+    }
+    return encoded;
+  }
+
+  private static decodeBase32(value: string): Buffer {
+    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+    const normalized = value.toUpperCase().replace(/=+$/u, '');
+    if (!normalized || !/^[A-Z2-7]+$/u.test(normalized)) {
+      throw new Error('MFA secret is not valid base32');
+    }
+    let bits = '';
+    for (const character of normalized) {
+      bits += alphabet.indexOf(character).toString(2).padStart(5, '0');
+    }
+    const bytes: number[] = [];
+    for (let offset = 0; offset + 8 <= bits.length; offset += 8) {
+      bytes.push(parseInt(bits.slice(offset, offset + 8), 2));
+    }
+    return Buffer.from(bytes);
+  }
+
+  private static totpAt(secret: string, timestampMs: number): string {
+    const counter = Math.floor(timestampMs / 30_000);
+    const counterBytes = Buffer.alloc(8);
+    counterBytes.writeBigUInt64BE(BigInt(counter));
+    const digest = crypto.createHmac('sha1', this.decodeBase32(secret))
+      .update(counterBytes)
+      .digest();
+    const offset = digest[digest.length - 1] & 0x0f;
+    const binary = (digest.readUInt32BE(offset) & 0x7fffffff) % 1_000_000;
+    return binary.toString().padStart(6, '0');
+  }
+
   /**
    * Encrypt sensitive data
    */
@@ -39,8 +79,10 @@ export class SecurityService {
    * Generate MFA secret and QR code
    */
   static async generateMFASecret(userId: string, email: string) {
-    const secret = crypto.randomBytes(20).toString('hex');
-    const otpauthUrl = `otpauth://totp/Micro Fams:${email}?secret=${secret}&issuer=Micro Fams`;
+    const secret = this.encodeBase32(crypto.randomBytes(20));
+    const label = encodeURIComponent(`Micro Fams:${email}`);
+    const issuer = encodeURIComponent('Micro Fams');
+    const otpauthUrl = `otpauth://totp/${label}?secret=${secret}&issuer=${issuer}&algorithm=SHA1&digits=6&period=30`;
     
     const qrCodeDataUrl = await QRCode.toDataURL(otpauthUrl);
     
@@ -59,16 +101,25 @@ export class SecurityService {
   }
 
   /**
-   * Simple TOTP Verification (Manual implementation of basic TOTP)
-   * In production, a library like 'speakeasy' is preferred.
+   * RFC 6238 TOTP verification with one time-step of clock drift by default.
    */
-  static verifyTOTP(secret: string, token: string): boolean {
-    // This is a placeholder for actual TOTP verification logic
-    // For this implementation, we'll accept a special bypass in test mode
-    if (process.env.NODE_ENV === 'test' && token === '123456') return true;
-    
-    // Real implementation would involve hmac-sha1 of the time counter
-    return false; 
+  static verifyTOTP(
+    secret: string,
+    token: string,
+    timestampMs = Date.now(),
+    window = 1,
+  ): boolean {
+    if (!/^\d{6}$/u.test(token) || !Number.isInteger(window) || window < 0 || window > 2) return false;
+    try {
+      const supplied = Buffer.from(token, 'utf8');
+      for (let drift = -window; drift <= window; drift += 1) {
+        const expected = Buffer.from(this.totpAt(secret, timestampMs + drift * 30_000), 'utf8');
+        if (crypto.timingSafeEqual(supplied, expected)) return true;
+      }
+    } catch {
+      return false;
+    }
+    return false;
   }
 
   /**
