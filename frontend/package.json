@@ -42,6 +42,11 @@
     "test:ci": "react-scripts test --watchAll=false --runInBand",
     "test:e2e": "playwright test"
   },
+  "jest": {
+    "moduleNameMapper": {
+      "^react-router/dom$": "<rootDir>/node_modules/react-router/dist/development/dom-export.js"
+    }
+  },
   "browserslist": {
     "production": [
       ">0.2%",
