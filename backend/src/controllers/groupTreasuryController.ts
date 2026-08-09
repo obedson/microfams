@@ -50,9 +50,48 @@ const reasonSchema = Joi.object({
 
 const listSchema = Joi.object({
   state: Joi.string().valid(
-    'requested', 'approved', 'executed', 'rejected', 'cancelled', 'expired', 'reversed',
+    'requested', 'approved', 'disbursing', 'executed',
+    'rejected', 'cancelled', 'expired', 'failed', 'reversed',
   ),
   budgetId: Joi.string().uuid(),
+});
+
+// GT-06B: an external disbursement names a verified beneficiary in place of an
+// on-platform member, group, or project. The beneficiary reference is the only
+// destination the engine will pay, so nothing else about the destination is
+// accepted here.
+const externalRequestSchema = Joi.object({
+  budgetId: Joi.string().uuid().required(),
+  proposalId: Joi.string().uuid().required(),
+  externalBeneficiaryId: Joi.string().uuid().required(),
+  amountMinor: Joi.number().integer().min(1).max(100_000_000_000).required(),
+  currency: Joi.string().valid('NGN').required(),
+  purpose: Joi.string().trim().min(8).max(2000).required(),
+  evidenceUri: Joi.string().trim().min(3).max(500).required(),
+  executeFrom: Joi.date().iso().required(),
+  executeUntil: Joi.date().iso().greater(Joi.ref('executeFrom')).required(),
+});
+
+// The registry verifies the account with the provider before it is held, so a
+// registration carries the raw destination once and never again — reads return
+// masks only. The account name is confirmed by the provider but supplied here so
+// a mismatch can be surfaced at registration rather than at payout time.
+const beneficiaryRegisterSchema = Joi.object({
+  beneficiaryUserId: Joi.string().uuid().allow(null),
+  accountNumber: Joi.string().pattern(/^\d{10}$/).required(),
+  bankCode: Joi.string().pattern(/^\d{3,6}$/).required(),
+  accountName: Joi.string().trim().min(2).max(200).required(),
+  currency: Joi.string().valid('NGN').required(),
+});
+
+const beneficiaryApproveSchema = Joi.object({
+  approvalReason: Joi.string().trim().min(10).max(1000).required(),
+});
+
+const beneficiaryListSchema = Joi.object({
+  state: Joi.string().valid(
+    'pending_approval', 'verified', 'retired', 'rejected', 'suspended',
+  ),
 });
 
 // Every state refusal the treasury engine raises is a conflict with the current
@@ -62,6 +101,7 @@ const listSchema = Joi.object({
 const CONFLICT_TOKENS = [
   'CONFLICT', 'MISMATCH', 'IMMUTABLE', 'CHANGED', 'EXCEEDS', 'EXCEEDED',
   'ALREADY', 'INSUFFICIENT', 'NOT_ACTIVE', 'NOT_APPROVED', 'NOT_PENDING',
+  'NOT_VERIFIED', 'NOT_EXTERNAL',
   'NOT_EXECUTED', 'NOT_PERMITTED', 'CEILING', 'WINDOW', 'SELF_APPROVAL',
   'SELF_BENEFICIARY', 'IS_BENEFICIARY', 'IS_SOURCE', 'CANNOT_CHECK',
   'CANNOT_REQUEST', 'MISSING', 'REQUIRED',
@@ -205,6 +245,88 @@ export const groupTreasuryController = {
       const state = typeof req.query.state === 'string' ? req.query.state : undefined;
       const data = await treasuryService.listReservations(context(req), state);
       return res.json({ success: true, data });
+    } catch (error) { return sendError(res, error); }
+  },
+
+  // --- GT-06B external provider disbursements ------------------------------
+
+  async registerBeneficiary(req: TenantRequest, res: Response) {
+    try {
+      const value = validate(beneficiaryRegisterSchema, req.body);
+      const data = await treasuryService.registerBeneficiary(context(req), {
+        ...value,
+        idempotencyKey: idempotencyKey(req),
+      });
+      return res.status(201).json({ success: true, data });
+    } catch (error) { return sendError(res, error); }
+  },
+
+  async approveBeneficiary(req: TenantRequest, res: Response) {
+    try {
+      const beneficiaryId = pathUuid(
+        req.params.beneficiaryId, 'GROUP_TREASURY_BENEFICIARY_ID_INVALID',
+      );
+      const value = validate(beneficiaryApproveSchema, req.body);
+      const data = await treasuryService.approveBeneficiary(
+        context(req), beneficiaryId,
+        { ...value, idempotencyKey: idempotencyKey(req) },
+      );
+      return res.json({ success: true, data });
+    } catch (error) { return sendError(res, error); }
+  },
+
+  async rejectBeneficiary(req: TenantRequest, res: Response) {
+    try {
+      const beneficiaryId = pathUuid(
+        req.params.beneficiaryId, 'GROUP_TREASURY_BENEFICIARY_ID_INVALID',
+      );
+      const data = await treasuryService.rejectBeneficiary(
+        context(req), beneficiaryId, { idempotencyKey: idempotencyKey(req) },
+      );
+      return res.json({ success: true, data });
+    } catch (error) { return sendError(res, error); }
+  },
+
+  async listBeneficiaries(req: TenantRequest, res: Response) {
+    try {
+      const { state } = validate(beneficiaryListSchema, req.query);
+      const data = await treasuryService.listBeneficiaries(context(req), state);
+      return res.json({ success: true, data });
+    } catch (error) { return sendError(res, error); }
+  },
+
+  async requestExternalDisbursement(req: TenantRequest, res: Response) {
+    try {
+      const value = validate(externalRequestSchema, req.body);
+      const result = await treasuryService.requestExternalDisbursement(context(req), {
+        ...value,
+        executeFrom: new Date(value.executeFrom).toISOString(),
+        executeUntil: new Date(value.executeUntil).toISOString(),
+        idempotencyKey: idempotencyKey(req),
+      });
+      return res.status(201).json({ success: true, data: result });
+    } catch (error) { return sendError(res, error); }
+  },
+
+  async beginExternalDisbursement(req: TenantRequest, res: Response) {
+    try {
+      const disbursementId = pathUuid(
+        req.params.disbursementId, 'GROUP_TREASURY_DISBURSEMENT_ID_INVALID',
+      );
+      const result = await treasuryService.beginExternalDisbursement(
+        context(req), disbursementId, { idempotencyKey: idempotencyKey(req) },
+      );
+      return res.json({ success: true, data: result });
+    } catch (error) { return sendError(res, error); }
+  },
+
+  async syncExternalPayout(req: TenantRequest, res: Response) {
+    try {
+      const disbursementId = pathUuid(
+        req.params.disbursementId, 'GROUP_TREASURY_DISBURSEMENT_ID_INVALID',
+      );
+      const result = await treasuryService.syncExternalPayout(context(req), disbursementId);
+      return res.json({ success: true, data: result });
     } catch (error) { return sendError(res, error); }
   },
 };

@@ -184,6 +184,52 @@ router.post(
   requireFeature('groups.governance.manage'),
   groupTreasuryController.reverseDisbursement,
 );
+// GT-06B external provider disbursements. A verified beneficiary is the only
+// off-platform destination the treasury will pay, so its registry sits beside
+// the disbursement commands under the same limiter and gates. Reads stay a
+// membership right — masks only, never the destination — like the balance above.
+router.get('/:id/treasury/beneficiaries', groupTreasuryController.listBeneficiaries);
+// Registering a destination and requesting an external spend both create new
+// exposure, so both are gated on acquisition as well as governance.
+router.post(
+  '/:id/treasury/beneficiaries', treasuryCommandLimiter,
+  requireFeature('groups.treasury.create_disbursement'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.registerBeneficiary,
+);
+router.post(
+  '/:id/treasury/disbursements/external', treasuryCommandLimiter,
+  requireFeature('groups.treasury.create_disbursement'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.requestExternalDisbursement,
+);
+// Verifying, rejecting, beginning, and syncing are servicing: they must remain
+// available when acquisition is switched off, or a destination registered before
+// the switch could never be verified and a payout in flight never reconciled.
+router.post(
+  '/:id/treasury/beneficiaries/:beneficiaryId/approve', treasuryCommandLimiter,
+  requireFeature('groups.treasury.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.approveBeneficiary,
+);
+router.post(
+  '/:id/treasury/beneficiaries/:beneficiaryId/reject', treasuryCommandLimiter,
+  requireFeature('groups.treasury.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.rejectBeneficiary,
+);
+router.post(
+  '/:id/treasury/disbursements/:disbursementId/begin', treasuryCommandLimiter,
+  requireFeature('groups.treasury.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.beginExternalDisbursement,
+);
+router.post(
+  '/:id/treasury/disbursements/:disbursementId/sync', treasuryCommandLimiter,
+  requireFeature('groups.treasury.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryController.syncExternalPayout,
+);
 router.get('/:id/entry-requirements/current', requireFeature('groups.membership.manage'), groupAdmissionController.getCurrentRequirements);
 router.post('/:id/entry-requirements/initial', proposalCommandLimiter, requireFeature('groups.membership.manage'), groupAdmissionController.adoptInitial);
 router.get('/:id/members/:memberId/admission', requireFeature('groups.membership.manage'), groupAdmissionController.getStatus);

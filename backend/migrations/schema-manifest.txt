@@ -88,3 +88,4 @@ install_group_contributions.sql
 install_group_contribution_cycles.sql
 install_group_treasury_disbursements.sql
 install_group_committees_meetings.sql
+install_group_treasury_external_disbursements.sql

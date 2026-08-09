@@ -16,6 +16,13 @@ jest.mock('../services/groupTreasuryDisbursementService.js', () => ({
     listDisbursements: jest.fn(),
     getDisbursement: jest.fn(),
     listReservations: jest.fn(),
+    registerBeneficiary: jest.fn(),
+    approveBeneficiary: jest.fn(),
+    rejectBeneficiary: jest.fn(),
+    listBeneficiaries: jest.fn(),
+    requestExternalDisbursement: jest.fn(),
+    beginExternalDisbursement: jest.fn(),
+    syncExternalPayout: jest.fn(),
   },
 }));
 
@@ -33,6 +40,8 @@ const budgetId = '00000000-0000-4000-8000-000000000504';
 const proposalId = '00000000-0000-4000-8000-000000000505';
 const memberId = '00000000-0000-4000-8000-000000000506';
 const disbursementId = '00000000-0000-4000-8000-000000000507';
+const beneficiaryId = '00000000-0000-4000-8000-000000000508';
+const externalBeneficiaryId = '00000000-0000-4000-8000-000000000509';
 
 const request = (overrides: Record<string, unknown> = {}) => ({
   tenant: { id: organizationId },
@@ -56,6 +65,26 @@ const requestBody = {
   evidenceUri: 'https://evidence.example.test/receipt-1',
   executeFrom: '2026-08-10T00:00:00.000Z',
   executeUntil: '2026-08-17T00:00:00.000Z',
+};
+
+const externalRequestBody = {
+  budgetId,
+  proposalId,
+  externalBeneficiaryId,
+  amountMinor: 250_000,
+  currency: 'NGN',
+  purpose: 'Settle verified supplier invoice',
+  evidenceUri: 'https://evidence.example.test/invoice-9',
+  executeFrom: '2026-08-10T00:00:00.000Z',
+  executeUntil: '2026-08-17T00:00:00.000Z',
+};
+
+const beneficiaryBody = {
+  beneficiaryUserId: null,
+  accountNumber: '0123456789',
+  bankCode: '058',
+  accountName: 'Verified Supplier Ltd',
+  currency: 'NGN',
 };
 
 const service = treasuryService as unknown as Record<string, jest.Mock>;
@@ -212,6 +241,154 @@ describe('group treasury API', () => {
       .toHaveBeenCalledWith({ organizationId, groupId, actorId });
     expect(res.json).toHaveBeenCalledWith({
       success: true, data: { availableMinor: 380_000 },
+    });
+  });
+
+  describe('external provider disbursements', () => {
+    it('registers a verified beneficiary in resolved tenant context', async () => {
+      service.registerBeneficiary.mockResolvedValue({ id: beneficiaryId } as never);
+      const res = response();
+      await groupTreasuryController.registerBeneficiary(request({
+        body: { ...beneficiaryBody, organizationId: 'attacker' },
+      }) as any, res);
+
+      expect(service.registerBeneficiary).toHaveBeenCalledWith(
+        { organizationId, groupId, actorId },
+        expect.objectContaining({
+          accountNumber: '0123456789', bankCode: '058', currency: 'NGN',
+          idempotencyKey: 'treasury-command-001',
+        }),
+      );
+      expect(res.status).toHaveBeenCalledWith(201);
+    });
+
+    it('refuses a malformed NUBAN before it reaches the service', async () => {
+      const res = response();
+      await groupTreasuryController.registerBeneficiary(request({
+        body: { ...beneficiaryBody, accountNumber: '123' },
+      }) as any, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(service.registerBeneficiary).not.toHaveBeenCalled();
+    });
+
+    it('requires an approval reason to verify a beneficiary', async () => {
+      const res = response();
+      await groupTreasuryController.approveBeneficiary(request({
+        params: { id: groupId, beneficiaryId },
+        body: { approvalReason: 'too short' },
+      }) as any, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(service.approveBeneficiary).not.toHaveBeenCalled();
+    });
+
+    it('maps a maker-cannot-check beneficiary refusal to 409', async () => {
+      service.approveBeneficiary.mockRejectedValue(
+        new Error('GROUP_TREASURY_BENEFICIARY_MAKER_CANNOT_CHECK') as never,
+      );
+      const res = response();
+      await groupTreasuryController.approveBeneficiary(request({
+        params: { id: groupId, beneficiaryId },
+        body: { approvalReason: 'Confirmed the supplier account by phone.' },
+      }) as any, res);
+
+      expect(res.status).toHaveBeenCalledWith(409);
+      expect(res.json).toHaveBeenCalledWith({
+        error: 'GROUP_TREASURY_BENEFICIARY_MAKER_CANNOT_CHECK',
+      });
+    });
+
+    it('rejects a beneficiary through the checker path', async () => {
+      service.rejectBeneficiary.mockResolvedValue({ id: beneficiaryId } as never);
+      const res = response();
+      await groupTreasuryController.rejectBeneficiary(request({
+        params: { id: groupId, beneficiaryId },
+      }) as any, res);
+
+      expect(service.rejectBeneficiary).toHaveBeenCalledWith(
+        { organizationId, groupId, actorId }, beneficiaryId,
+        expect.objectContaining({ idempotencyKey: 'treasury-command-001' }),
+      );
+    });
+
+    it('rejects an unknown beneficiary state filter when listing', async () => {
+      const res = response();
+      await groupTreasuryController.listBeneficiaries(request({
+        query: { state: 'frozen' },
+      }) as any, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(service.listBeneficiaries).not.toHaveBeenCalled();
+    });
+
+    it('requests an external disbursement against a verified beneficiary', async () => {
+      service.requestExternalDisbursement.mockResolvedValue({ disbursementId } as never);
+      const res = response();
+      await groupTreasuryController.requestExternalDisbursement(request({
+        body: { ...externalRequestBody, actorId: 'attacker' },
+      }) as any, res);
+
+      expect(service.requestExternalDisbursement).toHaveBeenCalledWith(
+        { organizationId, groupId, actorId },
+        expect.objectContaining({
+          budgetId, externalBeneficiaryId, amountMinor: 250_000, currency: 'NGN',
+        }),
+      );
+      expect(res.status).toHaveBeenCalledWith(201);
+    });
+
+    it('refuses an external request in a currency the adapter cannot settle', async () => {
+      const res = response();
+      await groupTreasuryController.requestExternalDisbursement(request({
+        body: { ...externalRequestBody, currency: 'USD' },
+      }) as any, res);
+
+      expect(res.status).toHaveBeenCalledWith(400);
+      expect(service.requestExternalDisbursement).not.toHaveBeenCalled();
+    });
+
+    it('begins an approved external disbursement', async () => {
+      service.beginExternalDisbursement.mockResolvedValue({
+        disbursementId, payout: { state: 'processing' },
+      } as never);
+      const res = response();
+      await groupTreasuryController.beginExternalDisbursement(request({
+        params: { id: groupId, disbursementId },
+      }) as any, res);
+
+      expect(service.beginExternalDisbursement).toHaveBeenCalledWith(
+        { organizationId, groupId, actorId }, disbursementId,
+        expect.objectContaining({ idempotencyKey: 'treasury-command-001' }),
+      );
+    });
+
+    it('maps an unverified beneficiary at begin time to 409', async () => {
+      service.beginExternalDisbursement.mockRejectedValue(
+        new Error('GROUP_TREASURY_BENEFICIARY_NOT_VERIFIED') as never,
+      );
+      const res = response();
+      await groupTreasuryController.beginExternalDisbursement(request({
+        params: { id: groupId, disbursementId },
+      }) as any, res);
+
+      expect(res.status).toHaveBeenCalledWith(409);
+    });
+
+    it('syncs an in-flight payout without an idempotency key', async () => {
+      service.syncExternalPayout.mockResolvedValue({ state: 'succeeded' } as never);
+      const res = response();
+      await groupTreasuryController.syncExternalPayout(request({
+        params: { id: groupId, disbursementId },
+        header: () => undefined,
+      }) as any, res);
+
+      expect(service.syncExternalPayout).toHaveBeenCalledWith(
+        { organizationId, groupId, actorId }, disbursementId,
+      );
+      expect(res.json).toHaveBeenCalledWith({
+        success: true, data: { state: 'succeeded' },
+      });
     });
   });
 });
