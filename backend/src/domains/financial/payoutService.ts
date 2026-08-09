@@ -38,6 +38,23 @@ const publicPayout = (payout: any) => ({
   updatedAt: payout.updated_at,
 });
 
+// The shared payout stack settles three sources through the same provider
+// transition graph; only the terminal-posting function differs per source. A
+// wallet withdrawal posts with a short parameter set; a booking settlement and a
+// group treasury external disbursement each revalidate the full provider
+// identity, so they share the wider success signature.
+const SUCCESS_FUNCTIONS: Record<string, string> = {
+  booking_settlement: 'succeed_booking_supplier_payout',
+  group_treasury: 'succeed_group_treasury_payout',
+  wallet_withdrawal: 'succeed_wallet_payout',
+};
+const FAILURE_FUNCTIONS: Record<string, string> = {
+  booking_settlement: 'fail_booking_supplier_payout',
+  group_treasury: 'fail_group_treasury_payout',
+  wallet_withdrawal: 'fail_wallet_payout',
+};
+const FULL_SUCCESS_SHAPE = new Set(['booking_settlement', 'group_treasury']);
+
 export class PayoutService {
   constructor(
     private readonly adapterFactory: () => PayoutAdapter = configuredPayoutAdapter,
@@ -175,6 +192,60 @@ export class PayoutService {
     return this.applyProviderResult(input.payout.id, requestHash, result);
   }
 
+  // GT-06B: submit a reserved group treasury payout to the provider. Identical
+  // in shape to a booking supplier submission — the shared adapter is source-
+  // agnostic — but a provider that never answers leaves the payout in
+  // 'processing' with the reservation still active, which is the timeout the
+  // sync and webhook paths later resolve rather than a lost disbursement.
+  async submitGroupTreasuryPayout(input: {
+    payout: any;
+    organizationId: string;
+    actorId: string;
+    accountNumber: string;
+    bankCode: string;
+    accountName: string;
+  }) {
+    const adapter = this.adapterFactory();
+    await this.assertRoutingEnabled(adapter, input.organizationId, input.actorId);
+    if (adapter.name !== input.payout.provider_name
+      || adapter.environment !== input.payout.provider_environment
+    ) throw new Error('Configured payout adapter does not match the stored payout');
+    if (input.payout.state !== 'reserved') return publicPayout(input.payout);
+
+    const command: PayoutSubmissionCommand = {
+      internalReference: input.payout.internal_reference,
+      amountMinor: Number(input.payout.amount_minor),
+      currency: input.payout.currency,
+      narration: `Micro Fams group treasury payout ${input.payout.internal_reference}`,
+      destination: {
+        accountNumber: input.accountNumber,
+        bankCode: input.bankCode,
+        accountName: input.accountName,
+      },
+    };
+    const requestHash = sha256(JSON.stringify({
+      internalReference: command.internalReference,
+      amountMinor: command.amountMinor,
+      currency: command.currency,
+      beneficiaryFingerprint: input.payout.beneficiary_fingerprint,
+      provider: adapter.name,
+      environment: adapter.environment,
+    }));
+    let result: ProviderPayoutResult;
+    try {
+      result = await adapter.submit(command);
+    } catch {
+      const pending = await this.markSubmitted(
+        input.payout.id,
+        requestHash,
+        undefined,
+        true,
+      );
+      return publicPayout(pending);
+    }
+    return this.applyProviderResult(input.payout.id, requestHash, result);
+  }
+
   async ingestWebhook(rawBody: Buffer, signature: string) {
     const adapter = this.adapterFactory();
     const event = adapter.verifyAndParseWebhook(rawBody, signature);
@@ -257,14 +328,12 @@ export class PayoutService {
 
   private async applyProviderResult(payoutId: string, requestHash: string, result: ProviderPayoutResult) {
     if (result.status === 'succeeded') {
-      const lateSuccess = await this.recordLateBookingSuccess(payoutId, requestHash, result);
+      const lateSuccess = await this.recordLateSuccess(payoutId, requestHash, result);
       if (lateSuccess) return lateSuccess;
     }
     if (result.status === 'failed') {
       const submitted = await this.markSubmitted(payoutId, requestHash, result.providerReference, false);
-      const failureFunction = submitted.source_type === 'booking_settlement'
-        ? 'fail_booking_supplier_payout'
-        : 'fail_wallet_payout';
+      const failureFunction = FAILURE_FUNCTIONS[submitted.source_type] ?? 'fail_wallet_payout';
       const { data, error } = await supabase.rpc(failureFunction, {
         p_payout_id: submitted.id,
         p_failure_code: result.failureCode ?? 'PROVIDER_FAILED',
@@ -284,7 +353,7 @@ export class PayoutService {
     const providerReference = result.providerReference
       ?? submitted.provider_reference
       ?? submitted.internal_reference;
-    const successCommand = submitted.source_type === 'booking_settlement'
+    const successCommand = FULL_SUCCESS_SHAPE.has(submitted.source_type)
       ? {
         p_payout_id: submitted.id,
         p_internal_reference: submitted.internal_reference,
@@ -302,15 +371,18 @@ export class PayoutService {
         p_amount_minor: result.amountMinor,
         p_currency: result.currency,
       };
-    const successFunction = submitted.source_type === 'booking_settlement'
-      ? 'succeed_booking_supplier_payout'
-      : 'succeed_wallet_payout';
+    const successFunction = SUCCESS_FUNCTIONS[submitted.source_type] ?? 'succeed_wallet_payout';
     const { data, error } = await supabase.rpc(successFunction, successCommand);
     if (error || !data) throw error ?? new Error('Payout success could not be applied');
     return publicPayout(data);
   }
 
-  private async recordLateBookingSuccess(
+  // A provider that confirms success after the payout already reached a terminal
+  // failed/cancelled state is a reconciliation exception, never a replayed
+  // disbursement. Booking and group treasury each own a "record without
+  // repaying" function; a wallet withdrawal has none, so the caller falls
+  // through to the normal success path.
+  private async recordLateSuccess(
     payoutId: string,
     requestHash: string,
     result: ProviderPayoutResult,
@@ -323,10 +395,21 @@ export class PayoutService {
     if (payoutError || !payout) {
       throw payoutError ?? new Error('Payout not found');
     }
-    if (payout.source_type !== 'booking_settlement'
-      || !['failed', 'cancelled'].includes(payout.state)
-    ) return null;
+    if (!['failed', 'cancelled'].includes(payout.state)) return null;
+    if (payout.source_type === 'booking_settlement') {
+      return this.recordLateBookingSuccess(payout, requestHash, result);
+    }
+    if (payout.source_type === 'group_treasury') {
+      return this.recordLateGroupTreasurySuccess(payout, requestHash, result);
+    }
+    return null;
+  }
 
+  private async recordLateBookingSuccess(
+    payout: any,
+    requestHash: string,
+    result: ProviderPayoutResult,
+  ) {
     const providerReference = result.providerReference
       ?? payout.provider_reference;
     if (!providerReference) {
@@ -354,6 +437,46 @@ export class PayoutService {
     );
     if (error || !exception) {
       throw error ?? new Error('Late booking payout success could not be recorded');
+    }
+    return {
+      ...publicPayout(payout),
+      lateSuccessExceptionId: exception.id,
+      reconciliationRequired: true,
+    };
+  }
+
+  private async recordLateGroupTreasurySuccess(
+    payout: any,
+    requestHash: string,
+    result: ProviderPayoutResult,
+  ) {
+    const providerReference = result.providerReference
+      ?? payout.provider_reference;
+    if (!providerReference) {
+      throw new Error('Late group treasury payout success requires a provider reference');
+    }
+    const { data: exception, error } = await supabase.rpc(
+      'record_group_treasury_late_payout_success',
+      {
+        p_payout_id: payout.id,
+        p_organization_id: payout.organization_id,
+        p_provider_reference: providerReference,
+        p_amount_minor: result.amountMinor,
+        p_currency: result.currency,
+        p_beneficiary_fingerprint: payout.beneficiary_fingerprint,
+        p_provider_name: payout.provider_name,
+        p_provider_environment: payout.provider_environment,
+        p_evidence_snapshot: {
+          source: 'provider_result',
+          status: result.status,
+          request_hash: requestHash,
+          failure_code: payout.failure_code,
+          observed_at: new Date().toISOString(),
+        },
+      },
+    );
+    if (error || !exception) {
+      throw error ?? new Error('Late group treasury payout success could not be recorded');
     }
     return {
       ...publicPayout(payout),

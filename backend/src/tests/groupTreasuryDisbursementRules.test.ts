@@ -8,6 +8,7 @@ import {
   summarizeTreasuryPosition,
   validateBudgetKey,
   validateDisbursementRequest,
+  validateExternalBeneficiary,
   validateReleaseReasonCode,
 } from '../domains/groups/treasuryDisbursementRules.js';
 
@@ -16,6 +17,7 @@ describe('group treasury disbursement rules', () => {
   const checker = '00000000-0000-4000-8000-000000000002';
   const beneficiary = '00000000-0000-4000-8000-000000000003';
   const memberId = '00000000-0000-4000-8000-000000000010';
+  const externalBeneficiaryId = '00000000-0000-4000-8000-000000000020';
 
   const request = {
     channel: 'internal',
@@ -27,6 +29,16 @@ describe('group treasury disbursement rules', () => {
     evidenceUri: 'https://evidence.example.test/receipt-1',
   };
 
+  const externalRequest = {
+    channel: 'external',
+    beneficiaryKind: 'external',
+    externalBeneficiaryId,
+    amountMinor: 250_000,
+    currency: 'NGN',
+    purpose: 'Settle verified supplier invoice',
+    evidenceUri: 'https://evidence.example.test/invoice-9',
+  };
+
   describe('spend requests', () => {
     it('normalizes a complete internal member request', () => {
       expect(validateDisbursementRequest(request)).toEqual({
@@ -34,6 +46,7 @@ describe('group treasury disbursement rules', () => {
         beneficiaryKind: 'member',
         beneficiaryMemberId: memberId,
         beneficiaryUserId: null,
+        externalBeneficiaryId: null,
         amountMinor: 120_000,
         currency: 'NGN',
         purpose: 'Reimburse approved operating expenses',
@@ -53,15 +66,22 @@ describe('group treasury disbursement rules', () => {
       })).toThrow('GROUP_TREASURY_BENEFICIARY_MEMBER_UNEXPECTED');
     });
 
-    it('refuses an unknown beneficiary kind or channel', () => {
+    it('refuses an unknown beneficiary kind', () => {
       expect(() => validateDisbursementRequest({
         ...request, beneficiaryKind: 'vendor',
       })).toThrow('GROUP_TREASURY_BENEFICIARY_KIND_INVALID');
-      // The external provider channel arrives with GT-06B; until then it must be
-      // refused rather than silently treated as internal.
+    });
+
+    it('refuses a channel and kind that disagree', () => {
+      // An external channel pays a verified off-platform account and nothing
+      // else; pairing it with a member kind could reserve for one destination
+      // and pay another.
       expect(() => validateDisbursementRequest({
         ...request, channel: 'external',
-      })).toThrow('GROUP_TREASURY_CHANNEL_INVALID');
+      })).toThrow('GROUP_TREASURY_CHANNEL_BENEFICIARY_MISMATCH');
+      expect(() => validateDisbursementRequest({
+        ...externalRequest, channel: 'internal',
+      })).toThrow('GROUP_TREASURY_CHANNEL_BENEFICIARY_MISMATCH');
     });
 
     it('refuses a zero, negative, fractional, or oversized amount', () => {
@@ -76,6 +96,96 @@ describe('group treasury disbursement rules', () => {
         .toThrow('GROUP_TREASURY_CURRENCY_INVALID');
       expect(() => validateDisbursementRequest({ ...request, purpose: '   ' }))
         .toThrow('GROUP_TREASURY_PURPOSE_REQUIRED');
+    });
+  });
+
+  describe('external spend requests', () => {
+    it('normalizes a complete external request against a verified beneficiary', () => {
+      expect(validateDisbursementRequest(externalRequest)).toEqual({
+        channel: 'external',
+        beneficiaryKind: 'external',
+        beneficiaryMemberId: null,
+        beneficiaryUserId: null,
+        externalBeneficiaryId,
+        amountMinor: 250_000,
+        currency: 'NGN',
+        purpose: 'Settle verified supplier invoice',
+        evidenceUri: 'https://evidence.example.test/invoice-9',
+      });
+    });
+
+    it('refuses an external request that names no verified beneficiary', () => {
+      expect(() => validateDisbursementRequest({
+        ...externalRequest, externalBeneficiaryId: null,
+      })).toThrow('GROUP_TREASURY_EXTERNAL_BENEFICIARY_INVALID');
+      expect(() => validateDisbursementRequest({
+        ...externalRequest, externalBeneficiaryId: 'not-a-uuid',
+      })).toThrow('GROUP_TREASURY_EXTERNAL_BENEFICIARY_INVALID');
+    });
+
+    it('refuses an external request that also carries a member row', () => {
+      expect(() => validateDisbursementRequest({
+        ...externalRequest, beneficiaryMemberId: memberId,
+      })).toThrow('GROUP_TREASURY_BENEFICIARY_MEMBER_UNEXPECTED');
+    });
+
+    it('refuses an external request in a currency the adapter cannot settle', () => {
+      // The shared payout adapter settles NGN only, so the external channel
+      // inherits that ceiling even though internal budgets are multi-currency.
+      expect(() => validateDisbursementRequest({
+        ...externalRequest, currency: 'USD',
+      })).toThrow('GROUP_TREASURY_EXTERNAL_CURRENCY_UNSUPPORTED');
+    });
+
+    it('refuses an internal request that smuggles an external beneficiary', () => {
+      expect(() => validateDisbursementRequest({
+        ...request, externalBeneficiaryId,
+      })).toThrow('GROUP_TREASURY_EXTERNAL_BENEFICIARY_UNEXPECTED');
+    });
+  });
+
+  describe('external beneficiary registration', () => {
+    const registration = {
+      accountNumber: '0123456789',
+      bankCode: '058',
+      accountName: '  Verified Supplier Ltd  ',
+      currency: 'NGN',
+    };
+
+    it('trims the account name and returns the confirmed shape', () => {
+      expect(validateExternalBeneficiary(registration)).toEqual({
+        accountNumber: '0123456789',
+        bankCode: '058',
+        accountName: 'Verified Supplier Ltd',
+        currency: 'NGN',
+      });
+    });
+
+    it('refuses a NUBAN that is not ten digits', () => {
+      for (const accountNumber of ['012345678', '01234567890', '0123abc789']) {
+        expect(() => validateExternalBeneficiary({ ...registration, accountNumber }))
+          .toThrow('GROUP_TREASURY_EXTERNAL_ACCOUNT_INVALID');
+      }
+    });
+
+    it('refuses a malformed bank code', () => {
+      for (const bankCode of ['05', '1234567', 'abc']) {
+        expect(() => validateExternalBeneficiary({ ...registration, bankCode }))
+          .toThrow('GROUP_TREASURY_EXTERNAL_BANK_CODE_INVALID');
+      }
+    });
+
+    it('refuses an empty or oversized account name', () => {
+      expect(() => validateExternalBeneficiary({ ...registration, accountName: 'A' }))
+        .toThrow('GROUP_TREASURY_EXTERNAL_ACCOUNT_NAME_INVALID');
+      expect(() => validateExternalBeneficiary({
+        ...registration, accountName: 'x'.repeat(201),
+      })).toThrow('GROUP_TREASURY_EXTERNAL_ACCOUNT_NAME_INVALID');
+    });
+
+    it('refuses a currency the shared adapter cannot settle', () => {
+      expect(() => validateExternalBeneficiary({ ...registration, currency: 'USD' }))
+        .toThrow('GROUP_TREASURY_EXTERNAL_CURRENCY_UNSUPPORTED');
     });
   });
 
@@ -167,9 +277,23 @@ describe('group treasury disbursement rules', () => {
         .toThrow('GROUP_TREASURY_DISBURSEMENT_TRANSITION_INVALID');
     });
 
-    it('treats rejected, cancelled, expired, and reversed as terminal', () => {
+    it('routes an external disbursement through disbursing to executed or failed', () => {
+      // The external channel passes through disbursing while the provider payout
+      // is in flight, then settles on confirmed success or releases on failure.
+      expect(canTransitionDisbursement('approved', 'disbursing')).toBe(true);
+      expect(canTransitionDisbursement('disbursing', 'executed')).toBe(true);
+      expect(canTransitionDisbursement('disbursing', 'failed')).toBe(true);
+      // In flight is not a licence to skip the provider outcome.
+      expect(canTransitionDisbursement('disbursing', 'reversed')).toBe(false);
+      expect(canTransitionDisbursement('disbursing', 'cancelled')).toBe(false);
+      // A released failure is raised afresh, never revived in place.
+      expect(canTransitionDisbursement('failed', 'disbursing')).toBe(false);
+      expect(canTransitionDisbursement('failed', 'executed')).toBe(false);
+    });
+
+    it('treats rejected, cancelled, expired, failed, and reversed as terminal', () => {
       fc.assert(fc.property(
-        fc.constantFrom('rejected', 'cancelled', 'expired', 'reversed'),
+        fc.constantFrom('rejected', 'cancelled', 'expired', 'failed', 'reversed'),
         fc.constantFrom(...GROUP_TREASURY_DISBURSEMENT_STATES),
         (from, to) => {
           expect(canTransitionDisbursement(from, to)).toBe(false);
