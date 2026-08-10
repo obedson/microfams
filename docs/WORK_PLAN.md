@@ -109,6 +109,7 @@ Specifications requiring approval before code:
 - [x] Approve the cross-product rules in [`docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md`](specs/FINANCIAL_MODULES_APPROVAL_SPEC.md). Approved by the product owner on 2026-08-09.
 - [ ] savings products, interest/accrual, standing orders, goals, early withdrawal;
   - [x] Add SAV-01 versioned products, immutable disclosures, maker-checker activation, tenant-isolated enrolment, idempotency, and canonical savings accounts.
+  - [x] Add SAV-02 atomic manual contributions, consent-backed standing orders, no-debt failed attempts, hold-aware availability, lifecycle servicing, and worker recovery.
   - [ ] Add contributions, standing orders, accruals, withdrawals, servicing statements, reconciliation, and provider certification.
 - [ ] credit products, eligibility, underwriting inputs, schedules, delinquency, restructuring, write-off;
 - [ ] investments, units, valuation, subscriptions, redemptions, disclosures;

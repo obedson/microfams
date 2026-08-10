@@ -19,6 +19,11 @@ const service = () => ({
   enrol: jest.fn(),
   listProducts: jest.fn(),
   listEnrolments: jest.fn(),
+  contribute: jest.fn(),
+  createStandingOrder: jest.fn(),
+  transitionStandingOrder: jest.fn(),
+  listContributions: jest.fn(),
+  listStandingOrders: jest.fn(),
 }) as unknown as jest.Mocked<SavingsProductService>;
 
 describe('savings API contract', () => {
@@ -69,5 +74,35 @@ describe('savings API contract', () => {
       error: 'SAVINGS_COMMAND_REJECTED',
       message: expect.not.stringContaining('sensitive'),
     }));
+  });
+
+  it('binds a manual contribution to tenant, member, enrolment, and correlation ID', async () => {
+    const domain = service();
+    domain.contribute.mockResolvedValue({ id: 'contribution-1' } as never);
+    const controller = new SavingsController(domain);
+    const res = response();
+    const correlationId = '00000000-0000-4000-8000-000000000104';
+    const body = { amountMinor: 25000, idempotencyKey: 'savings-contribution-api-1' };
+    await controller.contribute({
+      tenant: { id: organizationId }, user: { id: actorId }, params: { enrolmentId: productId },
+      headers: { 'x-correlation-id': correlationId }, body,
+    } as any, res);
+    expect(domain.contribute).toHaveBeenCalledWith({
+      ...body, organizationId, actorId, enrolmentId: productId, correlationId,
+    });
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('rejects malformed standing-order times before domain execution', async () => {
+    const domain = service();
+    const controller = new SavingsController(domain);
+    const res = response();
+    await controller.createStandingOrder({
+      tenant: { id: organizationId }, user: { id: actorId }, params: { enrolmentId: productId },
+      body: { amountMinor: 25000, firstDueAt: 'tomorrow', disclosureVersion: '2026.1',
+        disclosureContentHash: 'a'.repeat(64), idempotencyKey: 'savings-standing-api-1' },
+    } as any, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(domain.createStandingOrder).not.toHaveBeenCalled();
   });
 });

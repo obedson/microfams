@@ -19,6 +19,10 @@ router.use(resolveTenant);
 
 router.get('/products', requireFeature('financial.savings.read'), savingsController.listProducts);
 router.get('/enrolments', requireFeature('financial.savings.read'), savingsController.listEnrolments);
+router.get('/enrolments/:enrolmentId/contributions',
+  requireFeature('financial.savings.read'), savingsController.listContributions);
+router.get('/enrolments/:enrolmentId/standing-orders',
+  requireFeature('financial.savings.read'), savingsController.listStandingOrders);
 
 router.post('/products',
   requireFeature('financial.savings.configure'),
@@ -39,5 +43,25 @@ router.post('/products/:productId/enrolments',
   requireFeature('financial.savings.enrol'),
   commandLimiter,
   savingsController.enrol);
+router.post('/enrolments/:enrolmentId/contributions',
+  requireFeature('financial.savings.contribute'),
+  commandLimiter,
+  savingsController.contribute);
+router.post('/enrolments/:enrolmentId/standing-orders',
+  requireFeature('financial.savings.contribute'),
+  commandLimiter,
+  savingsController.createStandingOrder);
+router.post('/standing-orders/:standingOrderId/pause',
+  requireFeature('financial.savings.read'),
+  commandLimiter,
+  savingsController.transitionStandingOrder('pause'));
+router.post('/standing-orders/:standingOrderId/resume',
+  requireFeature('financial.savings.contribute'),
+  commandLimiter,
+  savingsController.transitionStandingOrder('resume'));
+router.post('/standing-orders/:standingOrderId/cancel',
+  requireFeature('financial.savings.read'),
+  commandLimiter,
+  savingsController.transitionStandingOrder('cancel'));
 
 export default router;
