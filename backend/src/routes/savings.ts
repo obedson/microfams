@@ -23,6 +23,12 @@ router.get('/enrolments/:enrolmentId/contributions',
   requireFeature('financial.savings.read'), savingsController.listContributions);
 router.get('/enrolments/:enrolmentId/standing-orders',
   requireFeature('financial.savings.read'), savingsController.listStandingOrders);
+router.get('/enrolments/:enrolmentId/accruals',
+  requireFeature('financial.savings.read'), savingsController.listAccruals);
+router.get('/accrual-batches',
+  requireFeature('financial.savings.read'),
+  requireTenantPermission('financial.savings.configure'),
+  savingsController.listAccrualBatches);
 
 router.post('/products',
   requireFeature('financial.savings.configure'),
@@ -63,5 +69,20 @@ router.post('/standing-orders/:standingOrderId/cancel',
   requireFeature('financial.savings.read'),
   commandLimiter,
   savingsController.transitionStandingOrder('cancel'));
+router.post('/accrual-batches',
+  requireFeature('financial.savings.accrue'),
+  requireTenantPermission('financial.savings.configure'),
+  commandLimiter,
+  savingsController.calculateAccrual);
+router.post('/accrual-batches/:batchId/approve',
+  requireFeature('financial.savings.accrue'),
+  requireTenantPermission('financial.savings.configure'),
+  commandLimiter,
+  savingsController.approveAccrual);
+router.post('/accrual-batches/:batchId/reject',
+  requireFeature('financial.savings.service_existing'),
+  requireTenantPermission('financial.savings.configure'),
+  commandLimiter,
+  savingsController.rejectAccrual);
 
 export default router;

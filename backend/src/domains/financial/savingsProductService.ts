@@ -79,6 +79,32 @@ export interface TransitionSavingsStandingOrderCommand {
   idempotencyKey: string;
 }
 
+export interface CalculateSavingsAccrualCommand {
+  organizationId: string;
+  actorId: string;
+  productVersionId: string;
+  periodStart: string;
+  periodEnd: string;
+  idempotencyKey: string;
+  correlationId: string;
+}
+
+export interface ReviewSavingsAccrualCommand {
+  organizationId: string;
+  actorId: string;
+  batchId: string;
+  action: 'approve' | 'reject';
+  reason?: string;
+  idempotencyKey: string;
+  correlationId: string;
+}
+
+export interface SavingsAccrualFormulaInput {
+  eligiblePrincipalDaysMinor: bigint;
+  annualRateBasisPoints: number;
+  dayCountConvention: DayCountConvention;
+}
+
 export interface SavingsGateway {
   createProduct(command: CreateSavingsProductCommand): Promise<unknown>;
   submitProduct(command: SavingsLifecycleCommand): Promise<unknown>;
@@ -91,6 +117,10 @@ export interface SavingsGateway {
   transitionStandingOrder(command: TransitionSavingsStandingOrderCommand): Promise<unknown>;
   listContributions(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]>;
   listStandingOrders(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]>;
+  calculateAccrual(command: CalculateSavingsAccrualCommand): Promise<unknown>;
+  reviewAccrual(command: ReviewSavingsAccrualCommand): Promise<unknown>;
+  listAccrualBatches(organizationId: string, actorId: string): Promise<unknown[]>;
+  listAccruals(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]>;
 }
 
 export class SavingsValidationError extends Error {
@@ -115,6 +145,27 @@ const assertMinor = (value: number | undefined, label: string, optional = false)
   if (!Number.isSafeInteger(value) || (value as number) <= 0) {
     throw new SavingsValidationError(`${label} must be a positive safe integer in minor units.`);
   }
+};
+
+const assertIsoDate = (value: string, label: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) throw new SavingsValidationError(`${label} must use YYYY-MM-DD.`);
+  const date = new Date(`${value}T00:00:00.000Z`);
+  if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
+    throw new SavingsValidationError(`${label} is not a valid calendar date.`);
+  }
+};
+
+export const calculateSimpleSavingsAccrualMinor = (input: SavingsAccrualFormulaInput): bigint => {
+  if (input.eligiblePrincipalDaysMinor < 0n) {
+    throw new SavingsValidationError('Eligible principal-days cannot be negative.');
+  }
+  if (!Number.isSafeInteger(input.annualRateBasisPoints) || input.annualRateBasisPoints <= 0) {
+    throw new SavingsValidationError('Annual rate must be positive basis points.');
+  }
+  const days = input.dayCountConvention === 'actual_365' ? 365n : 360n;
+  const denominator = 10000n * days;
+  const numerator = input.eligiblePrincipalDaysMinor * BigInt(input.annualRateBasisPoints);
+  return (numerator + denominator / 2n) / denominator;
 };
 
 export class SupabaseSavingsGateway implements SavingsGateway {
@@ -222,6 +273,44 @@ export class SupabaseSavingsGateway implements SavingsGateway {
     return data;
   }
 
+  calculateAccrual(command: CalculateSavingsAccrualCommand) {
+    return this.rpc('calculate_savings_accrual_batch', {
+      p_organization: command.organizationId,
+      p_actor: command.actorId,
+      p_product_version: command.productVersionId,
+      p_period_start: command.periodStart,
+      p_period_end: command.periodEnd,
+      p_idempotency_key: command.idempotencyKey,
+      p_correlation_id: command.correlationId,
+    });
+  }
+
+  reviewAccrual(command: ReviewSavingsAccrualCommand) {
+    const rpc = command.action === 'approve' ? 'approve_savings_accrual_batch' : 'reject_savings_accrual_batch';
+    return this.rpc(rpc, {
+      p_organization: command.organizationId,
+      p_actor: command.actorId,
+      p_batch: command.batchId,
+      ...(command.action === 'reject' ? { p_reason: command.reason } : {}),
+      p_idempotency_key: command.idempotencyKey,
+      p_correlation_id: command.correlationId,
+    });
+  }
+
+  async listAccrualBatches(organizationId: string, actorId: string): Promise<unknown[]> {
+    const data = await this.rpc('list_savings_accrual_batches', { p_organization: organizationId, p_actor: actorId });
+    if (!Array.isArray(data)) throw new Error('Savings accrual batch list is invalid.');
+    return data;
+  }
+
+  async listAccruals(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]> {
+    const data = await this.rpc('list_member_savings_accruals', {
+      p_organization: organizationId, p_actor: actorId, p_enrolment: enrolmentId,
+    });
+    if (!Array.isArray(data)) throw new Error('Savings accrual list is invalid.');
+    return data;
+  }
+
   async listEnrolments(organizationId: string, actorId: string): Promise<unknown[]> {
     const data = await this.rpc('list_member_savings_enrolments', { p_organization: organizationId, p_actor: actorId });
     if (!Array.isArray(data)) throw new Error('Savings enrolment list is invalid.');
@@ -313,6 +402,33 @@ export class SavingsProductService {
     return this.gateway.transitionStandingOrder(command);
   }
 
+  calculateAccrual(command: CalculateSavingsAccrualCommand) {
+    this.validateIdentity(command.organizationId, command.actorId, command.idempotencyKey);
+    assertUuid(command.productVersionId, 'Product version ID');
+    assertUuid(command.correlationId, 'Correlation ID');
+    assertIsoDate(command.periodStart, 'Accrual period start');
+    assertIsoDate(command.periodEnd, 'Accrual period end');
+    if (command.periodEnd <= command.periodStart) {
+      throw new SavingsValidationError('Accrual period end must be after its start.');
+    }
+    return this.gateway.calculateAccrual(command);
+  }
+
+  reviewAccrual(command: ReviewSavingsAccrualCommand) {
+    this.validateIdentity(command.organizationId, command.actorId, command.idempotencyKey);
+    assertUuid(command.batchId, 'Accrual batch ID');
+    assertUuid(command.correlationId, 'Correlation ID');
+    if (command.action === 'reject') {
+      const reason = command.reason?.trim() ?? '';
+      if (reason.length < 8 || reason.length > 1000) {
+        throw new SavingsValidationError('Rejection reason must contain 8 to 1000 characters.');
+      }
+    } else if (command.reason !== undefined) {
+      throw new SavingsValidationError('Approval does not accept a rejection reason.');
+    }
+    return this.gateway.reviewAccrual(command);
+  }
+
   listContributions(organizationId: string, actorId: string, enrolmentId: string) {
     assertUuid(organizationId, 'Organization ID');
     assertUuid(actorId, 'Actor ID');
@@ -325,6 +441,19 @@ export class SavingsProductService {
     assertUuid(actorId, 'Actor ID');
     assertUuid(enrolmentId, 'Enrolment ID');
     return this.gateway.listStandingOrders(organizationId, actorId, enrolmentId);
+  }
+
+  listAccrualBatches(organizationId: string, actorId: string) {
+    assertUuid(organizationId, 'Organization ID');
+    assertUuid(actorId, 'Actor ID');
+    return this.gateway.listAccrualBatches(organizationId, actorId);
+  }
+
+  listAccruals(organizationId: string, actorId: string, enrolmentId: string) {
+    assertUuid(organizationId, 'Organization ID');
+    assertUuid(actorId, 'Actor ID');
+    assertUuid(enrolmentId, 'Enrolment ID');
+    return this.gateway.listAccruals(organizationId, actorId, enrolmentId);
   }
 
   listProducts(organizationId: string, actorId: string) {

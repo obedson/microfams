@@ -73,7 +73,8 @@ BEGIN
       'savings_products','savings_product_versions','savings_enrolments',
       'savings_product_events','savings_contributions',
       'savings_standing_orders','savings_standing_order_attempts',
-      'savings_standing_order_events'
+      'savings_standing_order_events','savings_accrual_batches',
+      'savings_accrual_items','savings_accrual_events'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -428,6 +429,8 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-savings-product-foundation.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-contributions-standing-orders.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-accrual-posting.sql"
+"$repo_root/backend/tests/schema/test-savings-accrual-concurrency.sh" "$container"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"

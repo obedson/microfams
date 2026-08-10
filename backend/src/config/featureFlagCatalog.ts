@@ -39,6 +39,7 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('financial.savings.read', 'savings', 'Read available savings products, enrolments, balances, and statements.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('financial.savings.enrol', 'savings', 'Open new savings enrolments.', { risk: 'regulated' }),
   flag('financial.savings.contribute', 'savings', 'Accept manual or mandate-based savings contributions.', { risk: 'regulated' }),
+  flag('financial.savings.accrue', 'savings', 'Calculate and independently approve new savings return obligations.', { risk: 'regulated' }),
   flag('financial.savings.withdraw', 'savings', 'Service lawful withdrawals from existing savings enrolments.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('financial.savings.service_existing', 'savings', 'Service contributions, statements, and lawful withdrawals for existing savings.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('financial.savings.configure', 'savings', 'Draft, submit, and independently approve versioned savings products.', { risk: 'regulated' }),
