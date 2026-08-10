@@ -22,7 +22,10 @@ describe('booking supplier payout destination protection', () => {
 
   it('rejects tampering and invalid key material', () => {
     const encrypted = encryptBookingPayoutDestination(destination, key);
-    const tampered = `${encrypted.slice(0, -1)}A`;
+    const parts = encrypted.split('.');
+    const ciphertext = parts[3];
+    parts[3] = `${ciphertext[0] === 'A' ? 'B' : 'A'}${ciphertext.slice(1)}`;
+    const tampered = parts.join('.');
     expect(() => decryptBookingPayoutDestination(tampered, key))
       .toThrow(BookingSupplierPayoutError);
     expect(() => encryptBookingPayoutDestination(destination, 'invalid'))

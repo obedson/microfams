@@ -44,6 +44,7 @@ import savingsRoutes from './routes/savings.js';
 import { startCronJobs } from './jobs/contributionJobs.js';
 import { startBookingJobs } from './jobs/bookingJobs.js';
 import { startWalletJobs } from './jobs/walletJobs.js';
+import { startSavingsJobs } from './jobs/savingsJobs.js';
 import PaymentTimeoutJob from './jobs/paymentTimeoutJob.js';
 
 const app = express();
@@ -124,6 +125,7 @@ if (process.env.NODE_ENV !== 'test') {
     startCronJobs();
     startBookingJobs();
     startWalletJobs();
+    startSavingsJobs();
     PaymentTimeoutJob.scheduleJob();
     logger.info('✅ Cron jobs enabled (production mode)');
   } else {

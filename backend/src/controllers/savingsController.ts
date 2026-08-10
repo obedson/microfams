@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { Response } from 'express';
 import Joi from 'joi';
 import { TenantRequest } from '../middleware/tenant.js';
@@ -34,6 +35,19 @@ const enrolSchema = Joi.object({
   disclosureContentHash: Joi.string().pattern(/^[a-f0-9]{64}$/).required(),
   idempotencyKey,
 });
+const contributionSchema = Joi.object({
+  amountMinor: Joi.number().integer().min(1).required(),
+  idempotencyKey,
+});
+const standingOrderSchema = Joi.object({
+  amountMinor: Joi.number().integer().min(1).required(),
+  firstDueAt: Joi.string().isoDate().required(),
+  disclosureVersion: Joi.string().trim().min(1).max(80).required(),
+  disclosureContentHash: Joi.string().pattern(/^[a-f0-9]{64}$/).required(),
+  idempotencyKey,
+});
+const transitionSchema = Joi.object({ idempotencyKey });
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class SavingsController {
   constructor(private readonly service: SavingsProductService = savingsProductService) {}
@@ -85,6 +99,69 @@ export class SavingsController {
       return res.status(201).json(result);
     } catch (serviceError) {
       return this.respondError(serviceError, res);
+    }
+  };
+
+  contribute = async (req: TenantRequest, res: Response) => {
+    const { error, value } = contributionSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error) return res.status(400).json({ success: false, error: 'INVALID_SAVINGS_CONTRIBUTION', details: error.details.map((d) => d.message) });
+    const supplied = req.headers['x-correlation-id'];
+    const correlationId = typeof supplied === 'string' && UUID_PATTERN.test(supplied) ? supplied : randomUUID();
+    try {
+      const result = await this.service.contribute({
+        ...value, organizationId: req.tenant!.id, actorId: req.user!.id,
+        enrolmentId: req.params.enrolmentId, correlationId,
+      });
+      return res.status(201).json({ contribution: result, correlationId });
+    } catch (serviceError) {
+      return this.respondError(serviceError, res);
+    }
+  };
+
+  createStandingOrder = async (req: TenantRequest, res: Response) => {
+    const { error, value } = standingOrderSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error) return res.status(400).json({ success: false, error: 'INVALID_SAVINGS_STANDING_ORDER', details: error.details.map((d) => d.message) });
+    try {
+      const result = await this.service.createStandingOrder({
+        ...value, organizationId: req.tenant!.id, actorId: req.user!.id,
+        enrolmentId: req.params.enrolmentId,
+      });
+      return res.status(201).json({ standingOrder: result });
+    } catch (serviceError) {
+      return this.respondError(serviceError, res);
+    }
+  };
+
+  transitionStandingOrder = (action: 'pause' | 'resume' | 'cancel') =>
+    async (req: TenantRequest, res: Response) => {
+      const { error, value } = transitionSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+      if (error) return res.status(400).json({ success: false, error: 'INVALID_SAVINGS_STANDING_ORDER', details: error.details.map((d) => d.message) });
+      try {
+        const result = await this.service.transitionStandingOrder({
+          ...value, action, organizationId: req.tenant!.id, actorId: req.user!.id,
+          standingOrderId: req.params.standingOrderId,
+        });
+        return res.json({ standingOrder: result });
+      } catch (serviceError) {
+        return this.respondError(serviceError, res);
+      }
+    };
+
+  listContributions = async (req: TenantRequest, res: Response) => {
+    try {
+      const contributions = await this.service.listContributions(req.tenant!.id, req.user!.id, req.params.enrolmentId);
+      return res.json({ contributions });
+    } catch (error) {
+      return this.respondError(error, res);
+    }
+  };
+
+  listStandingOrders = async (req: TenantRequest, res: Response) => {
+    try {
+      const standingOrders = await this.service.listStandingOrders(req.tenant!.id, req.user!.id, req.params.enrolmentId);
+      return res.json({ standingOrders });
+    } catch (error) {
+      return this.respondError(error, res);
     }
   };
 

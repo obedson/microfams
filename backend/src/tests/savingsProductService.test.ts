@@ -12,6 +12,11 @@ const gateway = (): jest.Mocked<SavingsGateway> => ({
   enrol: jest.fn(),
   listProducts: jest.fn(),
   listEnrolments: jest.fn(),
+  contribute: jest.fn(),
+  createStandingOrder: jest.fn(),
+  transitionStandingOrder: jest.fn(),
+  listContributions: jest.fn(),
+  listStandingOrders: jest.fn(),
 });
 
 const productCommand = {
@@ -111,5 +116,32 @@ describe('SavingsProductService', () => {
 
     expect(storage.submitProduct).toHaveBeenCalledTimes(1);
     expect(storage.approveProduct).toHaveBeenCalledTimes(1);
+  });
+
+  it('validates minor-unit contributions and correlation evidence', async () => {
+    const storage = gateway();
+    storage.contribute.mockResolvedValue({ id: 'contribution-1' });
+    const service = new SavingsProductService(storage);
+    const command = {
+      organizationId, actorId, enrolmentId: productId, amountMinor: 25000,
+      idempotencyKey: 'savings-contribution-command-1',
+      correlationId: '00000000-0000-4000-8000-000000000104',
+    };
+    await expect(service.contribute(command)).resolves.toEqual({ id: 'contribution-1' });
+    expect(storage.contribute).toHaveBeenCalledWith(command);
+    expect(() => service.contribute({ ...command, amountMinor: 25.5 })).toThrow('minor units');
+  });
+
+  it('requires canonical UTC scheduling and disclosure evidence for standing orders', () => {
+    const storage = gateway();
+    const service = new SavingsProductService(storage);
+    const command = {
+      organizationId, actorId, enrolmentId: productId, amountMinor: 25000,
+      firstDueAt: '2026-09-01T08:00:00.000Z', disclosureVersion: '2026.1',
+      disclosureContentHash, idempotencyKey: 'savings-standing-order-command-1',
+    };
+    service.createStandingOrder(command);
+    expect(storage.createStandingOrder).toHaveBeenCalledWith(command);
+    expect(() => service.createStandingOrder({ ...command, firstDueAt: 'next month' })).toThrow('ISO-8601');
   });
 });

@@ -51,6 +51,34 @@ export interface EnrolSavingsCommand {
   idempotencyKey: string;
 }
 
+export interface SavingsContributionCommand {
+  organizationId: string;
+  actorId: string;
+  enrolmentId: string;
+  amountMinor: number;
+  idempotencyKey: string;
+  correlationId: string;
+}
+
+export interface CreateSavingsStandingOrderCommand {
+  organizationId: string;
+  actorId: string;
+  enrolmentId: string;
+  amountMinor: number;
+  firstDueAt: string;
+  disclosureVersion: string;
+  disclosureContentHash: string;
+  idempotencyKey: string;
+}
+
+export interface TransitionSavingsStandingOrderCommand {
+  organizationId: string;
+  actorId: string;
+  standingOrderId: string;
+  action: 'pause' | 'resume' | 'cancel';
+  idempotencyKey: string;
+}
+
 export interface SavingsGateway {
   createProduct(command: CreateSavingsProductCommand): Promise<unknown>;
   submitProduct(command: SavingsLifecycleCommand): Promise<unknown>;
@@ -58,6 +86,11 @@ export interface SavingsGateway {
   enrol(command: EnrolSavingsCommand): Promise<unknown>;
   listProducts(organizationId: string, actorId: string): Promise<unknown[]>;
   listEnrolments(organizationId: string, actorId: string): Promise<unknown[]>;
+  contribute(command: SavingsContributionCommand): Promise<unknown>;
+  createStandingOrder(command: CreateSavingsStandingOrderCommand): Promise<unknown>;
+  transitionStandingOrder(command: TransitionSavingsStandingOrderCommand): Promise<unknown>;
+  listContributions(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]>;
+  listStandingOrders(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]>;
 }
 
 export class SavingsValidationError extends Error {
@@ -148,6 +181,47 @@ export class SupabaseSavingsGateway implements SavingsGateway {
     return data;
   }
 
+  contribute(command: SavingsContributionCommand) {
+    return this.rpc('post_savings_contribution', {
+      p_organization: command.organizationId, p_actor: command.actorId,
+      p_enrolment: command.enrolmentId, p_amount_minor: command.amountMinor,
+      p_idempotency_key: command.idempotencyKey, p_correlation_id: command.correlationId,
+    });
+  }
+
+  createStandingOrder(command: CreateSavingsStandingOrderCommand) {
+    return this.rpc('create_savings_standing_order', {
+      p_organization: command.organizationId, p_actor: command.actorId,
+      p_enrolment: command.enrolmentId, p_amount_minor: command.amountMinor,
+      p_first_due_at: command.firstDueAt, p_disclosure_version: command.disclosureVersion,
+      p_disclosure_hash: command.disclosureContentHash, p_idempotency_key: command.idempotencyKey,
+    });
+  }
+
+  transitionStandingOrder(command: TransitionSavingsStandingOrderCommand) {
+    return this.rpc('transition_savings_standing_order', {
+      p_organization: command.organizationId, p_actor: command.actorId,
+      p_standing_order: command.standingOrderId, p_action: command.action,
+      p_idempotency_key: command.idempotencyKey,
+    });
+  }
+
+  async listContributions(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]> {
+    const data = await this.rpc('list_member_savings_contributions', {
+      p_organization: organizationId, p_actor: actorId, p_enrolment: enrolmentId,
+    });
+    if (!Array.isArray(data)) throw new Error('Savings contribution list is invalid.');
+    return data;
+  }
+
+  async listStandingOrders(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]> {
+    const data = await this.rpc('list_member_savings_standing_orders', {
+      p_organization: organizationId, p_actor: actorId, p_enrolment: enrolmentId,
+    });
+    if (!Array.isArray(data)) throw new Error('Savings standing-order list is invalid.');
+    return data;
+  }
+
   async listEnrolments(organizationId: string, actorId: string): Promise<unknown[]> {
     const data = await this.rpc('list_member_savings_enrolments', { p_organization: organizationId, p_actor: actorId });
     if (!Array.isArray(data)) throw new Error('Savings enrolment list is invalid.');
@@ -208,6 +282,49 @@ export class SavingsProductService {
       throw new SavingsValidationError('The accepted disclosure version and SHA-256 hash are required.');
     }
     return this.gateway.enrol(command);
+  }
+
+  contribute(command: SavingsContributionCommand) {
+    this.validateIdentity(command.organizationId, command.actorId, command.idempotencyKey);
+    assertUuid(command.enrolmentId, 'Enrolment ID');
+    assertUuid(command.correlationId, 'Correlation ID');
+    assertMinor(command.amountMinor, 'Contribution amount');
+    return this.gateway.contribute(command);
+  }
+
+  createStandingOrder(command: CreateSavingsStandingOrderCommand) {
+    this.validateIdentity(command.organizationId, command.actorId, command.idempotencyKey);
+    assertUuid(command.enrolmentId, 'Enrolment ID');
+    assertMinor(command.amountMinor, 'Standing-order amount');
+    const firstDueAt = new Date(command.firstDueAt);
+    if (Number.isNaN(firstDueAt.getTime()) || firstDueAt.toISOString() !== command.firstDueAt) {
+      throw new SavingsValidationError('First due time must be an ISO-8601 UTC timestamp.');
+    }
+    if (!command.disclosureVersion.trim() || command.disclosureVersion.length > 80
+      || !HASH_PATTERN.test(command.disclosureContentHash)) {
+      throw new SavingsValidationError('The authorized disclosure version and SHA-256 hash are required.');
+    }
+    return this.gateway.createStandingOrder(command);
+  }
+
+  transitionStandingOrder(command: TransitionSavingsStandingOrderCommand) {
+    this.validateIdentity(command.organizationId, command.actorId, command.idempotencyKey);
+    assertUuid(command.standingOrderId, 'Standing-order ID');
+    return this.gateway.transitionStandingOrder(command);
+  }
+
+  listContributions(organizationId: string, actorId: string, enrolmentId: string) {
+    assertUuid(organizationId, 'Organization ID');
+    assertUuid(actorId, 'Actor ID');
+    assertUuid(enrolmentId, 'Enrolment ID');
+    return this.gateway.listContributions(organizationId, actorId, enrolmentId);
+  }
+
+  listStandingOrders(organizationId: string, actorId: string, enrolmentId: string) {
+    assertUuid(organizationId, 'Organization ID');
+    assertUuid(actorId, 'Actor ID');
+    assertUuid(enrolmentId, 'Enrolment ID');
+    return this.gateway.listStandingOrders(organizationId, actorId, enrolmentId);
   }
 
   listProducts(organizationId: string, actorId: string) {
