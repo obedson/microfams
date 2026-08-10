@@ -69,7 +69,9 @@ BEGIN
       'group_contribution_rule_versions','group_contribution_adjustment_rules',
       'group_contribution_allocations','group_contribution_events',
       'group_committees','group_committee_members','group_meetings',
-      'group_meeting_attendance','group_meeting_minutes'
+      'group_meeting_attendance','group_meeting_minutes',
+      'savings_products','savings_product_versions','savings_enrolments',
+      'savings_product_events'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -420,6 +422,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-group-committees-meetings.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-savings-product-foundation.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"

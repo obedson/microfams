@@ -1,6 +1,7 @@
 # Micro Fams V1 Financial Modules — Approval Specification
 
-Status: **PROPOSED — requires product-owner approval before implementation**  
+Status: **APPROVED**
+Approved by the product owner on 2026-08-09.
 Scope: wallets, payments, escrow, savings, investments, loans/credit, dividends/profit sharing, and cooperative accounting.
 
 ## 1. Product and regulatory boundary
