@@ -111,6 +111,7 @@ Specifications requiring approval before code:
   - [x] Add SAV-01 versioned products, immutable disclosures, maker-checker activation, tenant-isolated enrolment, idempotency, and canonical savings accounts.
   - [x] Add SAV-02 atomic manual contributions, consent-backed standing orders, no-debt failed attempts, hold-aware availability, lifecycle servicing, and worker recovery.
   - [x] Add SAV-03 completed-day simple-return accruals, immutable formula snapshots, rejection recovery, independent approval, and balanced accrued-return posting.
+  - [x] Add SAV-04 governed withdrawals into personal wallets with lock-rule snapshots, fees or return forfeiture, liability reservations, maker-checker settlement, and exactly-once recovery.
   - [ ] Add contributions, standing orders, accruals, withdrawals, servicing statements, reconciliation, and provider certification.
 - [ ] credit products, eligibility, underwriting inputs, schedules, delinquency, restructuring, write-off;
 - [ ] investments, units, valuation, subscriptions, redemptions, disclosures;

@@ -58,6 +58,15 @@ const accrualRejectionSchema = Joi.object({
   reason: Joi.string().trim().min(8).max(1000).required(),
   idempotencyKey,
 });
+const withdrawalRequestSchema = Joi.object({
+  amountMinor: Joi.number().integer().min(1).required(),
+  idempotencyKey,
+});
+const withdrawalApprovalSchema = Joi.object({ idempotencyKey });
+const withdrawalDecisionSchema = Joi.object({
+  reason: Joi.string().trim().min(8).max(1000).required(),
+  idempotencyKey,
+});
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class SavingsController {
@@ -216,6 +225,64 @@ export class SavingsController {
     return this.reviewAccrual(req, res, 'reject');
   };
 
+  listWithdrawals = async (req: TenantRequest, res: Response) => {
+    try {
+      const withdrawals = await this.service.listWithdrawals(
+        req.tenant!.id, req.user!.id, req.params.enrolmentId,
+      );
+      return res.json({ withdrawals });
+    } catch (error) {
+      return this.respondError(error, res);
+    }
+  };
+
+  listWithdrawalReviews = async (req: TenantRequest, res: Response) => {
+    try {
+      const withdrawals = await this.service.listWithdrawalReviews(req.tenant!.id, req.user!.id);
+      return res.json({ withdrawals });
+    } catch (error) {
+      return this.respondError(error, res);
+    }
+  };
+
+  requestWithdrawal = async (req: TenantRequest, res: Response) => {
+    const { error, value } = withdrawalRequestSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error) return res.status(400).json({ success: false, error: 'INVALID_SAVINGS_WITHDRAWAL', details: error.details.map((d) => d.message) });
+    const correlationId = this.correlationId(req);
+    try {
+      const withdrawal = await this.service.requestWithdrawal({
+        ...value, organizationId: req.tenant!.id, actorId: req.user!.id,
+        enrolmentId: req.params.enrolmentId, correlationId,
+      });
+      return res.status(201).json({ withdrawal, correlationId });
+    } catch (serviceError) {
+      return this.respondError(serviceError, res);
+    }
+  };
+
+  approveWithdrawal = async (req: TenantRequest, res: Response) => {
+    return this.reviewWithdrawal(req, res, 'approve');
+  };
+
+  rejectWithdrawal = async (req: TenantRequest, res: Response) => {
+    return this.reviewWithdrawal(req, res, 'reject');
+  };
+
+  cancelWithdrawal = async (req: TenantRequest, res: Response) => {
+    const { error, value } = withdrawalDecisionSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error) return res.status(400).json({ success: false, error: 'INVALID_SAVINGS_WITHDRAWAL_CANCELLATION', details: error.details.map((d) => d.message) });
+    const correlationId = this.correlationId(req);
+    try {
+      const withdrawal = await this.service.cancelWithdrawal({
+        ...value, organizationId: req.tenant!.id, actorId: req.user!.id,
+        withdrawalId: req.params.withdrawalId, correlationId,
+      });
+      return res.json({ withdrawal, correlationId });
+    } catch (serviceError) {
+      return this.respondError(serviceError, res);
+    }
+  };
+
   private async lifecycle(req: TenantRequest, res: Response, action: 'submit' | 'approve') {
     const { error, value } = lifecycleSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
     if (error) return res.status(400).json({ success: false, error: 'INVALID_SAVINGS_COMMAND', details: error.details.map((d) => d.message) });
@@ -243,6 +310,22 @@ export class SavingsController {
         batchId: req.params.batchId, correlationId,
       });
       return res.json({ batch, correlationId });
+    } catch (serviceError) {
+      return this.respondError(serviceError, res);
+    }
+  }
+
+  private async reviewWithdrawal(req: TenantRequest, res: Response, action: 'approve' | 'reject') {
+    const schema = action === 'approve' ? withdrawalApprovalSchema : withdrawalDecisionSchema;
+    const { error, value } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error) return res.status(400).json({ success: false, error: 'INVALID_SAVINGS_WITHDRAWAL_REVIEW', details: error.details.map((d) => d.message) });
+    const correlationId = this.correlationId(req);
+    try {
+      const withdrawal = await this.service.reviewWithdrawal({
+        ...value, action, organizationId: req.tenant!.id, actorId: req.user!.id,
+        withdrawalId: req.params.withdrawalId, correlationId,
+      });
+      return res.json({ withdrawal, correlationId });
     } catch (serviceError) {
       return this.respondError(serviceError, res);
     }

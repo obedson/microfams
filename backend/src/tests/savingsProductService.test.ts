@@ -25,6 +25,11 @@ const gateway = (): jest.Mocked<SavingsGateway> => ({
   reviewAccrual: jest.fn(),
   listAccrualBatches: jest.fn(),
   listAccruals: jest.fn(),
+  requestWithdrawal: jest.fn(),
+  reviewWithdrawal: jest.fn(),
+  cancelWithdrawal: jest.fn(),
+  listWithdrawals: jest.fn(),
+  listWithdrawalReviews: jest.fn(),
 });
 
 const productCommand = {
@@ -191,5 +196,43 @@ describe('SavingsProductService', () => {
     service.createStandingOrder(command);
     expect(storage.createStandingOrder).toHaveBeenCalledWith(command);
     expect(() => service.createStandingOrder({ ...command, firstDueAt: 'next month' })).toThrow('ISO-8601');
+  });
+
+  it('validates and forwards governed withdrawal requests in minor units', async () => {
+    const storage = gateway();
+    storage.requestWithdrawal.mockResolvedValue({ id: productId, state: 'pending_approval' });
+    const service = new SavingsProductService(storage);
+    const command = {
+      organizationId, actorId, enrolmentId: productId, amountMinor: 50000,
+      idempotencyKey: 'savings-withdrawal-request-1',
+      correlationId: '00000000-0000-4000-8000-000000000107',
+    };
+
+    await expect(service.requestWithdrawal(command)).resolves.toEqual({ id: productId, state: 'pending_approval' });
+    expect(storage.requestWithdrawal).toHaveBeenCalledWith(command);
+    expect(() => service.requestWithdrawal({ ...command, amountMinor: 50.5 })).toThrow('minor units');
+  });
+
+  it('requires evidence for withdrawal rejection and cancellation', async () => {
+    const storage = gateway();
+    storage.reviewWithdrawal.mockResolvedValue({ id: productId, state: 'rejected' });
+    storage.cancelWithdrawal.mockResolvedValue({ id: productId, state: 'cancelled' });
+    const service = new SavingsProductService(storage);
+    const base = {
+      organizationId, actorId, withdrawalId: productId,
+      idempotencyKey: 'savings-withdrawal-review-1',
+      correlationId: '00000000-0000-4000-8000-000000000108',
+    };
+
+    expect(() => service.reviewWithdrawal({ ...base, action: 'reject', reason: 'short' })).toThrow('Rejection reason');
+    expect(() => service.reviewWithdrawal({ ...base, action: 'approve', reason: 'not accepted' })).toThrow('does not accept');
+    expect(() => service.cancelWithdrawal({ ...base, reason: 'short' })).toThrow('Cancellation reason');
+
+    await expect(service.reviewWithdrawal({
+      ...base, action: 'reject', reason: 'Member requested a corrected amount.',
+    })).resolves.toEqual({ id: productId, state: 'rejected' });
+    await expect(service.cancelWithdrawal({
+      ...base, idempotencyKey: 'savings-withdrawal-cancel-1', reason: 'Member no longer needs the funds.',
+    })).resolves.toEqual({ id: productId, state: 'cancelled' });
   });
 });
