@@ -105,6 +105,34 @@ export interface SavingsAccrualFormulaInput {
   dayCountConvention: DayCountConvention;
 }
 
+export interface RequestSavingsWithdrawalCommand {
+  organizationId: string;
+  actorId: string;
+  enrolmentId: string;
+  amountMinor: number;
+  idempotencyKey: string;
+  correlationId: string;
+}
+
+export interface ReviewSavingsWithdrawalCommand {
+  organizationId: string;
+  actorId: string;
+  withdrawalId: string;
+  action: 'approve' | 'reject';
+  reason?: string;
+  idempotencyKey: string;
+  correlationId: string;
+}
+
+export interface CancelSavingsWithdrawalCommand {
+  organizationId: string;
+  actorId: string;
+  withdrawalId: string;
+  reason: string;
+  idempotencyKey: string;
+  correlationId: string;
+}
+
 export interface SavingsGateway {
   createProduct(command: CreateSavingsProductCommand): Promise<unknown>;
   submitProduct(command: SavingsLifecycleCommand): Promise<unknown>;
@@ -121,6 +149,11 @@ export interface SavingsGateway {
   reviewAccrual(command: ReviewSavingsAccrualCommand): Promise<unknown>;
   listAccrualBatches(organizationId: string, actorId: string): Promise<unknown[]>;
   listAccruals(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]>;
+  requestWithdrawal(command: RequestSavingsWithdrawalCommand): Promise<unknown>;
+  reviewWithdrawal(command: ReviewSavingsWithdrawalCommand): Promise<unknown>;
+  cancelWithdrawal(command: CancelSavingsWithdrawalCommand): Promise<unknown>;
+  listWithdrawals(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]>;
+  listWithdrawalReviews(organizationId: string, actorId: string): Promise<unknown[]>;
 }
 
 export class SavingsValidationError extends Error {
@@ -311,6 +344,56 @@ export class SupabaseSavingsGateway implements SavingsGateway {
     return data;
   }
 
+  requestWithdrawal(command: RequestSavingsWithdrawalCommand) {
+    return this.rpc('request_savings_withdrawal', {
+      p_organization: command.organizationId,
+      p_actor: command.actorId,
+      p_enrolment: command.enrolmentId,
+      p_amount_minor: command.amountMinor,
+      p_idempotency_key: command.idempotencyKey,
+      p_correlation_id: command.correlationId,
+    });
+  }
+
+  reviewWithdrawal(command: ReviewSavingsWithdrawalCommand) {
+    return this.rpc('review_savings_withdrawal', {
+      p_organization: command.organizationId,
+      p_actor: command.actorId,
+      p_withdrawal: command.withdrawalId,
+      p_action: command.action,
+      p_reason: command.action === 'reject' ? command.reason : null,
+      p_idempotency_key: command.idempotencyKey,
+      p_correlation_id: command.correlationId,
+    });
+  }
+
+  cancelWithdrawal(command: CancelSavingsWithdrawalCommand) {
+    return this.rpc('cancel_savings_withdrawal', {
+      p_organization: command.organizationId,
+      p_actor: command.actorId,
+      p_withdrawal: command.withdrawalId,
+      p_reason: command.reason,
+      p_idempotency_key: command.idempotencyKey,
+      p_correlation_id: command.correlationId,
+    });
+  }
+
+  async listWithdrawals(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]> {
+    const data = await this.rpc('list_member_savings_withdrawals', {
+      p_organization: organizationId, p_actor: actorId, p_enrolment: enrolmentId,
+    });
+    if (!Array.isArray(data)) throw new Error('Savings withdrawal list is invalid.');
+    return data;
+  }
+
+  async listWithdrawalReviews(organizationId: string, actorId: string): Promise<unknown[]> {
+    const data = await this.rpc('list_savings_withdrawal_reviews', {
+      p_organization: organizationId, p_actor: actorId,
+    });
+    if (!Array.isArray(data)) throw new Error('Savings withdrawal review list is invalid.');
+    return data;
+  }
+
   async listEnrolments(organizationId: string, actorId: string): Promise<unknown[]> {
     const data = await this.rpc('list_member_savings_enrolments', { p_organization: organizationId, p_actor: actorId });
     if (!Array.isArray(data)) throw new Error('Savings enrolment list is invalid.');
@@ -429,6 +512,34 @@ export class SavingsProductService {
     return this.gateway.reviewAccrual(command);
   }
 
+  requestWithdrawal(command: RequestSavingsWithdrawalCommand) {
+    this.validateIdentity(command.organizationId, command.actorId, command.idempotencyKey);
+    assertUuid(command.enrolmentId, 'Enrolment ID');
+    assertUuid(command.correlationId, 'Correlation ID');
+    assertMinor(command.amountMinor, 'Withdrawal amount');
+    return this.gateway.requestWithdrawal(command);
+  }
+
+  reviewWithdrawal(command: ReviewSavingsWithdrawalCommand) {
+    this.validateIdentity(command.organizationId, command.actorId, command.idempotencyKey);
+    assertUuid(command.withdrawalId, 'Withdrawal ID');
+    assertUuid(command.correlationId, 'Correlation ID');
+    if (command.action === 'reject') {
+      this.assertDecisionReason(command.reason, 'Rejection');
+    } else if (command.reason !== undefined) {
+      throw new SavingsValidationError('Approval does not accept a rejection reason.');
+    }
+    return this.gateway.reviewWithdrawal(command);
+  }
+
+  cancelWithdrawal(command: CancelSavingsWithdrawalCommand) {
+    this.validateIdentity(command.organizationId, command.actorId, command.idempotencyKey);
+    assertUuid(command.withdrawalId, 'Withdrawal ID');
+    assertUuid(command.correlationId, 'Correlation ID');
+    this.assertDecisionReason(command.reason, 'Cancellation');
+    return this.gateway.cancelWithdrawal(command);
+  }
+
   listContributions(organizationId: string, actorId: string, enrolmentId: string) {
     assertUuid(organizationId, 'Organization ID');
     assertUuid(actorId, 'Actor ID');
@@ -456,6 +567,19 @@ export class SavingsProductService {
     return this.gateway.listAccruals(organizationId, actorId, enrolmentId);
   }
 
+  listWithdrawals(organizationId: string, actorId: string, enrolmentId: string) {
+    assertUuid(organizationId, 'Organization ID');
+    assertUuid(actorId, 'Actor ID');
+    assertUuid(enrolmentId, 'Enrolment ID');
+    return this.gateway.listWithdrawals(organizationId, actorId, enrolmentId);
+  }
+
+  listWithdrawalReviews(organizationId: string, actorId: string) {
+    assertUuid(organizationId, 'Organization ID');
+    assertUuid(actorId, 'Actor ID');
+    return this.gateway.listWithdrawalReviews(organizationId, actorId);
+  }
+
   listProducts(organizationId: string, actorId: string) {
     assertUuid(organizationId, 'Organization ID');
     assertUuid(actorId, 'Actor ID');
@@ -480,6 +604,13 @@ export class SavingsProductService {
     assertUuid(organizationId, 'Organization ID');
     assertUuid(actorId, 'Actor ID');
     assertIdempotencyKey(idempotencyKey);
+  }
+
+  private assertDecisionReason(reason: string | undefined, label: string) {
+    const normalized = reason?.trim() ?? '';
+    if (normalized.length < 8 || normalized.length > 1000) {
+      throw new SavingsValidationError(`${label} reason must contain 8 to 1000 characters.`);
+    }
   }
 }
 

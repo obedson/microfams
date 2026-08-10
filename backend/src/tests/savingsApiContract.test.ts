@@ -28,6 +28,11 @@ const service = () => ({
   reviewAccrual: jest.fn(),
   listAccrualBatches: jest.fn(),
   listAccruals: jest.fn(),
+  requestWithdrawal: jest.fn(),
+  reviewWithdrawal: jest.fn(),
+  cancelWithdrawal: jest.fn(),
+  listWithdrawals: jest.fn(),
+  listWithdrawalReviews: jest.fn(),
 }) as unknown as jest.Mocked<SavingsProductService>;
 
 describe('savings API contract', () => {
@@ -139,5 +144,46 @@ describe('savings API contract', () => {
     } as any, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(domain.reviewAccrual).not.toHaveBeenCalled();
+  });
+
+  it('binds withdrawal requests to the authenticated tenant, member, and correlation ID', async () => {
+    const domain = service();
+    domain.requestWithdrawal.mockResolvedValue({ id: productId, state: 'pending_approval' } as never);
+    const controller = new SavingsController(domain);
+    const res = response();
+    const correlationId = '00000000-0000-4000-8000-000000000106';
+    const body = { amountMinor: 50000, idempotencyKey: 'savings-withdrawal-api-1' };
+
+    await controller.requestWithdrawal({
+      tenant: { id: organizationId }, user: { id: actorId }, params: { enrolmentId: productId },
+      headers: { 'x-correlation-id': correlationId }, body,
+    } as any, res);
+
+    expect(domain.requestWithdrawal).toHaveBeenCalledWith({
+      ...body, organizationId, actorId, enrolmentId: productId, correlationId,
+    });
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('requires meaningful evidence for withdrawal rejection and cancellation', async () => {
+    const domain = service();
+    const controller = new SavingsController(domain);
+    const rejection = response();
+    const cancellation = response();
+    const command = { reason: 'short', idempotencyKey: 'savings-withdrawal-decision-api-1' };
+
+    await controller.rejectWithdrawal({
+      tenant: { id: organizationId }, user: { id: actorId }, params: { withdrawalId: productId },
+      headers: {}, body: command,
+    } as any, rejection);
+    await controller.cancelWithdrawal({
+      tenant: { id: organizationId }, user: { id: actorId }, params: { withdrawalId: productId },
+      headers: {}, body: command,
+    } as any, cancellation);
+
+    expect(rejection.status).toHaveBeenCalledWith(400);
+    expect(cancellation.status).toHaveBeenCalledWith(400);
+    expect(domain.reviewWithdrawal).not.toHaveBeenCalled();
+    expect(domain.cancelWithdrawal).not.toHaveBeenCalled();
   });
 });
