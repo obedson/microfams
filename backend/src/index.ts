@@ -40,9 +40,11 @@ import reportRoutes from './routes/reports.js';
 import walletRoutes from './routes/wallet.js';
 import organizationRoutes from './routes/organizations.js';
 import trustRoutes from './routes/trust.js';
+import savingsRoutes from './routes/savings.js';
 import { startCronJobs } from './jobs/contributionJobs.js';
 import { startBookingJobs } from './jobs/bookingJobs.js';
 import { startWalletJobs } from './jobs/walletJobs.js';
+import { startSavingsJobs } from './jobs/savingsJobs.js';
 import PaymentTimeoutJob from './jobs/paymentTimeoutJob.js';
 
 const app = express();
@@ -99,6 +101,7 @@ app.use('/api/reports', reportRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/organizations', organizationRoutes);
 app.use('/api/trust', trustRoutes);
+app.use('/api/savings', savingsRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
@@ -122,6 +125,7 @@ if (process.env.NODE_ENV !== 'test') {
     startCronJobs();
     startBookingJobs();
     startWalletJobs();
+    startSavingsJobs();
     PaymentTimeoutJob.scheduleJob();
     logger.info('✅ Cron jobs enabled (production mode)');
   } else {
