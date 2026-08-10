@@ -23,14 +23,49 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
       - run: npm run typecheck
       - run: npm run test:ci
       - run: npm run test:schema
-      - run: npm audit --omit=dev --audit-level=critical
+      - run: npm audit --omit=dev --audit-level=high
+
+  backend-integration:
+    name: Backend database integration
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Require isolated integration database credentials
+        run: test -n "$SUPABASE_URL" && test -n "$SUPABASE_SERVICE_KEY"
+      - run: npm ci
+      - run: npm run test:integration:db
+
+  legacy-schema-upgrade:
+    name: Hosted legacy schema upgrade
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require hosted schema credential
+        run: test -n "$SUPABASE_DB_URL"
+      - run: npm run test:schema:legacy
 
   frontend:
     name: Frontend
@@ -44,14 +79,31 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           cache-dependency-path: frontend/package-lock.json
       - run: npm ci
       - run: npm run typecheck
       - run: npm run test:ci
       - run: npm run build
-      - run: npm audit --omit=dev --audit-level=critical
+      - run: npm audit --omit=dev --audit-level=high
+
+  browser-e2e:
+    name: Browser E2E smoke
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
 
   mobile:
     name: Mobile
@@ -63,13 +115,13 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           cache-dependency-path: mobile/package-lock.json
       - run: npm ci
       - run: npm run typecheck
       - run: npm run test:ci
-      - run: npm audit --omit=dev --audit-level=critical
+      - run: npm run audit:production
 
   repository-security:
     name: Repository security

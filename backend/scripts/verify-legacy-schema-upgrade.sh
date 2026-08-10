@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-repo_root=/workspaces/microfams
+repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 container="microfams-upgrade-$RANDOM-$RANDOM"
 cleanup() { docker rm --force "$container" >/dev/null 2>&1 || true; }
 trap cleanup EXIT
