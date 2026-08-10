@@ -24,6 +24,10 @@ const service = () => ({
   transitionStandingOrder: jest.fn(),
   listContributions: jest.fn(),
   listStandingOrders: jest.fn(),
+  calculateAccrual: jest.fn(),
+  reviewAccrual: jest.fn(),
+  listAccrualBatches: jest.fn(),
+  listAccruals: jest.fn(),
 }) as unknown as jest.Mocked<SavingsProductService>;
 
 describe('savings API contract', () => {
@@ -104,5 +108,36 @@ describe('savings API contract', () => {
     } as any, res);
     expect(res.status).toHaveBeenCalledWith(400);
     expect(domain.createStandingOrder).not.toHaveBeenCalled();
+  });
+
+  it('binds an accrual calculation to the authenticated tenant and correlation ID', async () => {
+    const domain = service();
+    domain.calculateAccrual.mockResolvedValue({ id: productId } as never);
+    const controller = new SavingsController(domain);
+    const res = response();
+    const correlationId = '00000000-0000-4000-8000-000000000105';
+    const body = {
+      productVersionId: productId,
+      periodStart: '2026-07-01',
+      periodEnd: '2026-08-01',
+      idempotencyKey: 'savings-accrual-api-1',
+    };
+    await controller.calculateAccrual({
+      tenant: { id: organizationId }, user: { id: actorId }, headers: { 'x-correlation-id': correlationId }, body,
+    } as any, res);
+    expect(domain.calculateAccrual).toHaveBeenCalledWith({ ...body, organizationId, actorId, correlationId });
+    expect(res.status).toHaveBeenCalledWith(201);
+  });
+
+  it('requires meaningful rejection evidence before accrual review', async () => {
+    const domain = service();
+    const controller = new SavingsController(domain);
+    const res = response();
+    await controller.rejectAccrual({
+      tenant: { id: organizationId }, user: { id: actorId }, params: { batchId: productId }, headers: {},
+      body: { reason: 'short', idempotencyKey: 'savings-accrual-reject-api-1' },
+    } as any, res);
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(domain.reviewAccrual).not.toHaveBeenCalled();
   });
 });

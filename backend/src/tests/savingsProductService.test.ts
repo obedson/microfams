@@ -1,4 +1,8 @@
-import { SavingsGateway, SavingsProductService } from '../domains/financial/savingsProductService.js';
+import {
+  calculateSimpleSavingsAccrualMinor,
+  SavingsGateway,
+  SavingsProductService,
+} from '../domains/financial/savingsProductService.js';
 
 const organizationId = '00000000-0000-4000-8000-000000000101';
 const actorId = '00000000-0000-4000-8000-000000000102';
@@ -17,6 +21,10 @@ const gateway = (): jest.Mocked<SavingsGateway> => ({
   transitionStandingOrder: jest.fn(),
   listContributions: jest.fn(),
   listStandingOrders: jest.fn(),
+  calculateAccrual: jest.fn(),
+  reviewAccrual: jest.fn(),
+  listAccrualBatches: jest.fn(),
+  listAccruals: jest.fn(),
 });
 
 const productCommand = {
@@ -43,6 +51,19 @@ const productCommand = {
 };
 
 describe('SavingsProductService', () => {
+  it('calculates simple returns with deterministic half-up integer rounding', () => {
+    expect(calculateSimpleSavingsAccrualMinor({
+      eligiblePrincipalDaysMinor: 3000000n,
+      annualRateBasisPoints: 3650,
+      dayCountConvention: 'actual_365',
+    })).toBe(3000n);
+    expect(calculateSimpleSavingsAccrualMinor({
+      eligiblePrincipalDaysMinor: 1n,
+      annualRateBasisPoints: 5000,
+      dayCountConvention: 'actual_360',
+    })).toBe(0n);
+  });
+
   it('passes integer-minor-unit and disclosure facts to the product gateway', async () => {
     const storage = gateway();
     storage.createProduct.mockResolvedValue({ product: { id: productId } });
@@ -85,6 +106,33 @@ describe('SavingsProductService', () => {
 
     await expect(service.enrol(command)).resolves.toEqual({ id: 'enrolment-1' });
     expect(storage.enrol).toHaveBeenCalledWith(command);
+  });
+
+  it('validates accrual periods and independent review commands before storage access', async () => {
+    const storage = gateway();
+    storage.calculateAccrual.mockResolvedValue({ id: productId });
+    storage.reviewAccrual.mockResolvedValue({ id: productId, state: 'posted' });
+    const service = new SavingsProductService(storage);
+    const calculate = {
+      organizationId, actorId, productVersionId: productId,
+      periodStart: '2026-07-01', periodEnd: '2026-08-01',
+      idempotencyKey: 'savings-accrual-calculate-1',
+      correlationId: '00000000-0000-4000-8000-000000000104',
+    };
+    await expect(service.calculateAccrual(calculate)).resolves.toEqual({ id: productId });
+    expect(() => service.calculateAccrual({ ...calculate, periodEnd: '2026-07-01' }))
+      .toThrow('must be after');
+
+    await expect(service.reviewAccrual({
+      organizationId, actorId, batchId: productId, action: 'approve',
+      idempotencyKey: 'savings-accrual-approve-1',
+      correlationId: '00000000-0000-4000-8000-000000000105',
+    })).resolves.toEqual({ id: productId, state: 'posted' });
+    expect(() => service.reviewAccrual({
+      organizationId, actorId, batchId: productId, action: 'reject', reason: 'short',
+      idempotencyKey: 'savings-accrual-reject-1',
+      correlationId: '00000000-0000-4000-8000-000000000106',
+    })).toThrow('Rejection reason');
   });
 
   it('rejects floating-point money and malformed disclosure hashes', async () => {

@@ -47,6 +47,17 @@ const standingOrderSchema = Joi.object({
   idempotencyKey,
 });
 const transitionSchema = Joi.object({ idempotencyKey });
+const accrualCalculationSchema = Joi.object({
+  productVersionId: Joi.string().uuid().required(),
+  periodStart: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
+  periodEnd: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/).required(),
+  idempotencyKey,
+});
+const accrualReviewSchema = Joi.object({ idempotencyKey });
+const accrualRejectionSchema = Joi.object({
+  reason: Joi.string().trim().min(8).max(1000).required(),
+  idempotencyKey,
+});
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class SavingsController {
@@ -165,6 +176,46 @@ export class SavingsController {
     }
   };
 
+  listAccrualBatches = async (req: TenantRequest, res: Response) => {
+    try {
+      const batches = await this.service.listAccrualBatches(req.tenant!.id, req.user!.id);
+      return res.json({ batches });
+    } catch (error) {
+      return this.respondError(error, res);
+    }
+  };
+
+  listAccruals = async (req: TenantRequest, res: Response) => {
+    try {
+      const accruals = await this.service.listAccruals(req.tenant!.id, req.user!.id, req.params.enrolmentId);
+      return res.json({ accruals });
+    } catch (error) {
+      return this.respondError(error, res);
+    }
+  };
+
+  calculateAccrual = async (req: TenantRequest, res: Response) => {
+    const { error, value } = accrualCalculationSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error) return res.status(400).json({ success: false, error: 'INVALID_SAVINGS_ACCRUAL', details: error.details.map((d) => d.message) });
+    const correlationId = this.correlationId(req);
+    try {
+      const batch = await this.service.calculateAccrual({
+        ...value, organizationId: req.tenant!.id, actorId: req.user!.id, correlationId,
+      });
+      return res.status(201).json({ batch, correlationId });
+    } catch (serviceError) {
+      return this.respondError(serviceError, res);
+    }
+  };
+
+  approveAccrual = async (req: TenantRequest, res: Response) => {
+    return this.reviewAccrual(req, res, 'approve');
+  };
+
+  rejectAccrual = async (req: TenantRequest, res: Response) => {
+    return this.reviewAccrual(req, res, 'reject');
+  };
+
   private async lifecycle(req: TenantRequest, res: Response, action: 'submit' | 'approve') {
     const { error, value } = lifecycleSchema.validate(req.body, { abortEarly: false, stripUnknown: true });
     if (error) return res.status(400).json({ success: false, error: 'INVALID_SAVINGS_COMMAND', details: error.details.map((d) => d.message) });
@@ -179,6 +230,27 @@ export class SavingsController {
     } catch (serviceError) {
       return this.respondError(serviceError, res);
     }
+  }
+
+  private async reviewAccrual(req: TenantRequest, res: Response, action: 'approve' | 'reject') {
+    const schema = action === 'approve' ? accrualReviewSchema : accrualRejectionSchema;
+    const { error, value } = schema.validate(req.body, { abortEarly: false, stripUnknown: true });
+    if (error) return res.status(400).json({ success: false, error: 'INVALID_SAVINGS_ACCRUAL_REVIEW', details: error.details.map((d) => d.message) });
+    const correlationId = this.correlationId(req);
+    try {
+      const batch = await this.service.reviewAccrual({
+        ...value, action, organizationId: req.tenant!.id, actorId: req.user!.id,
+        batchId: req.params.batchId, correlationId,
+      });
+      return res.json({ batch, correlationId });
+    } catch (serviceError) {
+      return this.respondError(serviceError, res);
+    }
+  }
+
+  private correlationId(req: TenantRequest) {
+    const supplied = req.headers['x-correlation-id'];
+    return typeof supplied === 'string' && UUID_PATTERN.test(supplied) ? supplied : randomUUID();
   }
 
   private respondError(error: unknown, res: Response) {
