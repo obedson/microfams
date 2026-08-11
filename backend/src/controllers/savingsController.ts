@@ -67,6 +67,20 @@ const withdrawalDecisionSchema = Joi.object({
   reason: Joi.string().trim().min(8).max(1000).required(),
   idempotencyKey,
 });
+const statementQuerySchema = Joi.object({
+  from: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/),
+  to: Joi.string().pattern(/^\d{4}-\d{2}-\d{2}$/),
+  cutoff: Joi.string().isoDate(),
+  page: Joi.number().integer().min(1),
+  limit: Joi.number().integer().min(1).max(100),
+});
+const reconciliationQuerySchema = Joi.object({
+  currency: Joi.string().pattern(/^[A-Z]{3}$/),
+  cutoff: Joi.string().isoDate(),
+  staleAfterHours: Joi.number().integer().min(1).max(720),
+  page: Joi.number().integer().min(1),
+  limit: Joi.number().integer().min(1).max(100),
+});
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export class SavingsController {
@@ -242,6 +256,49 @@ export class SavingsController {
       return res.json({ withdrawals });
     } catch (error) {
       return this.respondError(error, res);
+    }
+  };
+
+  getStatement = async (req: TenantRequest, res: Response) => {
+    const { error, value } = statementQuerySchema.validate(req.query, {
+      abortEarly: false, stripUnknown: true, convert: true,
+    });
+    if (error) return res.status(400).json({
+      success: false,
+      error: 'INVALID_SAVINGS_STATEMENT_QUERY',
+      details: error.details.map((detail) => detail.message),
+    });
+    try {
+      const statement = await this.service.getStatement({
+        ...value,
+        organizationId: req.tenant!.id,
+        actorId: req.user!.id,
+        enrolmentId: req.params.enrolmentId,
+      });
+      return res.json({ statement });
+    } catch (serviceError) {
+      return this.respondError(serviceError, res);
+    }
+  };
+
+  getReconciliation = async (req: TenantRequest, res: Response) => {
+    const { error, value } = reconciliationQuerySchema.validate(req.query, {
+      abortEarly: false, stripUnknown: true, convert: true,
+    });
+    if (error) return res.status(400).json({
+      success: false,
+      error: 'INVALID_SAVINGS_RECONCILIATION_QUERY',
+      details: error.details.map((detail) => detail.message),
+    });
+    try {
+      const reconciliation = await this.service.getReconciliation({
+        ...value,
+        organizationId: req.tenant!.id,
+        actorId: req.user!.id,
+      });
+      return res.json({ reconciliation });
+    } catch (serviceError) {
+      return this.respondError(serviceError, res);
     }
   };
 

@@ -91,6 +91,13 @@ BEGIN
     RAISE EXCEPTION 'booking settlement statement function is missing';
   END IF;
   IF to_regprocedure(
+    'public.read_member_savings_statement(uuid,uuid,uuid,date,date,timestamp with time zone,integer,integer)'
+  ) IS NULL OR to_regprocedure(
+    'public.read_savings_reconciliation(uuid,uuid,text,timestamp with time zone,integer,integer,integer)'
+  ) IS NULL THEN
+    RAISE EXCEPTION 'savings statement or reconciliation function is missing';
+  END IF;
+  IF to_regprocedure(
     'public.claim_booking_domain_notifications(text,timestamp with time zone,integer,integer)'
   ) IS NULL OR to_regprocedure(
     'public.deliver_booking_domain_notification(uuid,text,timestamp with time zone)'
@@ -434,6 +441,7 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 "$repo_root/backend/tests/schema/test-savings-accrual-concurrency.sh" "$container"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-withdrawals.sql"
 "$repo_root/backend/tests/schema/test-savings-withdrawal-concurrency.sh" "$container"
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-statements-reconciliation.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"

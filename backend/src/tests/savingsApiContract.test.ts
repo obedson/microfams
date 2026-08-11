@@ -33,6 +33,8 @@ const service = () => ({
   cancelWithdrawal: jest.fn(),
   listWithdrawals: jest.fn(),
   listWithdrawalReviews: jest.fn(),
+  getStatement: jest.fn(),
+  getReconciliation: jest.fn(),
 }) as unknown as jest.Mocked<SavingsProductService>;
 
 describe('savings API contract', () => {
@@ -185,5 +187,54 @@ describe('savings API contract', () => {
     expect(cancellation.status).toHaveBeenCalledWith(400);
     expect(domain.reviewWithdrawal).not.toHaveBeenCalled();
     expect(domain.cancelWithdrawal).not.toHaveBeenCalled();
+  });
+
+  it('binds statement reads to the authenticated tenant, actor, and enrolment', async () => {
+    const domain = service();
+    domain.getStatement.mockResolvedValue({ entries: [] } as never);
+    const controller = new SavingsController(domain);
+    const res = response();
+
+    await controller.getStatement({
+      tenant: { id: organizationId }, user: { id: actorId }, params: { enrolmentId: productId },
+      query: { from: '2026-08-01', to: '2026-08-11', page: '2', limit: '20' },
+    } as any, res);
+
+    expect(domain.getStatement).toHaveBeenCalledWith({
+      organizationId, actorId, enrolmentId: productId,
+      from: '2026-08-01', to: '2026-08-11', page: 2, limit: 20,
+    });
+    expect(res.json).toHaveBeenCalledWith({ statement: { entries: [] } });
+  });
+
+  it('rejects malformed statement queries before domain execution', async () => {
+    const domain = service();
+    const controller = new SavingsController(domain);
+    const res = response();
+
+    await controller.getStatement({
+      tenant: { id: organizationId }, user: { id: actorId }, params: { enrolmentId: productId },
+      query: { from: '11 August 2026', limit: '101' },
+    } as any, res);
+
+    expect(res.status).toHaveBeenCalledWith(400);
+    expect(domain.getStatement).not.toHaveBeenCalled();
+  });
+
+  it('binds reconciliation controls to the authenticated tenant and finance actor', async () => {
+    const domain = service();
+    domain.getReconciliation.mockResolvedValue({ summary: { matchedCount: 4 } } as never);
+    const controller = new SavingsController(domain);
+    const res = response();
+
+    await controller.getReconciliation({
+      tenant: { id: organizationId }, user: { id: actorId },
+      query: { currency: 'NGN', staleAfterHours: '48', page: '1', limit: '50' },
+    } as any, res);
+
+    expect(domain.getReconciliation).toHaveBeenCalledWith({
+      organizationId, actorId, currency: 'NGN', staleAfterHours: 48, page: 1, limit: 50,
+    });
+    expect(res.json).toHaveBeenCalledWith({ reconciliation: { summary: { matchedCount: 4 } } });
   });
 });

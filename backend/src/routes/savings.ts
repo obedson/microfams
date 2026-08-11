@@ -27,6 +27,12 @@ router.get('/enrolments/:enrolmentId/accruals',
   requireFeature('financial.savings.read'), savingsController.listAccruals);
 router.get('/enrolments/:enrolmentId/withdrawals',
   requireFeature('financial.savings.read'), savingsController.listWithdrawals);
+router.get('/enrolments/:enrolmentId/statement',
+  requireFeature('financial.savings.read'), savingsController.getStatement);
+router.get('/reconciliation',
+  requireFeature('financial.savings.service_existing'),
+  requireTenantPermission('financial.reconciliation.manual'),
+  savingsController.getReconciliation);
 router.get('/accrual-batches',
   requireFeature('financial.savings.read'),
   requireTenantPermission('financial.savings.configure'),
