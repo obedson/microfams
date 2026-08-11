@@ -77,7 +77,8 @@ BEGIN
       'savings_accrual_items','savings_accrual_events',
       'savings_withdrawals','savings_withdrawal_events',
       'savings_provider_certifications','savings_provider_certification_scenarios',
-      'savings_provider_certification_events'
+      'savings_provider_certification_events','loan_products','loan_product_versions',
+      'loan_product_events'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -105,6 +106,15 @@ BEGIN
     'public.decide_savings_provider_certification(uuid,uuid,uuid,boolean,text,text,timestamp with time zone)'
   ) IS NULL THEN
     RAISE EXCEPTION 'savings provider certification functions are missing';
+  END IF;
+  IF to_regprocedure(
+    'public.create_loan_product_draft(uuid,uuid,text,text,text,jsonb,text,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.revise_loan_product(uuid,uuid,uuid,integer,jsonb,text,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.approve_loan_product_version(uuid,uuid,uuid,integer,text,timestamp with time zone)'
+  ) IS NULL THEN
+    RAISE EXCEPTION 'loan product governance functions are missing';
   END IF;
   IF to_regprocedure(
     'public.claim_booking_domain_notifications(text,timestamp with time zone,integer,integer)'
@@ -452,6 +462,7 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 "$repo_root/backend/tests/schema/test-savings-withdrawal-concurrency.sh" "$container"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-statements-reconciliation.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-provider-certification.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-loan-product-foundation.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"
