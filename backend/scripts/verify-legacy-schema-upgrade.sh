@@ -285,6 +285,11 @@ if [[ "$savings_provider_certification_present" == "f" ]]; then
   migrations+=(install_savings_provider_certification.sql)
 fi
 
+loan_product_foundation_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.loan_products') IS NOT NULL AND to_regprocedure('public.approve_loan_product_version(uuid,uuid,uuid,integer,text,timestamp with time zone)') IS NOT NULL")"
+if [[ "$loan_product_foundation_present" == "f" ]]; then
+  migrations+=(install_loan_product_foundation.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -381,7 +386,12 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
       OR to_regclass('public.savings_provider_certification_scenarios') IS NULL
       OR to_regprocedure(
         'public.read_savings_provider_readiness(uuid,uuid,text,text,text,text,text,timestamp with time zone)') IS NULL
-    THEN RAISE EXCEPTION 'required trust, booking, group, and savings schema was not installed'; END IF;
+      OR to_regclass('public.loan_products') IS NULL
+      OR to_regclass('public.loan_product_versions') IS NULL
+      OR to_regclass('public.loan_product_events') IS NULL
+      OR to_regprocedure(
+        'public.approve_loan_product_version(uuid,uuid,uuid,integer,text,timestamp with time zone)') IS NULL
+    THEN RAISE EXCEPTION 'required trust, booking, group, savings, and credit schema was not installed'; END IF;
   END \$\$;" >/dev/null
 
 echo "legacy schema upgrade dry run passed"

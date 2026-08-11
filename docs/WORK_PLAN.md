@@ -116,6 +116,7 @@ Specifications requiring approval before code:
   - [x] Add SAV-06 provider-neutral certification evidence, zero-variance scenarios, maker-checker decisions, and fail-closed tenant acquisition readiness.
   - [ ] Add contributions, standing orders, accruals, withdrawals, servicing statements, reconciliation, and provider certification.
 - [ ] credit products, eligibility, underwriting inputs, schedules, delinquency, restructuring, write-off;
+  - [x] Add CRD-01 versioned loan products, complete rule snapshots, immutable disclosures, revision history, tenant isolation, idempotency, and maker-checker activation.
 - [ ] investments, units, valuation, subscriptions, redemptions, disclosures;
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.

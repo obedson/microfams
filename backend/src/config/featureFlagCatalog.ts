@@ -45,6 +45,8 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('financial.savings.configure', 'savings', 'Draft, submit, and independently approve versioned savings products.', { risk: 'regulated' }),
   flag('financial.investments.subscribe', 'investments', 'Accept new investment subscriptions.', { risk: 'regulated' }),
   flag('financial.investments.service_existing', 'investments', 'Report, mature, settle, or write down existing investments.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
+  flag('financial.loans.read', 'loans', 'Read active loan products and existing credit records.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
+  flag('financial.loans.configure', 'loans', 'Draft, revise, submit, and independently approve versioned loan products.', { risk: 'regulated' }),
   flag('financial.loans.originate', 'loans', 'Accept and decide new loan applications.', { risk: 'regulated' }),
   flag('financial.loans.service_existing', 'loans', 'Service, collect, restructure, and report existing loans.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('financial.dividends.declare', 'dividends', 'Calculate and approve new distributions.', { risk: 'regulated' }),

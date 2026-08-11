@@ -44,6 +44,11 @@ Each financial domain separates acquisition from servicing:
 
 Disabling new exposure must not erase or conceal existing records. Provider webhooks must remain idempotent and persisted even when acquisition is disabled.
 
+Loan product discovery uses the servicing-safe `financial.loans.read` flag. Product drafting,
+revision, submission, and maker-checker approval use the fail-closed
+`financial.loans.configure` flag. Neither flag authorizes origination; accepting applications
+still requires `financial.loans.originate` and the separate provider/compliance readiness gate.
+
 ## Provider and domain controls
 
 The catalog includes live-routing controls for Paystack and Interswitch; provider controls for identity verification, SMS, weather, satellite imagery, and AI; institutional dashboards for government and NGO tenants; and full farm ERP operations.
