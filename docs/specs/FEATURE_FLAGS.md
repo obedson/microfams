@@ -67,6 +67,14 @@ the tenant-scoped `financial.loans.review` permission and independent actor sepa
 reads remain available under `financial.loans.read`; disabling origination must not conceal an
 accepted borrower's exact principal, interest, fee, or relative due-date obligations.
 
+Condition evidence, destination proposals, independent condition/destination decisions, provider
+status synchronization, and late-success reconciliation protect an accepted obligation and use
+`financial.loans.service_existing`. Starting a new provider transfer creates money-movement risk
+and therefore additionally requires the fail-closed `financial.loans.disburse` flag and the
+tenant-scoped permission of the same name. Live routing still requires the provider-specific live
+flag and activation evidence. Disabling disbursement blocks new transfers but never blocks an
+in-flight callback, status query, reconciliation exception, statement, or existing-loan read.
+
 ## Provider and domain controls
 
 The catalog includes live-routing controls for Paystack and Interswitch; provider controls for identity verification, SMS, weather, satellite imagery, and AI; institutional dashboards for government and NGO tenants; and full farm ERP operations.

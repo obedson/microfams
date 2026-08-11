@@ -120,6 +120,7 @@ Specifications requiring approval before code:
   - [x] Add CRD-02 tenant-scoped applications, pinned product/disclosure facts, deterministic eligibility and affordability decisions, explainable adverse notices, and independent human review.
   - [x] Add CRD-03 independent manual credit review, immutable revised offers, exact borrower acceptance evidence, expiry servicing, and pre-acceptance withdrawal.
   - [x] Add CRD-04 immutable contractual repayment schedules with disbursement-relative timing, deterministic allocation, and exact accepted-offer reconciliation.
+  - [x] Add CRD-05 versioned conditions precedent, independently verified encrypted destinations, provider-neutral disbursement orchestration, confirmed-success receivable activation, calendar due dates, and late-success reconciliation quarantine.
 - [ ] investments, units, valuation, subscriptions, redemptions, disclosures;
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.

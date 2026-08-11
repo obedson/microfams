@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { loanApplicationController } from '../controllers/loanApplicationController.js';
+import { loanDisbursementController } from '../controllers/loanDisbursementController.js';
 import { loanOfferController } from '../controllers/loanOfferController.js';
 import { loanProductController } from '../controllers/loanProductController.js';
 import { loanScheduleController } from '../controllers/loanScheduleController.js';
@@ -63,5 +64,26 @@ router.post('/admin/applications/:applicationId/offers/:offerId/expire', require
 router.post('/admin/applications/:applicationId/offers/:offerId/schedule',
   requireFeature('financial.loans.service_existing'), requireTenantPermission('financial.loans.review'),
   applicationLimiter, loanScheduleController.generate);
+router.post('/admin/applications/:applicationId/offers/:offerId/schedules/:scheduleId/conditions',
+  requireFeature('financial.loans.service_existing'), requireTenantPermission('financial.loans.disburse'),
+  applicationLimiter, loanDisbursementController.initializeConditions);
+router.post('/applications/:applicationId/conditions/:conditionId/evidence',
+  requireFeature('financial.loans.service_existing'), applicationLimiter,
+  loanDisbursementController.submitConditionEvidence);
+router.post('/admin/applications/:applicationId/conditions/:conditionId/decision',
+  requireFeature('financial.loans.service_existing'), requireTenantPermission('financial.loans.disburse'),
+  applicationLimiter, loanDisbursementController.decideCondition);
+router.post('/applications/:applicationId/disbursement-destinations',
+  requireFeature('financial.loans.service_existing'), applicationLimiter,
+  loanDisbursementController.proposeDestination);
+router.post('/admin/applications/:applicationId/disbursement-destinations/:destinationId/decision',
+  requireFeature('financial.loans.service_existing'), requireTenantPermission('financial.loans.disburse'),
+  applicationLimiter, loanDisbursementController.decideDestination);
+router.post('/admin/applications/:applicationId/disbursements',
+  requireFeature('financial.loans.disburse'), requireTenantPermission('financial.loans.disburse'),
+  applicationLimiter, loanDisbursementController.beginDisbursement);
+router.post('/admin/applications/:applicationId/disbursements/:disbursementId/sync',
+  requireFeature('financial.loans.service_existing'), requireTenantPermission('financial.loans.disburse'),
+  applicationLimiter, loanDisbursementController.syncDisbursement);
 
 export default router;
