@@ -280,6 +280,11 @@ if [[ "$savings_reporting_present" == "f" ]]; then
   migrations+=(install_savings_statements_reconciliation.sql)
 fi
 
+savings_provider_certification_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.savings_provider_certifications') IS NOT NULL AND to_regprocedure('public.read_savings_provider_readiness(uuid,uuid,text,text,text,text,text,timestamp with time zone)') IS NOT NULL")"
+if [[ "$savings_provider_certification_present" == "f" ]]; then
+  migrations+=(install_savings_provider_certification.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -372,6 +377,10 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
         'public.read_member_savings_statement(uuid,uuid,uuid,date,date,timestamp with time zone,integer,integer)') IS NULL
       OR to_regprocedure(
         'public.read_savings_reconciliation(uuid,uuid,text,timestamp with time zone,integer,integer,integer)') IS NULL
+      OR to_regclass('public.savings_provider_certifications') IS NULL
+      OR to_regclass('public.savings_provider_certification_scenarios') IS NULL
+      OR to_regprocedure(
+        'public.read_savings_provider_readiness(uuid,uuid,text,text,text,text,text,timestamp with time zone)') IS NULL
     THEN RAISE EXCEPTION 'required trust, booking, group, and savings schema was not installed'; END IF;
   END \$\$;" >/dev/null
 

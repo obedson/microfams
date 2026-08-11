@@ -75,7 +75,9 @@ BEGIN
       'savings_standing_orders','savings_standing_order_attempts',
       'savings_standing_order_events','savings_accrual_batches',
       'savings_accrual_items','savings_accrual_events',
-      'savings_withdrawals','savings_withdrawal_events'
+      'savings_withdrawals','savings_withdrawal_events',
+      'savings_provider_certifications','savings_provider_certification_scenarios',
+      'savings_provider_certification_events'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -96,6 +98,13 @@ BEGIN
     'public.read_savings_reconciliation(uuid,uuid,text,timestamp with time zone,integer,integer,integer)'
   ) IS NULL THEN
     RAISE EXCEPTION 'savings statement or reconciliation function is missing';
+  END IF;
+  IF to_regprocedure(
+    'public.read_savings_provider_readiness(uuid,uuid,text,text,text,text,text,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.decide_savings_provider_certification(uuid,uuid,uuid,boolean,text,text,timestamp with time zone)'
+  ) IS NULL THEN
+    RAISE EXCEPTION 'savings provider certification functions are missing';
   END IF;
   IF to_regprocedure(
     'public.claim_booking_domain_notifications(text,timestamp with time zone,integer,integer)'
@@ -442,6 +451,7 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-withdrawals.sql"
 "$repo_root/backend/tests/schema/test-savings-withdrawal-concurrency.sh" "$container"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-statements-reconciliation.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-provider-certification.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"
