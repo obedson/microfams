@@ -78,7 +78,8 @@ BEGIN
       'savings_withdrawals','savings_withdrawal_events',
       'savings_provider_certifications','savings_provider_certification_scenarios',
       'savings_provider_certification_events','loan_products','loan_product_versions',
-      'loan_product_events'
+      'loan_product_events','loan_applications','loan_application_decisions',
+      'loan_adverse_reviews','loan_application_events'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -115,6 +116,15 @@ BEGIN
     'public.approve_loan_product_version(uuid,uuid,uuid,integer,text,timestamp with time zone)'
   ) IS NULL THEN
     RAISE EXCEPTION 'loan product governance functions are missing';
+  END IF;
+  IF to_regprocedure(
+    'public.create_loan_application_draft(uuid,uuid,uuid,text,uuid,text,bigint,integer,bigint,bigint,integer,jsonb,uuid,text,text,text,text,text,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.submit_loan_application(uuid,uuid,uuid,text,timestamp with time zone)'
+  ) IS NULL OR to_regprocedure(
+    'public.decide_loan_adverse_review(uuid,uuid,uuid,text,text,text,timestamp with time zone)'
+  ) IS NULL THEN
+    RAISE EXCEPTION 'loan application underwriting functions are missing';
   END IF;
   IF to_regprocedure(
     'public.claim_booking_domain_notifications(text,timestamp with time zone,integer,integer)'
@@ -463,6 +473,7 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-statements-reconciliation.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-savings-provider-certification.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-loan-product-foundation.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-loan-application-underwriting.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"
