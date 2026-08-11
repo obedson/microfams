@@ -49,6 +49,12 @@ revision, submission, and maker-checker approval use the fail-closed
 `financial.loans.configure` flag. Neither flag authorizes origination; accepting applications
 still requires `financial.loans.originate` and the separate provider/compliance readiness gate.
 
+Loan application drafting and submission use `financial.loans.originate`. Disabling origination
+must not block applicant withdrawal, adverse-decision human review, or authorized application
+history; those customer-protection paths use `financial.loans.service_existing`, while reads use
+`financial.loans.read`. Human adverse-review decisions additionally require the tenant-scoped
+`financial.loans.review` permission.
+
 ## Provider and domain controls
 
 The catalog includes live-routing controls for Paystack and Interswitch; provider controls for identity verification, SMS, weather, satellite imagery, and AI; institutional dashboards for government and NGO tenants; and full farm ERP operations.

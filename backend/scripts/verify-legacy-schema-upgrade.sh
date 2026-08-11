@@ -290,6 +290,11 @@ if [[ "$loan_product_foundation_present" == "f" ]]; then
   migrations+=(install_loan_product_foundation.sql)
 fi
 
+loan_application_underwriting_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.loan_applications') IS NOT NULL AND to_regprocedure('public.decide_loan_adverse_review(uuid,uuid,uuid,text,text,text,timestamp with time zone)') IS NOT NULL")"
+if [[ "$loan_application_underwriting_present" == "f" ]]; then
+  migrations+=(install_loan_application_underwriting.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -391,6 +396,14 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
       OR to_regclass('public.loan_product_events') IS NULL
       OR to_regprocedure(
         'public.approve_loan_product_version(uuid,uuid,uuid,integer,text,timestamp with time zone)') IS NULL
+      OR to_regclass('public.loan_applications') IS NULL
+      OR to_regclass('public.loan_application_decisions') IS NULL
+      OR to_regclass('public.loan_adverse_reviews') IS NULL
+      OR to_regclass('public.loan_application_events') IS NULL
+      OR to_regprocedure(
+        'public.create_loan_application_draft(uuid,uuid,uuid,text,uuid,text,bigint,integer,bigint,bigint,integer,jsonb,uuid,text,text,text,text,text,timestamp with time zone)') IS NULL
+      OR to_regprocedure(
+        'public.decide_loan_adverse_review(uuid,uuid,uuid,text,text,text,timestamp with time zone)') IS NULL
     THEN RAISE EXCEPTION 'required trust, booking, group, savings, and credit schema was not installed'; END IF;
   END \$\$;" >/dev/null
 

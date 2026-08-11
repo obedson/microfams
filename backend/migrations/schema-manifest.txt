@@ -96,3 +96,4 @@ install_savings_withdrawals.sql
 install_savings_statements_reconciliation.sql
 install_savings_provider_certification.sql
 install_loan_product_foundation.sql
+install_loan_application_underwriting.sql
