@@ -250,9 +250,24 @@ if [[ "$group_contributions_present" == "f" ]]; then
   migrations+=(install_group_contributions.sql)
 fi
 
+group_contribution_cycles_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.group_contribution_cycles') IS NOT NULL")"
+if [[ "$group_contribution_cycles_present" == "f" ]]; then
+  migrations+=(install_group_contribution_cycles.sql)
+fi
+
+group_treasury_disbursements_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.group_treasury_disbursements') IS NOT NULL")"
+if [[ "$group_treasury_disbursements_present" == "f" ]]; then
+  migrations+=(install_group_treasury_disbursements.sql)
+fi
+
 group_committees_meetings_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.group_committees') IS NOT NULL AND to_regclass('public.group_meetings') IS NOT NULL AND to_regclass('public.group_meeting_minutes') IS NOT NULL AND to_regprocedure('public.hold_group_meeting(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)') IS NOT NULL")"
 if [[ "$group_committees_meetings_present" == "f" ]]; then
   migrations+=(install_group_committees_meetings.sql)
+fi
+
+group_treasury_external_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.group_treasury_disbursements') IS NOT NULL AND EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='payouts' AND column_name='group_treasury_disbursement_id')")"
+if [[ "$group_treasury_external_present" == "f" ]]; then
+  migrations+=(install_group_treasury_external_disbursements.sql)
 fi
 
 savings_product_foundation_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.savings_products') IS NOT NULL AND to_regprocedure('public.enrol_savings_product(uuid,uuid,uuid,bigint,text,text,text,timestamp with time zone)') IS NOT NULL")"
@@ -303,6 +318,11 @@ fi
 loan_repayment_schedules_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.loan_repayment_schedules') IS NOT NULL AND to_regprocedure('public.generate_loan_repayment_schedule(uuid,uuid,uuid,uuid,text,timestamp with time zone)') IS NOT NULL")"
 if [[ "$loan_repayment_schedules_present" == "f" ]]; then
   migrations+=(install_loan_repayment_schedules.sql)
+fi
+
+loan_disbursement_orchestration_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.loan_disbursements') IS NOT NULL AND to_regprocedure('public.begin_loan_disbursement(uuid,uuid,uuid,uuid,text,text,text,uuid,timestamp with time zone)') IS NOT NULL AND to_regprocedure('public.succeed_loan_disbursement_payout(uuid,text,text,bigint,text,text,uuid,text,text)') IS NOT NULL")"
+if [[ "$loan_disbursement_orchestration_present" == "f" ]]; then
+  migrations+=(install_loan_disbursement_orchestration.sql)
 fi
 
 for migration in "${migrations[@]}"; do
@@ -423,6 +443,14 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
       OR to_regclass('public.loan_repayment_installments') IS NULL
       OR to_regprocedure(
         'public.generate_loan_repayment_schedule(uuid,uuid,uuid,uuid,text,timestamp with time zone)') IS NULL
+      OR to_regclass('public.loan_condition_sets') IS NULL
+      OR to_regclass('public.loan_disbursements') IS NULL
+      OR to_regclass('public.loan_contracts') IS NULL
+      OR to_regclass('public.loan_due_installments') IS NULL
+      OR to_regprocedure(
+        'public.begin_loan_disbursement(uuid,uuid,uuid,uuid,text,text,text,uuid,timestamp with time zone)') IS NULL
+      OR to_regprocedure(
+        'public.succeed_loan_disbursement_payout(uuid,text,text,bigint,text,text,uuid,text,text)') IS NULL
     THEN RAISE EXCEPTION 'required trust, booking, group, savings, and credit schema was not installed'; END IF;
   END \$\$;" >/dev/null
 

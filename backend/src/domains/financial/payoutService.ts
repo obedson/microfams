@@ -46,14 +46,18 @@ const publicPayout = (payout: any) => ({
 const SUCCESS_FUNCTIONS: Record<string, string> = {
   booking_settlement: 'succeed_booking_supplier_payout',
   group_treasury: 'succeed_group_treasury_payout',
+  loan_disbursement: 'succeed_loan_disbursement_payout',
   wallet_withdrawal: 'succeed_wallet_payout',
 };
 const FAILURE_FUNCTIONS: Record<string, string> = {
   booking_settlement: 'fail_booking_supplier_payout',
   group_treasury: 'fail_group_treasury_payout',
+  loan_disbursement: 'fail_loan_disbursement_payout',
   wallet_withdrawal: 'fail_wallet_payout',
 };
-const FULL_SUCCESS_SHAPE = new Set(['booking_settlement', 'group_treasury']);
+const FULL_SUCCESS_SHAPE = new Set([
+  'booking_settlement', 'group_treasury', 'loan_disbursement',
+]);
 
 export class PayoutService {
   constructor(
@@ -246,6 +250,51 @@ export class PayoutService {
     return this.applyProviderResult(input.payout.id, requestHash, result);
   }
 
+  // CRD-05 uses the same provider state machine but posts the loan receivable
+  // only in its loan-specific confirmed-success database function.
+  async submitLoanDisbursementPayout(input: {
+    payout: any;
+    organizationId: string;
+    actorId: string;
+    destination: PayoutSubmissionCommand['destination'];
+  }) {
+    const adapter = this.adapterFactory();
+    await this.assertRoutingEnabled(adapter, input.organizationId, input.actorId);
+    if (adapter.name !== input.payout.provider_name
+      || adapter.environment !== input.payout.provider_environment
+    ) throw new Error('Configured payout adapter does not match the stored payout');
+    if (input.payout.source_type !== 'loan_disbursement') {
+      throw new Error('Stored payout is not a loan disbursement');
+    }
+    if (input.payout.state !== 'reserved') return publicPayout(input.payout);
+
+    const command: PayoutSubmissionCommand = {
+      internalReference: input.payout.internal_reference,
+      amountMinor: Number(input.payout.amount_minor),
+      currency: input.payout.currency,
+      narration: `Micro Fams loan disbursement ${input.payout.internal_reference}`,
+      destination: input.destination,
+    };
+    const requestHash = sha256(JSON.stringify({
+      internalReference: command.internalReference,
+      amountMinor: command.amountMinor,
+      currency: command.currency,
+      beneficiaryFingerprint: input.payout.beneficiary_fingerprint,
+      provider: adapter.name,
+      environment: adapter.environment,
+    }));
+    let result: ProviderPayoutResult;
+    try {
+      result = await adapter.submit(command);
+    } catch {
+      const pending = await this.markSubmitted(
+        input.payout.id, requestHash, undefined, true,
+      );
+      return publicPayout(pending);
+    }
+    return this.applyProviderResult(input.payout.id, requestHash, result);
+  }
+
   async ingestWebhook(rawBody: Buffer, signature: string) {
     const adapter = this.adapterFactory();
     const event = adapter.verifyAndParseWebhook(rawBody, signature);
@@ -402,6 +451,9 @@ export class PayoutService {
     if (payout.source_type === 'group_treasury') {
       return this.recordLateGroupTreasurySuccess(payout, requestHash, result);
     }
+    if (payout.source_type === 'loan_disbursement') {
+      return this.recordLateLoanDisbursementSuccess(payout, requestHash, result);
+    }
     return null;
   }
 
@@ -477,6 +529,45 @@ export class PayoutService {
     );
     if (error || !exception) {
       throw error ?? new Error('Late group treasury payout success could not be recorded');
+    }
+    return {
+      ...publicPayout(payout),
+      lateSuccessExceptionId: exception.id,
+      reconciliationRequired: true,
+    };
+  }
+
+  private async recordLateLoanDisbursementSuccess(
+    payout: any,
+    requestHash: string,
+    result: ProviderPayoutResult,
+  ) {
+    const providerReference = result.providerReference ?? payout.provider_reference;
+    if (!providerReference) {
+      throw new Error('Late loan disbursement success requires a provider reference');
+    }
+    const { data: exception, error } = await supabase.rpc(
+      'record_loan_late_payout_success',
+      {
+        p_payout_id: payout.id,
+        p_organization_id: payout.organization_id,
+        p_provider_reference: providerReference,
+        p_amount_minor: result.amountMinor,
+        p_currency: result.currency,
+        p_beneficiary_fingerprint: payout.beneficiary_fingerprint,
+        p_provider_name: payout.provider_name,
+        p_provider_environment: payout.provider_environment,
+        p_evidence_snapshot: {
+          source: 'provider_result',
+          status: result.status,
+          request_hash: requestHash,
+          failure_code: payout.failure_code,
+          observed_at: new Date().toISOString(),
+        },
+      },
+    );
+    if (error || !exception) {
+      throw error ?? new Error('Late loan disbursement success could not be recorded');
     }
     return {
       ...publicPayout(payout),
