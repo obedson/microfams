@@ -55,6 +55,12 @@ history; those customer-protection paths use `financial.loans.service_existing`,
 `financial.loans.read`. Human adverse-review decisions additionally require the tenant-scoped
 `financial.loans.review` permission.
 
+Manual credit decisions, offer issuance or revision, and exact offer acceptance create new
+credit exposure and therefore require `financial.loans.originate`. Offer reads continue under
+`financial.loans.read`; expiry, applicant withdrawal, and adverse-review servicing continue under
+`financial.loans.service_existing`. Issuance, revision, decline, and expiry additionally require
+the tenant-scoped `financial.loans.review` permission, and the reviewer cannot be the applicant.
+
 ## Provider and domain controls
 
 The catalog includes live-routing controls for Paystack and Interswitch; provider controls for identity verification, SMS, weather, satellite imagery, and AI; institutional dashboards for government and NGO tenants; and full farm ERP operations.

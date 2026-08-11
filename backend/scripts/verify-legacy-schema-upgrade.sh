@@ -295,6 +295,11 @@ if [[ "$loan_application_underwriting_present" == "f" ]]; then
   migrations+=(install_loan_application_underwriting.sql)
 fi
 
+loan_review_offers_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.loan_offers') IS NOT NULL AND to_regprocedure('public.accept_loan_offer(uuid,uuid,uuid,uuid,text,text,text,text,timestamp with time zone)') IS NOT NULL")"
+if [[ "$loan_review_offers_present" == "f" ]]; then
+  migrations+=(install_loan_review_offers.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -404,6 +409,11 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
         'public.create_loan_application_draft(uuid,uuid,uuid,text,uuid,text,bigint,integer,bigint,bigint,integer,jsonb,uuid,text,text,text,text,text,timestamp with time zone)') IS NULL
       OR to_regprocedure(
         'public.decide_loan_adverse_review(uuid,uuid,uuid,text,text,text,timestamp with time zone)') IS NULL
+      OR to_regclass('public.loan_offers') IS NULL
+      OR to_regprocedure(
+        'public.issue_loan_offer(uuid,uuid,uuid,bigint,integer,bigint,bigint,bigint,text[],text,text,timestamp with time zone,text[],text,text,timestamp with time zone)') IS NULL
+      OR to_regprocedure(
+        'public.accept_loan_offer(uuid,uuid,uuid,uuid,text,text,text,text,timestamp with time zone)') IS NULL
     THEN RAISE EXCEPTION 'required trust, booking, group, savings, and credit schema was not installed'; END IF;
   END \$\$;" >/dev/null
 

@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { loanApplicationController } from '../controllers/loanApplicationController.js';
+import { loanOfferController } from '../controllers/loanOfferController.js';
 import { loanProductController } from '../controllers/loanProductController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/requireFeature.js';
@@ -50,5 +51,13 @@ router.post('/applications/:applicationId/withdraw', requireFeature('financial.l
   applicationLimiter, loanApplicationController.withdraw);
 router.post('/admin/applications/:applicationId/adverse-review/decide', requireFeature('financial.loans.service_existing'),
   requireTenantPermission('financial.loans.review'), applicationLimiter, loanApplicationController.decideAdverseReview);
+router.post('/admin/applications/:applicationId/offers', requireFeature('financial.loans.originate'),
+  requireTenantPermission('financial.loans.review'), applicationLimiter, loanOfferController.issue);
+router.post('/admin/applications/:applicationId/decline', requireFeature('financial.loans.originate'),
+  requireTenantPermission('financial.loans.review'), applicationLimiter, loanOfferController.decline);
+router.post('/applications/:applicationId/offers/:offerId/accept', requireFeature('financial.loans.originate'),
+  applicationLimiter, loanOfferController.accept);
+router.post('/admin/applications/:applicationId/offers/:offerId/expire', requireFeature('financial.loans.service_existing'),
+  requireTenantPermission('financial.loans.review'), applicationLimiter, loanOfferController.expire);
 
 export default router;
