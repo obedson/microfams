@@ -113,6 +113,7 @@ Specifications requiring approval before code:
   - [x] Add SAV-03 completed-day simple-return accruals, immutable formula snapshots, rejection recovery, independent approval, and balanced accrued-return posting.
   - [x] Add SAV-04 governed withdrawals into personal wallets with lock-rule snapshots, fees or return forfeiture, liability reservations, maker-checker settlement, and exactly-once recovery.
   - [x] Add SAV-05 journal-derived member statements and tenant finance reconciliation controls with servicing-safe feature flags.
+  - [x] Add SAV-06 provider-neutral certification evidence, zero-variance scenarios, maker-checker decisions, and fail-closed tenant acquisition readiness.
   - [ ] Add contributions, standing orders, accruals, withdrawals, servicing statements, reconciliation, and provider certification.
 - [ ] credit products, eligibility, underwriting inputs, schedules, delinquency, restructuring, write-off;
 - [ ] investments, units, valuation, subscriptions, redemptions, disclosures;

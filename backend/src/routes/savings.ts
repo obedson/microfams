@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { savingsController } from '../controllers/savingsController.js';
+import { savingsProviderCertificationController } from '../controllers/savingsProviderCertificationController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/requireFeature.js';
+import { requireSavingsProviderReady } from '../middleware/requireSavingsProviderReady.js';
 import { requireTenantPermission, resolveTenant } from '../middleware/tenant.js';
 
 const router = Router();
@@ -41,6 +43,35 @@ router.get('/withdrawal-reviews',
   requireFeature('financial.savings.read'),
   requireTenantPermission('financial.savings.configure'),
   savingsController.listWithdrawalReviews);
+router.get('/provider-certifications',
+  requireFeature('financial.savings.configure'),
+  requireTenantPermission('financial.activation.manage'),
+  savingsProviderCertificationController.list);
+router.get('/provider-readiness',
+  requireFeature('financial.savings.configure'),
+  requireTenantPermission('financial.activation.manage'),
+  savingsProviderCertificationController.readiness);
+
+router.post('/provider-certifications',
+  requireFeature('financial.savings.configure'),
+  requireTenantPermission('financial.activation.manage'),
+  commandLimiter,
+  savingsProviderCertificationController.create);
+router.post('/provider-certifications/:certificationId/scenarios',
+  requireFeature('financial.savings.configure'),
+  requireTenantPermission('financial.activation.manage'),
+  commandLimiter,
+  savingsProviderCertificationController.recordScenario);
+router.post('/provider-certifications/:certificationId/submit',
+  requireFeature('financial.savings.configure'),
+  requireTenantPermission('financial.activation.manage'),
+  commandLimiter,
+  savingsProviderCertificationController.submit);
+router.post('/provider-certifications/:certificationId/decide',
+  requireFeature('financial.savings.configure'),
+  requireTenantPermission('financial.activation.manage'),
+  commandLimiter,
+  savingsProviderCertificationController.decide);
 
 router.post('/products',
   requireFeature('financial.savings.configure'),
@@ -55,18 +86,22 @@ router.post('/products/:productId/submit',
 router.post('/products/:productId/approve',
   requireFeature('financial.savings.configure'),
   requireTenantPermission('financial.savings.configure'),
+  requireSavingsProviderReady,
   commandLimiter,
   savingsController.approveProduct);
 router.post('/products/:productId/enrolments',
   requireFeature('financial.savings.enrol'),
+  requireSavingsProviderReady,
   commandLimiter,
   savingsController.enrol);
 router.post('/enrolments/:enrolmentId/contributions',
   requireFeature('financial.savings.contribute'),
+  requireSavingsProviderReady,
   commandLimiter,
   savingsController.contribute);
 router.post('/enrolments/:enrolmentId/standing-orders',
   requireFeature('financial.savings.contribute'),
+  requireSavingsProviderReady,
   commandLimiter,
   savingsController.createStandingOrder);
 router.post('/standing-orders/:standingOrderId/pause',
@@ -75,6 +110,7 @@ router.post('/standing-orders/:standingOrderId/pause',
   savingsController.transitionStandingOrder('pause'));
 router.post('/standing-orders/:standingOrderId/resume',
   requireFeature('financial.savings.contribute'),
+  requireSavingsProviderReady,
   commandLimiter,
   savingsController.transitionStandingOrder('resume'));
 router.post('/standing-orders/:standingOrderId/cancel',
@@ -84,11 +120,13 @@ router.post('/standing-orders/:standingOrderId/cancel',
 router.post('/accrual-batches',
   requireFeature('financial.savings.accrue'),
   requireTenantPermission('financial.savings.configure'),
+  requireSavingsProviderReady,
   commandLimiter,
   savingsController.calculateAccrual);
 router.post('/accrual-batches/:batchId/approve',
   requireFeature('financial.savings.accrue'),
   requireTenantPermission('financial.savings.configure'),
+  requireSavingsProviderReady,
   commandLimiter,
   savingsController.approveAccrual);
 router.post('/accrual-batches/:batchId/reject',
