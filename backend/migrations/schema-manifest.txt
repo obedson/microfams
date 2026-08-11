@@ -98,3 +98,4 @@ install_savings_provider_certification.sql
 install_loan_product_foundation.sql
 install_loan_application_underwriting.sql
 install_loan_review_offers.sql
+install_loan_repayment_schedules.sql

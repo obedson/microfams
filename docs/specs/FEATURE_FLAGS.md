@@ -61,6 +61,12 @@ credit exposure and therefore require `financial.loans.originate`. Offer reads c
 `financial.loans.service_existing`. Issuance, revision, decline, and expiry additionally require
 the tenant-scoped `financial.loans.review` permission, and the reviewer cannot be the applicant.
 
+Contractual repayment schedule generation services an already accepted obligation and therefore
+uses `financial.loans.service_existing`, not the new-origination switch. It additionally requires
+the tenant-scoped `financial.loans.review` permission and independent actor separation. Schedule
+reads remain available under `financial.loans.read`; disabling origination must not conceal an
+accepted borrower's exact principal, interest, fee, or relative due-date obligations.
+
 ## Provider and domain controls
 
 The catalog includes live-routing controls for Paystack and Interswitch; provider controls for identity verification, SMS, weather, satellite imagery, and AI; institutional dashboards for government and NGO tenants; and full farm ERP operations.

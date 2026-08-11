@@ -3,6 +3,7 @@ import rateLimit from 'express-rate-limit';
 import { loanApplicationController } from '../controllers/loanApplicationController.js';
 import { loanOfferController } from '../controllers/loanOfferController.js';
 import { loanProductController } from '../controllers/loanProductController.js';
+import { loanScheduleController } from '../controllers/loanScheduleController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/requireFeature.js';
 import { requireTenantPermission, resolveTenant } from '../middleware/tenant.js';
@@ -59,5 +60,8 @@ router.post('/applications/:applicationId/offers/:offerId/accept', requireFeatur
   applicationLimiter, loanOfferController.accept);
 router.post('/admin/applications/:applicationId/offers/:offerId/expire', requireFeature('financial.loans.service_existing'),
   requireTenantPermission('financial.loans.review'), applicationLimiter, loanOfferController.expire);
+router.post('/admin/applications/:applicationId/offers/:offerId/schedule',
+  requireFeature('financial.loans.service_existing'), requireTenantPermission('financial.loans.review'),
+  applicationLimiter, loanScheduleController.generate);
 
 export default router;
