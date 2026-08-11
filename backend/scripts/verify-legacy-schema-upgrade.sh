@@ -89,6 +89,16 @@ else
   fi
 fi
 
+# Later booking and savings migrations use the canonical purpose catalogue.
+# Some hosted schemas have the ledger tables but predate this additive layer.
+financial_account_provisioning_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regclass('public.financial_account_purpose_rules') IS NOT NULL
+    AND to_regprocedure('public.provision_financial_account(uuid,uuid,text,text,text,text,text,uuid,date,text)') IS NOT NULL")"
+if [[ "$financial_account_provisioning_present" == "f" ]]; then
+  migrations+=(create_financial_account_provisioning.sql)
+fi
+
 booking_refund_schema_present="$(docker exec "$container" psql --username postgres --dbname microfams \
   --no-psqlrc --tuples-only --no-align \
   --command "SELECT to_regclass('public.booking_cancellations') IS NOT NULL")"
@@ -245,6 +255,31 @@ if [[ "$group_committees_meetings_present" == "f" ]]; then
   migrations+=(install_group_committees_meetings.sql)
 fi
 
+savings_product_foundation_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.savings_products') IS NOT NULL AND to_regprocedure('public.enrol_savings_product(uuid,uuid,uuid,bigint,text,text,text,timestamp with time zone)') IS NOT NULL")"
+if [[ "$savings_product_foundation_present" == "f" ]]; then
+  migrations+=(install_savings_product_foundation.sql)
+fi
+
+savings_contributions_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.savings_contributions') IS NOT NULL AND to_regprocedure('public.service_savings_standing_order(uuid,uuid,text,timestamp with time zone)') IS NOT NULL")"
+if [[ "$savings_contributions_present" == "f" ]]; then
+  migrations+=(install_savings_contributions_standing_orders.sql)
+fi
+
+savings_accruals_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.savings_accrual_batches') IS NOT NULL AND to_regprocedure('public.approve_savings_accrual_batch(uuid,uuid,uuid,text,uuid,timestamp with time zone)') IS NOT NULL")"
+if [[ "$savings_accruals_present" == "f" ]]; then
+  migrations+=(install_savings_accrual_posting.sql)
+fi
+
+savings_withdrawals_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regclass('public.savings_withdrawals') IS NOT NULL AND to_regprocedure('public.review_savings_withdrawal(uuid,uuid,uuid,text,text,text,uuid,timestamp with time zone)') IS NOT NULL")"
+if [[ "$savings_withdrawals_present" == "f" ]]; then
+  migrations+=(install_savings_withdrawals.sql)
+fi
+
+savings_reporting_present="$(docker exec "$container" psql --username postgres --dbname microfams --no-psqlrc --tuples-only --no-align --command "SELECT to_regprocedure('public.read_member_savings_statement(uuid,uuid,uuid,date,date,timestamp with time zone,integer,integer)') IS NOT NULL AND to_regprocedure('public.read_savings_reconciliation(uuid,uuid,text,timestamp with time zone,integer,integer,integer)') IS NOT NULL")"
+if [[ "$savings_reporting_present" == "f" ]]; then
+  migrations+=(install_savings_statements_reconciliation.sql)
+fi
+
 for migration in "${migrations[@]}"; do
   echo "dry-run applying $migration"
   docker exec --interactive "$container" psql --username postgres --dbname microfams \
@@ -329,7 +364,15 @@ docker exec "$container" psql --username postgres --dbname microfams --set ON_ER
         'public.execute_group_contribution_rule_proposal(uuid,uuid,uuid,uuid,integer,uuid,timestamp with time zone)') IS NULL
       OR to_regprocedure(
         'public.allocate_group_contribution_payment(uuid,uuid,uuid,uuid,uuid,uuid,uuid,timestamp with time zone)') IS NULL
-    THEN RAISE EXCEPTION 'required trust, booking, and group schema was not installed'; END IF;
+      OR to_regclass('public.savings_products') IS NULL
+      OR to_regclass('public.savings_contributions') IS NULL
+      OR to_regclass('public.savings_accrual_batches') IS NULL
+      OR to_regclass('public.savings_withdrawals') IS NULL
+      OR to_regprocedure(
+        'public.read_member_savings_statement(uuid,uuid,uuid,date,date,timestamp with time zone,integer,integer)') IS NULL
+      OR to_regprocedure(
+        'public.read_savings_reconciliation(uuid,uuid,text,timestamp with time zone,integer,integer,integer)') IS NULL
+    THEN RAISE EXCEPTION 'required trust, booking, group, and savings schema was not installed'; END IF;
   END \$\$;" >/dev/null
 
 echo "legacy schema upgrade dry run passed"

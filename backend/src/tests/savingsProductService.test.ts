@@ -30,6 +30,8 @@ const gateway = (): jest.Mocked<SavingsGateway> => ({
   cancelWithdrawal: jest.fn(),
   listWithdrawals: jest.fn(),
   listWithdrawalReviews: jest.fn(),
+  readStatement: jest.fn(),
+  readReconciliation: jest.fn(),
 });
 
 const productCommand = {
@@ -234,5 +236,81 @@ describe('SavingsProductService', () => {
     await expect(service.cancelWithdrawal({
       ...base, idempotencyKey: 'savings-withdrawal-cancel-1', reason: 'Member no longer needs the funds.',
     })).resolves.toEqual({ id: productId, state: 'cancelled' });
+  });
+
+  it('derives paginated member statement balances with bigint-safe arithmetic', async () => {
+    const storage = gateway();
+    storage.readStatement.mockResolvedValue({
+      enrolment: { id: productId, currency: 'NGN' },
+      openingBalances: { principalMinor: '80', accruedReturnMinor: '20', totalMinor: '100' },
+      pageOpeningBalances: { principalMinor: '100', accruedReturnMinor: '20', totalMinor: '120' },
+      closingBalances: { principalMinor: '130', accruedReturnMinor: '10', totalMinor: '140' },
+      total: 5,
+      lines: [
+        { id: 'line-1', journalEntryId: 'journal-1', effectiveDate: '2026-08-02',
+          postedAt: '2026-08-02T10:00:00.000Z', journalStatus: 'posted', description: 'Contribution',
+          sourceDomain: 'savings.contribution', sourceRecordId: productId, correlationId: actorId,
+          component: 'principal', side: 'credit', amountMinor: '30', memo: null, details: {} },
+        { id: 'line-2', journalEntryId: 'journal-2', effectiveDate: '2026-08-03',
+          postedAt: '2026-08-03T10:00:00.000Z', journalStatus: 'posted', description: 'Return',
+          sourceDomain: 'savings.accrual', sourceRecordId: productId, correlationId: actorId,
+          component: 'accrued_return', side: 'credit', amountMinor: '5', memo: null, details: {} },
+        { id: 'line-3', journalEntryId: 'journal-3', effectiveDate: '2026-08-04',
+          postedAt: '2026-08-04T10:00:00.000Z', journalStatus: 'posted', description: 'Withdrawal',
+          sourceDomain: 'savings.withdrawal', sourceRecordId: productId, correlationId: actorId,
+          component: 'accrued_return', side: 'debit', amountMinor: '15', memo: null, details: {} },
+      ],
+    });
+    const service = new SavingsProductService(storage, () => new Date('2026-08-11T12:00:00.000Z'));
+
+    const statement = await service.getStatement({
+      organizationId, actorId, enrolmentId: productId, from: '2026-08-01',
+      to: '2026-08-11', page: 2, limit: 3,
+    });
+
+    expect(storage.readStatement).toHaveBeenCalledWith(expect.objectContaining({
+      cutoff: '2026-08-11T12:00:00.000Z', page: 2, limit: 3,
+    }));
+    expect(statement.entries.map((entry) => ({
+      movement: entry.movementMinor,
+      principal: entry.principalBalanceMinor,
+      returns: entry.accruedReturnBalanceMinor,
+      total: entry.totalBalanceMinor,
+    }))).toEqual([
+      { movement: '30', principal: '130', returns: '20', total: '150' },
+      { movement: '5', principal: '130', returns: '25', total: '155' },
+      { movement: '-15', principal: '130', returns: '10', total: '140' },
+    ]);
+    expect(statement.pagination).toEqual({ page: 2, limit: 3, total: 5, totalPages: 2 });
+  });
+
+  it('validates report periods, cutoffs, pagination, and reconciliation thresholds', async () => {
+    const storage = gateway();
+    const service = new SavingsProductService(storage, () => new Date('2026-08-11T12:00:00.000Z'));
+
+    await expect(service.getStatement({
+      organizationId, actorId, enrolmentId: productId, from: '2026-08-12', to: '2026-08-11',
+    })).rejects.toThrow('must not precede');
+    expect(() => service.getReconciliation({
+      organizationId, actorId, cutoff: '2026-08-12T00:00:00.000Z',
+    })).toThrow('not in the future');
+    expect(() => service.getReconciliation({
+      organizationId, actorId, staleAfterHours: 0,
+    })).toThrow('1 to 720');
+    expect(storage.readStatement).not.toHaveBeenCalled();
+    expect(storage.readReconciliation).not.toHaveBeenCalled();
+  });
+
+  it('forwards a tenant-scoped, currency-specific reconciliation query', async () => {
+    const storage = gateway();
+    storage.readReconciliation.mockResolvedValue({ summary: { matchedCount: 2 } });
+    const service = new SavingsProductService(storage, () => new Date('2026-08-11T12:00:00.000Z'));
+
+    await expect(service.getReconciliation({ organizationId, actorId }))
+      .resolves.toEqual({ summary: { matchedCount: 2 } });
+    expect(storage.readReconciliation).toHaveBeenCalledWith({
+      organizationId, actorId, currency: 'NGN', cutoff: '2026-08-11T12:00:00.000Z',
+      staleAfterHours: 24, page: 1, limit: 50,
+    });
   });
 });

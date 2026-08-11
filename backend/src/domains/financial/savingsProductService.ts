@@ -133,6 +133,63 @@ export interface CancelSavingsWithdrawalCommand {
   correlationId: string;
 }
 
+export interface SavingsStatementCommand {
+  organizationId: string;
+  actorId: string;
+  enrolmentId: string;
+  from?: string;
+  to?: string;
+  cutoff?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface SavingsReconciliationCommand {
+  organizationId: string;
+  actorId: string;
+  currency?: string;
+  cutoff?: string;
+  staleAfterHours?: number;
+  page?: number;
+  limit?: number;
+}
+
+interface SavingsStatementQuery extends Required<SavingsStatementCommand> {}
+
+interface SavingsReconciliationQuery extends Required<SavingsReconciliationCommand> {}
+
+interface SavingsStatementBalance {
+  principalMinor: string;
+  accruedReturnMinor: string;
+  totalMinor: string;
+}
+
+interface SavingsStatementLine {
+  id: string;
+  journalEntryId: string;
+  effectiveDate: string;
+  postedAt: string;
+  journalStatus: 'posted' | 'reversed';
+  description: string;
+  sourceDomain: string;
+  sourceRecordId: string;
+  correlationId: string;
+  component: 'principal' | 'accrued_return';
+  side: 'debit' | 'credit';
+  amountMinor: string;
+  memo: string | null;
+  details: Record<string, unknown>;
+}
+
+interface SavingsStatementReadResult {
+  enrolment: Record<string, unknown>;
+  openingBalances: SavingsStatementBalance;
+  pageOpeningBalances: SavingsStatementBalance;
+  closingBalances: SavingsStatementBalance;
+  lines: SavingsStatementLine[];
+  total: number;
+}
+
 export interface SavingsGateway {
   createProduct(command: CreateSavingsProductCommand): Promise<unknown>;
   submitProduct(command: SavingsLifecycleCommand): Promise<unknown>;
@@ -154,6 +211,8 @@ export interface SavingsGateway {
   cancelWithdrawal(command: CancelSavingsWithdrawalCommand): Promise<unknown>;
   listWithdrawals(organizationId: string, actorId: string, enrolmentId: string): Promise<unknown[]>;
   listWithdrawalReviews(organizationId: string, actorId: string): Promise<unknown[]>;
+  readStatement(query: SavingsStatementQuery): Promise<SavingsStatementReadResult>;
+  readReconciliation(query: SavingsReconciliationQuery): Promise<unknown>;
 }
 
 export class SavingsValidationError extends Error {
@@ -186,6 +245,11 @@ const assertIsoDate = (value: string, label: string) => {
   if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value) {
     throw new SavingsValidationError(`${label} is not a valid calendar date.`);
   }
+};
+
+const parseMinor = (value: string, label: string) => {
+  if (!/^-?\d+$/.test(value)) throw new Error(`Savings statement returned an invalid ${label}.`);
+  return BigInt(value);
 };
 
 export const calculateSimpleSavingsAccrualMinor = (input: SavingsAccrualFormulaInput): bigint => {
@@ -394,6 +458,32 @@ export class SupabaseSavingsGateway implements SavingsGateway {
     return data;
   }
 
+  async readStatement(query: SavingsStatementQuery): Promise<SavingsStatementReadResult> {
+    const data = await this.rpc('read_member_savings_statement', {
+      p_organization: query.organizationId,
+      p_actor: query.actorId,
+      p_enrolment: query.enrolmentId,
+      p_from: query.from,
+      p_to: query.to,
+      p_cutoff: query.cutoff,
+      p_offset: (query.page - 1) * query.limit,
+      p_limit: query.limit,
+    });
+    return data as SavingsStatementReadResult;
+  }
+
+  readReconciliation(query: SavingsReconciliationQuery) {
+    return this.rpc('read_savings_reconciliation', {
+      p_organization: query.organizationId,
+      p_actor: query.actorId,
+      p_currency: query.currency,
+      p_cutoff: query.cutoff,
+      p_stale_after_hours: query.staleAfterHours,
+      p_offset: (query.page - 1) * query.limit,
+      p_limit: query.limit,
+    });
+  }
+
   async listEnrolments(organizationId: string, actorId: string): Promise<unknown[]> {
     const data = await this.rpc('list_member_savings_enrolments', { p_organization: organizationId, p_actor: actorId });
     if (!Array.isArray(data)) throw new Error('Savings enrolment list is invalid.');
@@ -402,7 +492,10 @@ export class SupabaseSavingsGateway implements SavingsGateway {
 }
 
 export class SavingsProductService {
-  constructor(private readonly gateway: SavingsGateway = new SupabaseSavingsGateway()) {}
+  constructor(
+    private readonly gateway: SavingsGateway = new SupabaseSavingsGateway(),
+    private readonly now = () => new Date(),
+  ) {}
 
   createProduct(command: CreateSavingsProductCommand) {
     this.validateIdentity(command.organizationId, command.actorId, command.idempotencyKey);
@@ -540,6 +633,49 @@ export class SavingsProductService {
     return this.gateway.cancelWithdrawal(command);
   }
 
+  async getStatement(command: SavingsStatementCommand) {
+    assertUuid(command.organizationId, 'Organization ID');
+    assertUuid(command.actorId, 'Actor ID');
+    assertUuid(command.enrolmentId, 'Enrolment ID');
+    const query = this.statementQuery(command);
+    const result = await this.gateway.readStatement(query);
+    let principal = parseMinor(result.pageOpeningBalances.principalMinor, 'principal page opening balance');
+    let accruedReturn = parseMinor(result.pageOpeningBalances.accruedReturnMinor, 'return page opening balance');
+    const entries = result.lines.map((line) => {
+      const amount = parseMinor(line.amountMinor, 'line amount');
+      const movement = line.side === 'credit' ? amount : -amount;
+      if (line.component === 'principal') principal += movement;
+      else if (line.component === 'accrued_return') accruedReturn += movement;
+      else throw new Error('Savings statement returned an invalid balance component.');
+      return {
+        ...line,
+        movementMinor: movement.toString(),
+        principalBalanceMinor: principal.toString(),
+        accruedReturnBalanceMinor: accruedReturn.toString(),
+        totalBalanceMinor: (principal + accruedReturn).toString(),
+      };
+    });
+    return {
+      enrolment: result.enrolment,
+      period: { from: query.from, to: query.to, cutoff: query.cutoff },
+      openingBalances: result.openingBalances,
+      closingBalances: result.closingBalances,
+      entries,
+      pagination: {
+        page: query.page,
+        limit: query.limit,
+        total: result.total,
+        totalPages: Math.ceil(result.total / query.limit),
+      },
+    };
+  }
+
+  getReconciliation(command: SavingsReconciliationCommand) {
+    assertUuid(command.organizationId, 'Organization ID');
+    assertUuid(command.actorId, 'Actor ID');
+    return this.gateway.readReconciliation(this.reconciliationQuery(command));
+  }
+
   listContributions(organizationId: string, actorId: string, enrolmentId: string) {
     assertUuid(organizationId, 'Organization ID');
     assertUuid(actorId, 'Actor ID');
@@ -597,6 +733,53 @@ export class SavingsProductService {
     assertUuid(command.productId, 'Product ID');
     if (!Number.isSafeInteger(command.expectedVersion) || command.expectedVersion <= 0) {
       throw new SavingsValidationError('Expected product version must be a positive integer.');
+    }
+  }
+
+  private statementQuery(command: SavingsStatementCommand): SavingsStatementQuery {
+    const current = this.now();
+    const today = current.toISOString().slice(0, 10);
+    const from = command.from ?? `${today.slice(0, 7)}-01`;
+    const to = command.to ?? today;
+    assertIsoDate(from, 'Statement start');
+    assertIsoDate(to, 'Statement end');
+    if (to < from) throw new SavingsValidationError('Statement end must not precede its start.');
+    const cutoff = this.reportCutoff(command.cutoff, current);
+    const page = command.page ?? 1;
+    const limit = command.limit ?? 25;
+    this.assertPagination(page, limit);
+    return { ...command, from, to, cutoff, page, limit };
+  }
+
+  private reconciliationQuery(command: SavingsReconciliationCommand): SavingsReconciliationQuery {
+    const current = this.now();
+    const currency = command.currency ?? 'NGN';
+    if (!CURRENCY_PATTERN.test(currency)) {
+      throw new SavingsValidationError('Currency must be an uppercase ISO code.');
+    }
+    const cutoff = this.reportCutoff(command.cutoff, current);
+    const staleAfterHours = command.staleAfterHours ?? 24;
+    if (!Number.isSafeInteger(staleAfterHours) || staleAfterHours < 1 || staleAfterHours > 720) {
+      throw new SavingsValidationError('Reconciliation stale threshold must contain 1 to 720 hours.');
+    }
+    const page = command.page ?? 1;
+    const limit = command.limit ?? 50;
+    this.assertPagination(page, limit);
+    return { ...command, currency, cutoff, staleAfterHours, page, limit };
+  }
+
+  private reportCutoff(value: string | undefined, current: Date) {
+    const cutoff = value === undefined ? current : new Date(value);
+    if (Number.isNaN(cutoff.getTime()) || cutoff > current) {
+      throw new SavingsValidationError('Report cutoff must be a valid time that is not in the future.');
+    }
+    return cutoff.toISOString();
+  }
+
+  private assertPagination(page: number, limit: number) {
+    if (!Number.isSafeInteger(page) || page < 1
+      || !Number.isSafeInteger(limit) || limit < 1 || limit > 100) {
+      throw new SavingsValidationError('Report pagination is invalid.');
     }
   }
 
