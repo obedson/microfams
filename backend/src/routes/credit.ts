@@ -4,6 +4,7 @@ import { loanApplicationController } from '../controllers/loanApplicationControl
 import { loanDisbursementController } from '../controllers/loanDisbursementController.js';
 import { loanOfferController } from '../controllers/loanOfferController.js';
 import { loanProductController } from '../controllers/loanProductController.js';
+import { loanRepaymentController } from '../controllers/loanRepaymentController.js';
 import { loanScheduleController } from '../controllers/loanScheduleController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/requireFeature.js';
@@ -85,5 +86,9 @@ router.post('/admin/applications/:applicationId/disbursements',
 router.post('/admin/applications/:applicationId/disbursements/:disbursementId/sync',
   requireFeature('financial.loans.service_existing'), requireTenantPermission('financial.loans.disburse'),
   applicationLimiter, loanDisbursementController.syncDisbursement);
+router.post('/admin/applications/:applicationId/contracts/:contractId/repayments',
+  requireFeature('financial.loans.service_existing'),
+  requireTenantPermission('financial.loans.service_existing'),
+  applicationLimiter, loanRepaymentController.record);
 
 export default router;
