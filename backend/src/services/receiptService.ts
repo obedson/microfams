@@ -1,4 +1,3 @@
-import puppeteer from 'puppeteer';
 import QRCode from 'qrcode';
 import { supabase } from '../utils/supabase.js';
 import { logger } from '../utils/logger.js';
