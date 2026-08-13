@@ -12,4 +12,6 @@ Every new intent remains `pending`. Creating it does not reserve or settle cash,
 
 INV-03 requires a governed `approved` to `open` transition before any subscription intent is accepted. A finance-configure actor may open only the approved version and only within its pinned offer window. The transition is idempotent, audited, and immutable; approval alone never exposes the offer.
 
+INV-04 binds a pending subscription to one existing posted or reconciled provider settlement of the exact tenant, currency, and gross amount. It reuses the provider settlement journal and creates immutable servicing evidence; it does not post cash again, allocate units, value the investment, or mark the product funded.
+
 Rollback before approval means disabling `financial.investments.configure`; approved evidence remains readable. For INV-02, disable `financial.investments.subscribe` first. The subscription-intent table may be removed only if no durable intent exists; otherwise preserve it and use a forward corrective migration. Schema rollback must preserve exported product versions, disclosures, intents, events, and audit records.
