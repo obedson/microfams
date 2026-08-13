@@ -152,6 +152,7 @@ export class ReceiptService {
   }
 
   private async generatePDF(booking: any, receipt: any, qrCodeDataURL: string): Promise<Uint8Array> {
+    const { default: puppeteer } = await import('puppeteer');
     const browser = await puppeteer.launch({ headless: true });
     const page = await browser.newPage();
 
