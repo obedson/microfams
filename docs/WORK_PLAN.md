@@ -127,6 +127,7 @@ Specifications requiring approval before code:
   - [x] Add CRD-09 maker-checker zero-interest restructuring with immutable prior schedules and principal-conserving replacement installments.
   - [x] Add CRD-10 maker-checker principal write-off for defaulted zero-interest loans with balanced credit-loss accounting.
 - [ ] investments, units, valuation, subscriptions, redemptions, disclosures;
+  - [x] Add INV-01 governed investment products, immutable risk disclosures, pro-rata oversubscription defaults, and independent compliance approval.
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.
 

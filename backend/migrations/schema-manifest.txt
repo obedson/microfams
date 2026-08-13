@@ -105,3 +105,4 @@ install_loan_delinquency_servicing.sql
 install_loan_repayment_reversal.sql
 install_loan_restructuring.sql
 install_loan_writeoff.sql
+install_investment_product_foundation.sql

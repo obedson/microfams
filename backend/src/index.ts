@@ -42,6 +42,7 @@ import organizationRoutes from './routes/organizations.js';
 import trustRoutes from './routes/trust.js';
 import savingsRoutes from './routes/savings.js';
 import creditRoutes from './routes/credit.js';
+import investmentRoutes from './routes/investments.js';
 import { startCronJobs } from './jobs/contributionJobs.js';
 import { startBookingJobs } from './jobs/bookingJobs.js';
 import { startWalletJobs } from './jobs/walletJobs.js';
@@ -104,6 +105,7 @@ app.use('/api/organizations', organizationRoutes);
 app.use('/api/trust', trustRoutes);
 app.use('/api/savings', savingsRoutes);
 app.use('/api/credit', creditRoutes);
+app.use('/api/investments', investmentRoutes);
 
 // Health check
 app.get('/health', (req, res) => {

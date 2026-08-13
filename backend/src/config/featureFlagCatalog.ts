@@ -43,6 +43,8 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('financial.savings.withdraw', 'savings', 'Service lawful withdrawals from existing savings enrolments.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('financial.savings.service_existing', 'savings', 'Service contributions, statements, and lawful withdrawals for existing savings.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('financial.savings.configure', 'savings', 'Draft, submit, and independently approve versioned savings products.', { risk: 'regulated' }),
+  flag('financial.investments.read', 'investments', 'Read approved investment products.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
+  flag('financial.investments.configure', 'investments', 'Draft, submit, and independently approve investment products.', { risk: 'regulated' }),
   flag('financial.investments.subscribe', 'investments', 'Accept new investment subscriptions.', { risk: 'regulated' }),
   flag('financial.investments.service_existing', 'investments', 'Report, mature, settle, or write down existing investments.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('financial.loans.read', 'loans', 'Read active loan products and existing credit records.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
