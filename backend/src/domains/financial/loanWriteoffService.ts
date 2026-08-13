@@ -1,0 +1,16 @@
+import { supabase } from '../../utils/supabase.js';
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export interface ProposeLoanWriteoffCommand{organizationId:string;actorId:string;applicationId:string;contractId:string;reasonCode:string;reason:string;evidenceReferences:unknown[];correlationId:string;idempotencyKey:string}
+export interface DecideLoanWriteoffCommand{organizationId:string;actorId:string;writeoffId:string;decision:'approve'|'reject';reviewReason:string;correlationId:string;idempotencyKey:string}
+export interface LoanWriteoffGateway{propose(c:ProposeLoanWriteoffCommand):Promise<unknown>;decide(c:DecideLoanWriteoffCommand):Promise<unknown>}
+export class LoanWriteoffValidationError extends Error{constructor(message:string){super(message);this.name='LoanWriteoffValidationError'}}
+export class SupabaseLoanWriteoffGateway implements LoanWriteoffGateway{
+ async propose(c:ProposeLoanWriteoffCommand){const {data,error}=await supabase.rpc('propose_loan_writeoff',{p_organization:c.organizationId,p_actor:c.actorId,p_application:c.applicationId,p_contract:c.contractId,p_reason_code:c.reasonCode,p_reason:c.reason,p_evidence:c.evidenceReferences,p_correlation:c.correlationId,p_idempotency_key:c.idempotencyKey});if(error||data===null)throw error??new Error('Loan write-off storage returned no result.');return data}
+ async decide(c:DecideLoanWriteoffCommand){const {data,error}=await supabase.rpc('decide_loan_writeoff',{p_organization:c.organizationId,p_actor:c.actorId,p_writeoff:c.writeoffId,p_decision:c.decision,p_review_reason:c.reviewReason,p_correlation:c.correlationId,p_idempotency_key:c.idempotencyKey});if(error||data===null)throw error??new Error('Loan write-off decision storage returned no result.');return data}
+}
+export class LoanWriteoffService{constructor(private readonly gateway:LoanWriteoffGateway=new SupabaseLoanWriteoffGateway()){}
+ propose(c:ProposeLoanWriteoffCommand){this.ids([c.organizationId,c.actorId,c.applicationId,c.contractId,c.correlationId]);if(!/^[A-Z][A-Z0-9_]{2,39}$/.test(c.reasonCode))throw new LoanWriteoffValidationError('Reason code is invalid.');if(c.reason.trim().length<12||c.reason.trim().length>500)throw new LoanWriteoffValidationError('Reason must contain 12 to 500 characters.');if(!Array.isArray(c.evidenceReferences)||!c.evidenceReferences.length)throw new LoanWriteoffValidationError('Evidence references are required.');this.key(c.idempotencyKey);return this.gateway.propose(c)}
+ decide(c:DecideLoanWriteoffCommand){this.ids([c.organizationId,c.actorId,c.writeoffId,c.correlationId]);if(!['approve','reject'].includes(c.decision))throw new LoanWriteoffValidationError('Decision is invalid.');if(c.reviewReason.trim().length<12||c.reviewReason.trim().length>500)throw new LoanWriteoffValidationError('Review reason must contain 12 to 500 characters.');this.key(c.idempotencyKey);return this.gateway.decide(c)}
+ private ids(values:string[]){if(values.some(v=>!UUID.test(v)))throw new LoanWriteoffValidationError('Identifiers must be valid UUIDs.')}private key(v:string){if(v.length<8||v.length>160)throw new LoanWriteoffValidationError('Idempotency key must contain 8 to 160 characters.')}
+}
+export const loanWriteoffService=new LoanWriteoffService();

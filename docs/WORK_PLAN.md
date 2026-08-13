@@ -125,6 +125,7 @@ Specifications requiring approval before code:
   - [x] Add CRD-07 deterministic arrears classification from pinned product stages with immutable assessment evidence.
   - [x] Add CRD-08 maker-checker reversal of settled zero-interest repayments with linked compensating journals.
   - [x] Add CRD-09 maker-checker zero-interest restructuring with immutable prior schedules and principal-conserving replacement installments.
+  - [x] Add CRD-10 maker-checker principal write-off for defaulted zero-interest loans with balanced credit-loss accounting.
 - [ ] investments, units, valuation, subscriptions, redemptions, disclosures;
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.
