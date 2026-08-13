@@ -260,7 +260,7 @@ describe('Analytics Property Tests - Full Compliance', () => {
       fc.asyncProperty(
         fc.record({
           total_bookings: fc.integer({ min: 3, max: 12 }),
-          cancelled_ratio: fc.float({ min: 0, max: 1 })
+          cancelled_ratio: fc.float({ min: 0, max: 1, noNaN: true })
         }),
         async ({ total_bookings, cancelled_ratio }) => {
           const cancelled_count = Math.floor(total_bookings * cancelled_ratio);

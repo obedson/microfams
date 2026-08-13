@@ -538,3 +538,4 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-investment-product-foundation.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-investment-subscription-intents.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-investment-offer-opening.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-investment-subscription-settlement.sql"
