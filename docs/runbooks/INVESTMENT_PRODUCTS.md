@@ -6,6 +6,8 @@ Each approved version pins the issuer/operator, underlying project, funding and 
 
 The maker cannot approve their own version. Product, version, and event evidence is engine-managed and service clients receive read-only access.
 
-This slice does not accept subscriptions, reserve or settle cash, allocate units, value assets, process redemptions, distribute returns, or support secondary trading. Those workflows require separate migrations, ledger mappings, reconciliation, and tests.
+INV-02 accepts a disclosure-bound subscription intent only when the product version is approved, the offer is open, the integer minor-unit amount is within the approved limits, and the investor country and type are eligible. The intent pins the exact approved product version and risk-disclosure version/hash. Replaying the same tenant idempotency key and facts returns the same immutable evidence; changed facts are rejected.
 
-Rollback before approval means disabling `financial.investments.configure`; approved evidence remains readable. Schema rollback must preserve exported product versions, disclosures, events, and audit records.
+Every new intent remains `pending`. Creating it does not reserve or settle cash, post a journal, allocate units or ownership, value assets, process redemptions, distribute returns, or support secondary trading. Those workflows require separate migrations, ledger mappings, reconciliation, and tests. Disabling `financial.investments.subscribe` stops new intents without hiding existing evidence.
+
+Rollback before approval means disabling `financial.investments.configure`; approved evidence remains readable. For INV-02, disable `financial.investments.subscribe` first. The subscription-intent table may be removed only if no durable intent exists; otherwise preserve it and use a forward corrective migration. Schema rollback must preserve exported product versions, disclosures, intents, events, and audit records.
