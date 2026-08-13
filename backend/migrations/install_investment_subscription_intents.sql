@@ -34,7 +34,7 @@ BEGIN
  PERFORM pg_advisory_xact_lock(hashtextextended(p_organization::TEXT||':investment-subscription:'||p_idempotency_key,0)); SELECT * INTO i FROM investment_subscription_intents WHERE organization_id=p_organization AND idempotency_key=p_idempotency_key;
  IF i.id IS NOT NULL THEN IF i.request_hash<>h THEN RAISE EXCEPTION 'Idempotency key reused with different investment subscription facts'; END IF; RETURN jsonb_build_object('subscription',to_jsonb(i)); END IF;
  SELECT * INTO p FROM investment_products WHERE id=p_product AND organization_id=p_organization; SELECT * INTO v FROM investment_product_versions WHERE product_id=p_product AND organization_id=p_organization AND state='approved';
- IF p.id IS NULL OR p.state<>'approved' OR v.id IS NULL THEN RAISE EXCEPTION 'Investment product is not available for subscription'; END IF;
+ IF p.id IS NULL OR p.state<>'open' OR v.id IS NULL THEN RAISE EXCEPTION 'Investment product is not available for subscription'; END IF;
  IF p_at<v.offer_opens_at OR p_at>v.offer_closes_at THEN RAISE EXCEPTION 'Investment offer window is closed'; END IF;
  IF p_amount_minor<v.minimum_subscription_minor OR p_amount_minor>v.maximum_subscription_minor THEN RAISE EXCEPTION 'Investment subscription amount is outside product limits'; END IF;
  IF btrim(p_disclosure_version)<>v.risk_disclosure_version OR lower(p_disclosure_hash)<>v.risk_disclosure_hash THEN RAISE EXCEPTION 'Accepted risk disclosure does not match the approved product version'; END IF;

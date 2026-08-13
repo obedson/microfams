@@ -58,6 +58,7 @@ BEGIN
   PERFORM submit_investment_product(org,maker,product,1,'inv02-product-submit','2026-08-13T18:01:00Z');
   result:=approve_investment_product(org,checker,product,1,'inv02-product-approve','2026-08-13T18:02:00Z');
   version_id:=(result->'version'->>'id')::UUID;
+  PERFORM open_investment_product_offer(org,checker,product,1,'inv02-product-open','2026-09-15T11:59:00Z');
 
   SELECT count(*) INTO journal_count FROM journal_entries WHERE organization_id=org;
   result:=create_investment_subscription_intent(
