@@ -123,6 +123,7 @@ Specifications requiring approval before code:
   - [x] Add CRD-05 versioned conditions precedent, independently verified encrypted destinations, provider-neutral disbursement orchestration, confirmed-success receivable activation, calendar due dates, and late-success reconciliation quarantine.
   - [x] Add CRD-06 governed repayment allocation, balanced posting, payoff transitions, and fail-closed fee-bearing servicing.
   - [x] Add CRD-07 deterministic arrears classification from pinned product stages with immutable assessment evidence.
+  - [x] Add CRD-08 maker-checker reversal of settled zero-interest repayments with linked compensating journals.
 - [ ] investments, units, valuation, subscriptions, redemptions, disclosures;
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.
