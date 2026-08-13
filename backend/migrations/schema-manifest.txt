@@ -103,3 +103,4 @@ install_loan_disbursement_orchestration.sql
 install_loan_repayment_servicing.sql
 install_loan_delinquency_servicing.sql
 install_loan_repayment_reversal.sql
+install_loan_restructuring.sql

@@ -533,3 +533,4 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
   < "$repo_root/backend/tests/schema/test-trust-recovery-negative-e2e.sql"
 
 echo "clean schema verification passed"
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-loan-restructuring.sql"

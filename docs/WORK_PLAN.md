@@ -124,6 +124,7 @@ Specifications requiring approval before code:
   - [x] Add CRD-06 governed repayment allocation, balanced posting, payoff transitions, and fail-closed fee-bearing servicing.
   - [x] Add CRD-07 deterministic arrears classification from pinned product stages with immutable assessment evidence.
   - [x] Add CRD-08 maker-checker reversal of settled zero-interest repayments with linked compensating journals.
+  - [x] Add CRD-09 maker-checker zero-interest restructuring with immutable prior schedules and principal-conserving replacement installments.
 - [ ] investments, units, valuation, subscriptions, redemptions, disclosures;
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.

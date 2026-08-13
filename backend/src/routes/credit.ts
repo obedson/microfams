@@ -7,6 +7,7 @@ import { loanOfferController } from '../controllers/loanOfferController.js';
 import { loanProductController } from '../controllers/loanProductController.js';
 import { loanRepaymentController } from '../controllers/loanRepaymentController.js';
 import { loanRepaymentReversalController } from '../controllers/loanRepaymentReversalController.js';
+import { loanRestructuringController } from '../controllers/loanRestructuringController.js';
 import { loanScheduleController } from '../controllers/loanScheduleController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/requireFeature.js';
@@ -98,6 +99,12 @@ router.post('/admin/applications/:applicationId/contracts/:contractId/repayments
 router.post('/admin/applications/:applicationId/contracts/:contractId/repayment-reversals/:reversalId/decision',
   requireFeature('financial.loans.service_existing'), requireTenantPermission('financial.loans.service_existing'),
   applicationLimiter, loanRepaymentReversalController.decide);
+router.post('/admin/applications/:applicationId/contracts/:contractId/restructures',
+  requireFeature('financial.loans.service_existing'), requireTenantPermission('financial.loans.service_existing'),
+  applicationLimiter, loanRestructuringController.propose);
+router.post('/admin/applications/:applicationId/contracts/:contractId/restructures/:restructureId/decision',
+  requireFeature('financial.loans.service_existing'), requireTenantPermission('financial.loans.service_existing'),
+  applicationLimiter, loanRestructuringController.decide);
 router.post('/admin/applications/:applicationId/contracts/:contractId/delinquency-assessments',
   requireFeature('financial.loans.service_existing'),
   requireTenantPermission('financial.loans.service_existing'),
