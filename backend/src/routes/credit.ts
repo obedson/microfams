@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import rateLimit from 'express-rate-limit';
 import { loanApplicationController } from '../controllers/loanApplicationController.js';
+import { loanDelinquencyController } from '../controllers/loanDelinquencyController.js';
 import { loanDisbursementController } from '../controllers/loanDisbursementController.js';
 import { loanOfferController } from '../controllers/loanOfferController.js';
 import { loanProductController } from '../controllers/loanProductController.js';
@@ -90,5 +91,9 @@ router.post('/admin/applications/:applicationId/contracts/:contractId/repayments
   requireFeature('financial.loans.service_existing'),
   requireTenantPermission('financial.loans.service_existing'),
   applicationLimiter, loanRepaymentController.record);
+router.post('/admin/applications/:applicationId/contracts/:contractId/delinquency-assessments',
+  requireFeature('financial.loans.service_existing'),
+  requireTenantPermission('financial.loans.service_existing'),
+  applicationLimiter, loanDelinquencyController.assess);
 
 export default router;
