@@ -1,0 +1,2 @@
+import { InvestmentProductController } from '../controllers/investmentProductController.js';
+describe('Investment product API contract',()=>{it('exposes create, compliance submission, and independent approval handlers',()=>{const c=new InvestmentProductController({} as any);expect(c.create).toBeInstanceOf(Function);expect(c.submit).toBeInstanceOf(Function);expect(c.approve).toBeInstanceOf(Function);});});

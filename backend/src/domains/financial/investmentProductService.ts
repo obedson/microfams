@@ -1,0 +1,25 @@
+import { supabase } from '../../utils/supabase.js';
+
+const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const HASH=/^[a-f0-9]{64}$/; const CODE=/^[A-Z0-9][A-Z0-9._-]{1,39}$/; const CURRENCY=/^[A-Z]{3}$/;
+export interface InvestmentProductFacts { issuerName:string; operatorName:string; underlyingReference:string; fundingTargetMinor:number; minimumSubscriptionMinor:number; maximumSubscriptionMinor:number; offerOpensAt:string; offerClosesAt:string; unitMethod:'fixed_unit_price'|'ownership_percentage'; unitPriceMinor?:number; oversubscriptionPolicy:'pro_rata'|'first_settled'; fees:unknown[]; expectedReturnDisclosure:string; lossAllocationRule:Record<string,unknown>; reportingSchedule:Record<string,unknown>; maturityAt:string; exitRules:Record<string,unknown>; jurisdictionEligibility:Record<string,unknown>; riskDisclosureVersion:string; riskDisclosureHash:string; conflictsDisclosure:string; }
+export interface CreateInvestmentProductCommand extends InvestmentProductFacts { organizationId:string; actorId:string; code:string; name:string; currency:string; idempotencyKey:string; }
+export interface InvestmentProductLifecycleCommand { organizationId:string; actorId:string; productId:string; version:number; idempotencyKey:string; }
+export interface InvestmentProductGateway { create(command:CreateInvestmentProductCommand):Promise<unknown>; submit(command:InvestmentProductLifecycleCommand):Promise<unknown>; approve(command:InvestmentProductLifecycleCommand):Promise<unknown>; }
+export class InvestmentProductValidationError extends Error { constructor(message:string){super(message);this.name='InvestmentProductValidationError';} }
+export class SupabaseInvestmentProductGateway implements InvestmentProductGateway {
+  private async rpc(name:string,args:Record<string,unknown>){const {data,error}=await supabase.rpc(name,args);if(error||data===null)throw error??new Error('Investment product storage returned no result.');return data;}
+  create(c:CreateInvestmentProductCommand){const {organizationId,actorId,code,name,currency,idempotencyKey,...facts}=c;return this.rpc('create_investment_product_draft',{p_organization:organizationId,p_actor:actorId,p_code:code,p_name:name,p_currency:currency,p_facts:facts,p_idempotency_key:idempotencyKey});}
+  submit(c:InvestmentProductLifecycleCommand){return this.rpc('submit_investment_product',{p_organization:c.organizationId,p_actor:c.actorId,p_product:c.productId,p_version:c.version,p_idempotency_key:c.idempotencyKey});}
+  approve(c:InvestmentProductLifecycleCommand){return this.rpc('approve_investment_product',{p_organization:c.organizationId,p_actor:c.actorId,p_product:c.productId,p_version:c.version,p_idempotency_key:c.idempotencyKey});}
+}
+export class InvestmentProductService {
+  constructor(private readonly gateway:InvestmentProductGateway=new SupabaseInvestmentProductGateway()){}
+  create(c:CreateInvestmentProductCommand){this.identity(c.organizationId,c.actorId,c.idempotencyKey);if(!CODE.test(c.code)||!CURRENCY.test(c.currency))throw new InvestmentProductValidationError('Product code or currency is invalid.');this.facts(c);return this.gateway.create(c);}
+  submit(c:InvestmentProductLifecycleCommand){this.lifecycle(c);return this.gateway.submit(c);}
+  approve(c:InvestmentProductLifecycleCommand){this.lifecycle(c);return this.gateway.approve(c);}
+  private lifecycle(c:InvestmentProductLifecycleCommand){this.identity(c.organizationId,c.actorId,c.idempotencyKey);if(!UUID.test(c.productId)||!Number.isSafeInteger(c.version)||c.version<1)throw new InvestmentProductValidationError('Product lifecycle identity is invalid.');}
+  private identity(org:string,actor:string,key:string){if(!UUID.test(org)||!UUID.test(actor)||key.length<8||key.length>160)throw new InvestmentProductValidationError('Command identity is invalid.');}
+  private facts(c:InvestmentProductFacts){const money=[c.fundingTargetMinor,c.minimumSubscriptionMinor,c.maximumSubscriptionMinor];if(money.some(v=>!Number.isSafeInteger(v)||v<=0)||c.maximumSubscriptionMinor<c.minimumSubscriptionMinor)throw new InvestmentProductValidationError('Subscription amounts must be positive integer minor units.');if(Date.parse(c.offerClosesAt)<=Date.parse(c.offerOpensAt)||Date.parse(c.maturityAt)<=Date.parse(c.offerClosesAt))throw new InvestmentProductValidationError('Offer and maturity dates are invalid.');if((c.unitMethod==='fixed_unit_price')!==Number.isSafeInteger(c.unitPriceMinor))throw new InvestmentProductValidationError('Fixed-unit products require an integer unit price.');if(c.expectedReturnDisclosure.length<12||c.conflictsDisclosure.length<12||!HASH.test(c.riskDisclosureHash))throw new InvestmentProductValidationError('Risk, return, and conflict disclosures are required.');for(const [v,n] of [[c.lossAllocationRule,'loss allocation'],[c.reportingSchedule,'reporting schedule'],[c.exitRules,'exit rules'],[c.jurisdictionEligibility,'jurisdiction eligibility']] as const){if(!v||Array.isArray(v)||typeof v!=='object')throw new InvestmentProductValidationError(`${n} must be an object.`);}}
+}
+export const investmentProductService=new InvestmentProductService();
