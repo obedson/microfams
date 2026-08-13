@@ -5,5 +5,6 @@ router.use(authenticateToken as any);router.use(resolveTenant);
 router.post('/products',requireFeature('financial.investments.configure'),requireTenantPermission('financial.investments.configure'),limiter,investmentProductController.create);
 router.post('/products/:productId/submit',requireFeature('financial.investments.configure'),requireTenantPermission('financial.investments.configure'),limiter,investmentProductController.submit);
 router.post('/products/:productId/approve',requireFeature('financial.investments.configure'),requireTenantPermission('financial.investments.configure'),limiter,investmentProductController.approve);
+router.post('/products/:productId/open',requireFeature('financial.investments.subscribe'),requireTenantPermission('financial.investments.configure'),limiter,investmentProductController.open);
 router.post('/products/:productId/subscriptions',requireFeature('financial.investments.subscribe'),requireTenantPermission('financial.investments.subscribe'),limiter,investmentSubscriptionController.create);
 export default router;

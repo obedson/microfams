@@ -10,4 +10,6 @@ INV-02 accepts a disclosure-bound subscription intent only when the product vers
 
 Every new intent remains `pending`. Creating it does not reserve or settle cash, post a journal, allocate units or ownership, value assets, process redemptions, distribute returns, or support secondary trading. Those workflows require separate migrations, ledger mappings, reconciliation, and tests. Disabling `financial.investments.subscribe` stops new intents without hiding existing evidence.
 
+INV-03 requires a governed `approved` to `open` transition before any subscription intent is accepted. A finance-configure actor may open only the approved version and only within its pinned offer window. The transition is idempotent, audited, and immutable; approval alone never exposes the offer.
+
 Rollback before approval means disabling `financial.investments.configure`; approved evidence remains readable. For INV-02, disable `financial.investments.subscribe` first. The subscription-intent table may be removed only if no durable intent exists; otherwise preserve it and use a forward corrective migration. Schema rollback must preserve exported product versions, disclosures, intents, events, and audit records.
