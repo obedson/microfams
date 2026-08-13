@@ -79,7 +79,9 @@ BEGIN
       'savings_provider_certifications','savings_provider_certification_scenarios',
       'savings_provider_certification_events','loan_products','loan_product_versions',
       'loan_product_events','loan_applications','loan_application_decisions',
-      'loan_adverse_reviews','loan_application_events','loan_offers'
+      'loan_adverse_reviews','loan_application_events','loan_offers',
+      'loan_contracts','loan_due_installments','loan_repayments',
+      'loan_delinquency_assessments'
     ]) AS required(name)
     WHERE to_regclass('public.' || required.name) IS NULL
   ) THEN
@@ -134,6 +136,13 @@ BEGIN
     'public.expire_loan_offer(uuid,uuid,uuid,uuid,text,text,timestamp with time zone)'
   ) IS NULL THEN
     RAISE EXCEPTION 'loan review and offer functions are missing';
+  END IF;
+  IF to_regprocedure(
+    'public.record_loan_repayment(uuid,uuid,uuid,uuid,bigint,date,uuid,text)'
+  ) IS NULL OR to_regprocedure(
+    'public.assess_loan_delinquency(uuid,uuid,uuid,uuid,date,uuid,text)'
+  ) IS NULL THEN
+    RAISE EXCEPTION 'loan repayment or delinquency servicing function is missing';
   END IF;
   IF to_regprocedure(
     'public.claim_booking_domain_notifications(text,timestamp with time zone,integer,integer)'
@@ -487,6 +496,7 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-loan-repayment-schedules.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-loan-disbursement-orchestration.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-loan-repayment-servicing.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-loan-delinquency-servicing.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-identity-verification.sql"

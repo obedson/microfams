@@ -101,3 +101,4 @@ install_loan_review_offers.sql
 install_loan_repayment_schedules.sql
 install_loan_disbursement_orchestration.sql
 install_loan_repayment_servicing.sql
+install_loan_delinquency_servicing.sql
