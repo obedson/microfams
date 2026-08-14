@@ -1,5 +1,6 @@
 import { Router } from 'express'; import rateLimit from 'express-rate-limit';
 import { investmentProductController } from '../controllers/investmentProductController.js'; import { investmentAllocationPlanController } from '../controllers/investmentAllocationPlanController.js'; import { investmentSubscriptionController } from '../controllers/investmentSubscriptionController.js'; import { authenticateToken } from '../middleware/auth.js'; import { requireFeature } from '../middleware/requireFeature.js'; import { requireTenantPermission,resolveTenant } from '../middleware/tenant.js';
+import { investmentRefundSubmissionController } from '../controllers/investmentRefundSubmissionController.js';
 const router=Router(); const limiter=rateLimit({windowMs:15*60*1000,max:20,standardHeaders:true,legacyHeaders:false,message:{success:false,error:'TOO_MANY_INVESTMENT_PRODUCT_COMMANDS'}});
 router.use(authenticateToken as any);router.use(resolveTenant);
 router.post('/products',requireFeature('financial.investments.configure'),requireTenantPermission('financial.investments.configure'),limiter,investmentProductController.create);
@@ -12,4 +13,5 @@ router.post('/subscriptions/:subscriptionId/allocate',requireFeature('financial.
 router.post('/products/:productId/allocation-plans',requireFeature('financial.investments.service_existing'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentAllocationPlanController.create);
 router.post('/allocation-plans/:planId/approve',requireFeature('financial.investments.service_existing'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentAllocationPlanController.approve);
 router.post('/allocation-plans/:planId/refund-obligations',requireFeature('financial.investments.service_existing'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentAllocationPlanController.recognizeRefunds);
+router.post('/refund-obligations/:obligationId/submit',requireFeature('financial.investments.refund_provider_submission'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentRefundSubmissionController.submit);
 export default router;
