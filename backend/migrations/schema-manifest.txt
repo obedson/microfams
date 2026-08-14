@@ -109,3 +109,4 @@ install_investment_product_foundation.sql
 install_investment_subscription_intents.sql
 install_investment_offer_opening.sql
 install_investment_subscription_settlement.sql
+install_investment_fixed_unit_allocation.sql
