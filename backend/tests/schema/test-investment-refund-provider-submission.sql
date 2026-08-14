@@ -1,4 +1,4 @@
--- INV-09/10 database contract: durable submission, recovery, and verified success posting.
+-- INV-09/10/11 database contract: durable submission, recovery, callbacks, and verified success posting.
 SET search_path=public,extensions;
 BEGIN;
 DO $$
@@ -42,14 +42,41 @@ BEGIN
  IF (SELECT provider_reference_masked FROM investment_refund_attempts WHERE id=attempt)='det-refund-sensitive-987654321' OR (SELECT provider_reference_hash FROM investment_refund_attempts WHERE id=attempt) IS NULL THEN RAISE EXCEPTION 'INV09: raw provider reference was stored'; END IF;
  result:=prepare_investment_refund_recovery(org,maker,obligation);
  IF (result->'attempt'->>'id')::UUID<>attempt OR result->>'provider_payment_reference'<>'inv09-provider-payment-001' THEN RAISE EXCEPTION 'INV10: recovery did not use the durable original-provider route'; END IF;
- result_hash:=encode(digest(convert_to('inv10-provider-success-001','UTF8'),'sha256'),'hex');
- result:=complete_investment_refund_recovery(org,maker,attempt,'succeeded','succeeded','det-refund-sensitive-987654321',100000,'NGN',NULL,NULL,result_hash,'2026-10-02T00:06:00Z');
- IF result->'attempt'->>'state'<>'succeeded' OR result->'obligation'->>'state'<>'succeeded' OR result->'obligation'->>'success_journal_id' IS NULL THEN RAISE EXCEPTION 'INV10: verified provider success was not finalized'; END IF;
- IF (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count+1 THEN RAISE EXCEPTION 'INV10: verified success did not post exactly one journal'; END IF;
- IF EXISTS(SELECT 1 FROM journal_entries j LEFT JOIN journal_lines l ON l.journal_entry_id=j.id WHERE j.id=(result->'obligation'->>'success_journal_id')::UUID GROUP BY j.id HAVING sum(CASE WHEN l.side='debit' THEN l.amount_minor ELSE 0 END)<>100000 OR sum(CASE WHEN l.side='credit' THEN l.amount_minor ELSE 0 END)<>100000) THEN RAISE EXCEPTION 'INV10: success journal is not exact and balanced'; END IF;
- replay:=complete_investment_refund_recovery(org,maker,attempt,'succeeded','succeeded','det-refund-sensitive-987654321',100000,'NGN',NULL,NULL,result_hash,'2026-10-02T00:07:00Z');
- IF (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count+1 OR (SELECT count(*) FROM investment_refund_recovery_events WHERE attempt_id=attempt)<>1 THEN RAISE EXCEPTION 'INV10: recovery replay duplicated journal or evidence'; END IF;
- IF EXISTS(SELECT 1 FROM investment_refund_recovery_events WHERE attempt_id=attempt AND provider_reference_masked='det-refund-sensitive-987654321') THEN RAISE EXCEPTION 'INV10: raw provider reference was retained'; END IF;
+ BEGIN
+  result_hash:=encode(digest(convert_to('inv10-provider-success-001','UTF8'),'sha256'),'hex');
+  result:=complete_investment_refund_recovery(org,maker,attempt,'succeeded','succeeded','det-refund-sensitive-987654321',100000,'NGN',NULL,NULL,result_hash,'2026-10-02T00:06:00Z');
+  IF result->'attempt'->>'state'<>'succeeded' OR result->'obligation'->>'success_journal_id' IS NULL THEN RAISE EXCEPTION 'INV10: verified provider success was not finalized'; END IF;
+  IF (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count+1 THEN RAISE EXCEPTION 'INV10: verified success did not post exactly one journal'; END IF;
+  replay:=complete_investment_refund_recovery(org,maker,attempt,'succeeded','succeeded','det-refund-sensitive-987654321',100000,'NGN',NULL,NULL,result_hash,'2026-10-02T00:07:00Z');
+  IF (SELECT count(*) FROM investment_refund_recovery_events WHERE attempt_id=attempt)<>1 THEN RAISE EXCEPTION 'INV10: recovery replay duplicated evidence'; END IF;
+  RAISE EXCEPTION 'INV10_SUCCESS_ROLLBACK';
+ EXCEPTION WHEN SQLSTATE 'P0001' THEN
+  IF SQLERRM<>'INV10_SUCCESS_ROLLBACK' THEN RAISE; END IF;
+ END;
+ result:=apply_investment_refund_callback('deterministic','deterministic',attempt,'inv11-event-failed',
+   'refund.failed',encode(digest(convert_to('inv11-failed-body','UTF8'),'sha256'),'hex'),'failed','failed',
+   'det-refund-sensitive-987654321',100000,'NGN','2026-10-02T00:08:00Z','provider_failed','Provider rejected the refund.','2026-10-02T00:08:01Z');
+ IF result->'obligation'->>'state'<>'failed' OR (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count THEN RAISE EXCEPTION 'INV11: failed callback moved cash or lost the liability'; END IF;
+ result:=apply_investment_refund_callback('deterministic','deterministic',attempt,'inv11-event-success',
+   'refund.processed',encode(digest(convert_to('inv11-success-body','UTF8'),'sha256'),'hex'),'succeeded','succeeded',
+   'det-refund-sensitive-987654321',100000,'NGN','2026-10-02T00:09:00Z',NULL,NULL,'2026-10-02T00:09:01Z');
+ IF result->'obligation'->>'state'<>'succeeded' OR result->'obligation'->>'success_journal_id' IS NULL THEN RAISE EXCEPTION 'INV11: late callback success was not finalized'; END IF;
+ IF (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count+1 THEN RAISE EXCEPTION 'INV11: callback success did not post exactly one journal'; END IF;
+ IF EXISTS(SELECT 1 FROM journal_entries j LEFT JOIN journal_lines l ON l.journal_entry_id=j.id WHERE j.id=(result->'obligation'->>'success_journal_id')::UUID GROUP BY j.id HAVING sum(CASE WHEN l.side='debit' THEN l.amount_minor ELSE 0 END)<>100000 OR sum(CASE WHEN l.side='credit' THEN l.amount_minor ELSE 0 END)<>100000) THEN RAISE EXCEPTION 'INV11: callback success journal is not exact and balanced'; END IF;
+ replay:=apply_investment_refund_callback('deterministic','deterministic',attempt,'inv11-event-success',
+   'refund.processed',encode(digest(convert_to('inv11-success-body','UTF8'),'sha256'),'hex'),'succeeded','succeeded',
+   'det-refund-sensitive-987654321',100000,'NGN','2026-10-02T00:09:00Z',NULL,NULL,'2026-10-02T00:10:00Z');
+ IF NOT (replay->>'duplicate')::BOOLEAN OR (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count+1 OR (SELECT count(*) FROM investment_refund_callback_events WHERE attempt_id=attempt)<>2 THEN RAISE EXCEPTION 'INV11: callback replay duplicated journal or evidence'; END IF;
+ failed:=FALSE; BEGIN
+  PERFORM apply_investment_refund_callback('deterministic','deterministic',attempt,'inv11-event-success',
+   'refund.processed',encode(digest(convert_to('inv11-changed-body','UTF8'),'sha256'),'hex'),'succeeded','succeeded',
+   'det-refund-sensitive-987654321',100000,'NGN','2026-10-02T00:09:00Z',NULL,NULL,'2026-10-02T00:10:01Z');
+ EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%changed bytes%' THEN failed:=TRUE; END IF; END;
+ IF NOT failed THEN RAISE EXCEPTION 'INV11: provider event identity accepted changed bytes'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM investment_refund_callback_events WHERE attempt_id=attempt AND signature_verified) THEN RAISE EXCEPTION 'INV11: verified callback evidence was not recorded'; END IF;
+ failed:=FALSE; BEGIN UPDATE investment_refund_callback_events SET state='failed' WHERE attempt_id=attempt; EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%immutable%' THEN failed:=TRUE; END IF; END; IF NOT failed THEN RAISE EXCEPTION 'INV11: callback evidence was mutable'; END IF;
+ failed:=FALSE; BEGIN PERFORM apply_investment_refund_callback('paystack','sandbox',attempt,'inv11-cross-provider','refund.processed',encode(digest(convert_to('inv11-cross-provider','UTF8'),'sha256'),'hex'),'succeeded','succeeded','ref',100000,'NGN',NULL,NULL,NULL,NOW()); EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%attempt was not found%' THEN failed:=TRUE; END IF; END; IF NOT failed THEN RAISE EXCEPTION 'INV11: callback crossed the original provider boundary'; END IF;
+ IF EXISTS(SELECT 1 FROM investment_refund_callback_events WHERE attempt_id=attempt AND provider_reference_masked='det-refund-sensitive-987654321') THEN RAISE EXCEPTION 'INV11: raw provider callback reference was retained'; END IF;
  replay:=begin_investment_refund_submission(org,maker,obligation,'00000000-0000-4000-8000-000000000905','inv09-submit-001','2026-10-03T00:00:00Z');
  IF NOT (replay->>'replayed')::BOOLEAN OR (replay->'attempt'->>'id')::UUID<>attempt OR (SELECT count(*) FROM investment_refund_attempts WHERE obligation_id=obligation)<>1 THEN RAISE EXCEPTION 'INV09: idempotent replay duplicated provider attempt evidence'; END IF;
  failed:=FALSE; BEGIN PERFORM begin_investment_refund_submission(org,maker,obligation,'00000000-0000-4000-8000-000000000906','inv09-submit-001','2026-10-03T00:01:00Z'); EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%different investment refund submission facts%' THEN failed:=TRUE; END IF; END; IF NOT failed THEN RAISE EXCEPTION 'INV09: changed replay facts were accepted'; END IF;
@@ -58,4 +85,4 @@ BEGIN
  IF NOT EXISTS(SELECT 1 FROM organization_audit_log WHERE organization_id=org AND action='INVESTMENT_REFUND_SUBMISSION_RECORDED' AND resource_id=obligation::TEXT AND after_value->>'provider_reference' LIKE 'det-%4321') THEN RAISE EXCEPTION 'INV09: masked provider submission audit evidence is missing'; END IF;
 END $$;
 ROLLBACK;
-SELECT 'investment refund provider submission schema tests passed' AS result;
+SELECT 'investment refund provider submission, recovery, and callback schema tests passed' AS result;

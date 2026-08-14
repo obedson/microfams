@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import {
   InvestmentRefundSubmissionGateway,
   InvestmentRefundSubmissionService,
@@ -26,6 +27,7 @@ const recoverable = () => ({
 });
 const gateway = (): jest.Mocked<InvestmentRefundSubmissionGateway> => ({
   begin: jest.fn(), complete: jest.fn(), prepareRecovery: jest.fn(), completeRecovery: jest.fn(),
+  applyCallback: jest.fn(),
 });
 
 describe('InvestmentRefundSubmissionService', () => {
@@ -77,6 +79,34 @@ describe('InvestmentRefundSubmissionService', () => {
       recoverRefund: jest.fn().mockResolvedValue({ status: 'succeeded', providerReference: 'BAD', amountMinor: 99999, currency: 'NGN' }),
     } as any)).recover({ organizationId: command.organizationId, actorId: command.actorId, obligationId: command.obligationId });
     expect(g.completeRecovery).toHaveBeenLastCalledWith(expect.objectContaining({ state: 'manual_review', failureCode: 'provider_money_mismatch' }));
+  });
+
+  it('verifies raw callback bytes and forwards replay-safe provider evidence', async () => {
+    const originalSecret = process.env.DETERMINISTIC_PAYMENT_WEBHOOK_SECRET;
+    process.env.DETERMINISTIC_PAYMENT_WEBHOOK_SECRET = 'refund-callback-secret';
+    const g = gateway();
+    g.applyCallback.mockResolvedValue({
+      event: { id: '00000000-0000-4000-8000-000000000106' },
+      obligation: { state: 'succeeded' }, duplicate: false,
+    });
+    const raw = Buffer.from(JSON.stringify({
+      event: 'refund.processed',
+      data: { id: 9001, status: 'processed', amount: 100000, currency: 'NGN',
+        merchant_note: '[investment-refund-00000000-0000-4000-8000-000000000105] approved refund' },
+    }));
+    const signature = crypto.createHmac('sha512', 'refund-callback-secret').update(raw).digest('hex');
+    try {
+      await expect(new InvestmentRefundSubmissionService(g).ingestCallback(raw, signature)).resolves.toEqual({
+        eventId: '00000000-0000-4000-8000-000000000106', state: 'succeeded', duplicate: false,
+      });
+      expect(g.applyCallback).toHaveBeenCalledWith(expect.objectContaining({
+        attemptId: '00000000-0000-4000-8000-000000000105', providerReportedState: 'succeeded',
+        reportedAmountMinor: 100000, reportedCurrency: 'NGN',
+      }));
+      await expect(new InvestmentRefundSubmissionService(g).ingestCallback(
+        Buffer.concat([raw, Buffer.from(' ')]), signature,
+      )).rejects.toThrow('signature');
+    } finally { process.env.DETERMINISTIC_PAYMENT_WEBHOOK_SECRET = originalSecret; }
   });
 
   it('rejects malformed identities before recovery storage', async () => {
