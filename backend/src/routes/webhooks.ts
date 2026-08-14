@@ -1,9 +1,27 @@
 import { Router, Request, Response } from 'express';
 import { walletController } from '../controllers/walletController.js';
 import { paymentService } from '../domains/financial/paymentService.js';
+import { investmentRefundSubmissionService } from '../domains/financial/investmentRefundSubmissionService.js';
 import { logger } from '../utils/logger.js';
 
 const router = Router();
+
+router.post('/paystack/investment-refunds', async (req: Request, res: Response) => {
+  try {
+    const signature = req.headers['x-paystack-signature'];
+    if (typeof signature !== 'string' || !Buffer.isBuffer(req.body)) {
+      return res.status(400).json({ error: 'Invalid investment refund callback envelope' });
+    }
+    const receipt = await investmentRefundSubmissionService.ingestCallback(req.body, signature);
+    return res.status(202).json({ status: 'accepted', event_id: receipt.eventId,
+      refund_state: receipt.state, duplicate: receipt.duplicate });
+  } catch (error) {
+    logger.error('Investment refund callback receipt failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return res.status(400).json({ error: 'Investment refund callback could not be accepted' });
+  }
+});
 
 router.post('/paystack', async (req: Request, res: Response) => {
   const rawBody = Buffer.isBuffer(req.body) ? req.body : Buffer.from(JSON.stringify(req.body));

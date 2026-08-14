@@ -9,6 +9,7 @@ import {
   ProviderPaymentResult,
   ProviderRefundResult,
   VerifiedPaymentProviderEvent,
+  VerifiedRefundProviderEvent,
 } from './paymentTypes.js';
 
 const asPositiveMinor = (value: unknown): number => {
@@ -119,6 +120,15 @@ export class DeterministicPaymentAdapter implements PaymentAdapter {
     }
     return parsePaystackPaymentEvent(JSON.parse(rawBody.toString('utf8')));
   }
+
+  verifyAndParseRefundWebhook(rawBody: Buffer, signature: string): VerifiedRefundProviderEvent {
+    const secret = process.env.DETERMINISTIC_PAYMENT_WEBHOOK_SECRET;
+    if (!secret) throw new PaymentConfigurationError('Deterministic payment webhook secret is not configured');
+    if (!timingSafeHex(rawBody, signature, secret)) {
+      throw new InvalidPaymentProviderEventError('Invalid provider webhook signature');
+    }
+    return parsePaystackRefundEvent(JSON.parse(rawBody.toString('utf8')));
+  }
 }
 
 export class PaystackPaymentAdapter implements PaymentAdapter {
@@ -220,6 +230,15 @@ export class PaystackPaymentAdapter implements PaymentAdapter {
     }
     return parsePaystackPaymentEvent(JSON.parse(rawBody.toString('utf8')));
   }
+
+  verifyAndParseRefundWebhook(rawBody: Buffer, signature: string): VerifiedRefundProviderEvent {
+    const secret = process.env.PAYSTACK_SECRET_KEY;
+    if (!secret) throw new PaymentConfigurationError('Paystack webhook secret is not configured');
+    if (!timingSafeHex(rawBody, signature, secret)) {
+      throw new InvalidPaymentProviderEventError('Invalid provider webhook signature');
+    }
+    return parsePaystackRefundEvent(JSON.parse(rawBody.toString('utf8')));
+  }
 }
 
 export const parsePaystackPaymentEvent = (payload: any): VerifiedPaymentProviderEvent => {
@@ -243,6 +262,36 @@ export const parsePaystackPaymentEvent = (payload: any): VerifiedPaymentProvider
     currency: 'NGN',
     occurredAt: data.paid_at ?? data.occurredAt ?? payload.created_at,
     failureCode: data.gateway_response ? String(data.gateway_response) : undefined,
+    failureReason: data.message ? String(data.message) : undefined,
+  };
+};
+
+export const parsePaystackRefundEvent = (payload: any): VerifiedRefundProviderEvent => {
+  const data = payload.data ?? payload;
+  const eventType = String(payload.event ?? payload.eventType ?? '').toLowerCase();
+  if (!eventType.includes('refund')) {
+    throw new InvalidPaymentProviderEventError('Provider event is not a refund event');
+  }
+  const note = String(data.merchant_note ?? data.merchantNote ?? '');
+  const markedReference = note.match(/\[(investment-refund-[0-9a-f-]{36})\]/i)?.[1];
+  const internalReference = data.internal_reference ?? data.internalReference ?? markedReference;
+  if (typeof internalReference !== 'string'
+    || !/^investment-refund-[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(internalReference)) {
+    throw new InvalidPaymentProviderEventError('Provider refund internal reference is invalid');
+  }
+  const currency = String(data.currency ?? 'NGN').toUpperCase();
+  if (currency !== 'NGN') throw new InvalidPaymentProviderEventError('Provider refund currency is unsupported');
+  return {
+    providerEventId: data.id ? String(data.id) : payload.id ? String(payload.id) : undefined,
+    eventType,
+    internalReference,
+    providerReference: data.refund_reference ?? data.provider_reference
+      ?? (data.id ? String(data.id) : undefined),
+    status: refundStatus(data.status ?? eventType.split('.').pop()),
+    amountMinor: asPositiveMinor(data.amountMinor ?? data.amount),
+    currency: 'NGN',
+    occurredAt: data.processed_at ?? data.occurredAt ?? payload.created_at,
+    failureCode: data.failure_code ? String(data.failure_code) : undefined,
     failureReason: data.message ? String(data.message) : undefined,
   };
 };

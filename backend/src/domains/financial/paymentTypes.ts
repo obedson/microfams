@@ -63,6 +63,19 @@ export interface VerifiedPaymentProviderEvent {
   failureReason?: string;
 }
 
+export interface VerifiedRefundProviderEvent {
+  providerEventId?: string;
+  eventType: string;
+  internalReference: string;
+  providerReference?: string;
+  status: Exclude<RefundState, 'created'>;
+  amountMinor: number;
+  currency: 'NGN';
+  occurredAt?: string;
+  failureCode?: string;
+  failureReason?: string;
+}
+
 export interface PaymentAdapter {
   readonly name: string;
   readonly environment: PaymentProviderEnvironment;
@@ -83,6 +96,7 @@ export interface PaymentAdapter {
   }): Promise<ProviderRefundResult | undefined>;
   queryRefund(providerRefundReference: string): Promise<ProviderRefundResult>;
   verifyAndParseWebhook(rawBody: Buffer, signature: string): VerifiedPaymentProviderEvent;
+  verifyAndParseRefundWebhook(rawBody: Buffer, signature: string): VerifiedRefundProviderEvent;
 }
 
 export class PaymentConfigurationError extends Error {

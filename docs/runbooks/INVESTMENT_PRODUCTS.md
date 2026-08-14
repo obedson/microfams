@@ -22,6 +22,10 @@ INV-06 creates deterministic, immutable oversubscription plans after settlement 
 
 Use the recovery command only for existing submitted, processing, or unknown refund obligations. It queries the original provider route with the durable attempt reference. Exact verified success posts one balanced journal from investment refunds payable to provider clearing; missing, ambiguous, failed, or mismatched evidence preserves the liability.
 
-Recovery remains available through the servicing feature when new provider submissions are disabled. Provider callbacks, broad reconciliation, post-success reversals, and live-provider activation remain separate release work.
+Recovery remains available through the servicing feature when new provider submissions are disabled.
+
+Signed refund callbacks are accepted at `/api/webhooks/paystack/investment-refunds` from exact raw JSON bytes. Callback identity is bound to the durable `investment-refund-<attempt-id>` marker, original provider and environment, exact obligation money, and a masked provider refund reference. Exact byte replay returns the stored event; reuse of a provider event ID with changed bytes is rejected. A late exact success after provider failure posts the success journal once. Money mismatches preserve the payable in manual review, and non-success evidence after success cannot reopen the obligation.
+
+After callback evidence exists, rollback must preserve the event and any success journal; disable provider delivery and use a forward corrective migration. Broad reconciliation, post-success reversals, and live-provider activation remain separate release work.
 
 Rollback before approval means disabling `financial.investments.configure`; approved evidence remains readable. For INV-02, disable `financial.investments.subscribe` first. The subscription-intent table may be removed only if no durable intent exists; otherwise preserve it and use a forward corrective migration. Schema rollback must preserve exported product versions, disclosures, intents, events, and audit records.

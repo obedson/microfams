@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { supabase } from '../../utils/supabase.js';
 import { configuredPaymentAdapter } from './paymentAdapters.js';
-import { PaymentAdapter, ProviderRefundResult } from './paymentTypes.js';
+import { PaymentAdapter, ProviderRefundResult, VerifiedRefundProviderEvent } from './paymentTypes.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -10,6 +10,9 @@ export interface SubmitInvestmentRefundCommand {
 }
 export interface RecoverInvestmentRefundCommand {
   organizationId: string; actorId: string; obligationId: string;
+}
+export interface InvestmentRefundCallbackReceipt {
+  eventId: string; state: string; duplicate: boolean;
 }
 interface PreparedAttempt {
   id: string; state: string; provider_name: string; provider_environment: 'deterministic' | 'sandbox' | 'live';
@@ -28,12 +31,20 @@ interface CompleteResultCommand {
   reportedAmountMinor?: number; reportedCurrency?: string; failureCode?: string;
   failureReason?: string; resultHash: string;
 }
+interface ApplyCallbackCommand {
+  providerName: string; providerEnvironment: string; attemptId: string; providerEventId?: string;
+  eventType: string; rawEventHash: string; state: LocalRefundState;
+  providerReportedState: ProviderRefundResult['status']; providerReference?: string;
+  reportedAmountMinor: number; reportedCurrency: string; occurredAt?: string;
+  failureCode?: string; failureReason?: string;
+}
 
 export interface InvestmentRefundSubmissionGateway {
   begin(command: SubmitInvestmentRefundCommand): Promise<PreparedSubmission>;
   complete(command: CompleteResultCommand): Promise<unknown>;
   prepareRecovery(command: RecoverInvestmentRefundCommand): Promise<PreparedRecovery>;
   completeRecovery(command: CompleteResultCommand): Promise<unknown>;
+  applyCallback(command: ApplyCallbackCommand): Promise<any>;
 }
 
 export class SupabaseInvestmentRefundSubmissionGateway implements InvestmentRefundSubmissionGateway {
@@ -62,6 +73,18 @@ export class SupabaseInvestmentRefundSubmissionGateway implements InvestmentRefu
 
   completeRecovery(c: CompleteResultCommand) {
     return this.rpc('complete_investment_refund_recovery', this.resultArgs(c));
+  }
+
+  applyCallback(c: ApplyCallbackCommand) {
+    return this.rpc('apply_investment_refund_callback', {
+      p_provider_name: c.providerName, p_provider_environment: c.providerEnvironment,
+      p_attempt: c.attemptId, p_provider_event_id: c.providerEventId ?? null,
+      p_event_type: c.eventType, p_raw_event_hash: c.rawEventHash, p_state: c.state,
+      p_provider_reported_state: c.providerReportedState, p_provider_reference: c.providerReference ?? null,
+      p_reported_amount_minor: c.reportedAmountMinor, p_reported_currency: c.reportedCurrency,
+      p_occurred_at: c.occurredAt ?? null, p_failure_code: c.failureCode ?? null,
+      p_failure_reason: c.failureReason ?? null,
+    });
   }
 
   private resultArgs(c: CompleteResultCommand) {
@@ -167,6 +190,33 @@ export class InvestmentRefundSubmissionService {
       });
     }
     return this.completeRecovery(command, prepared, this.outcome(result, prepared.obligation, true));
+  }
+
+  async ingestCallback(rawBody: Buffer, signature: string): Promise<InvestmentRefundCallbackReceipt> {
+    if (!Buffer.isBuffer(rawBody) || rawBody.length === 0 || typeof signature !== 'string' || signature.length < 16) {
+      throw new InvestmentRefundSubmissionValidationError('Investment refund callback envelope is invalid.');
+    }
+    const adapter = this.adapterFactory();
+    const event = adapter.verifyAndParseRefundWebhook(rawBody, signature);
+    const attemptId = this.callbackAttemptId(event);
+    const state: LocalRefundState = event.status === 'succeeded' ? 'succeeded'
+      : event.status === 'failed' || event.status === 'cancelled' ? 'failed'
+        : event.status === 'submitted' ? 'submitted' : 'processing';
+    const result = await this.gateway.applyCallback({
+      providerName: adapter.name, providerEnvironment: adapter.environment, attemptId,
+      providerEventId: event.providerEventId, eventType: event.eventType,
+      rawEventHash: crypto.createHash('sha256').update(rawBody).digest('hex'),
+      state, providerReportedState: event.status, providerReference: event.providerReference,
+      reportedAmountMinor: event.amountMinor, reportedCurrency: event.currency,
+      occurredAt: event.occurredAt, failureCode: event.failureCode, failureReason: event.failureReason,
+    });
+    return { eventId: result.event.id, state: result.obligation.state, duplicate: Boolean(result.duplicate) };
+  }
+
+  private callbackAttemptId(event: VerifiedRefundProviderEvent) {
+    const attemptId = event.internalReference.replace(/^investment-refund-/, '');
+    if (!UUID.test(attemptId)) throw new InvestmentRefundSubmissionValidationError('Investment refund callback reference is invalid.');
+    return attemptId;
   }
 
   private outcome(result: ProviderRefundResult, obligation: RefundObligation, finalSuccess: boolean) {
