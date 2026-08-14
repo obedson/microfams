@@ -16,4 +16,6 @@ INV-04 binds a pending subscription to one existing posted or reconciled provide
 
 INV-05 allocates immutable units only after the approved offer window closes, the subscription is settled, the approved method is fixed unit price, the amount divides exactly by that price, and total settled subscriptions do not exceed the funding target. Oversubscription, percentage ownership, valuation, returns, transfer, and redemption remain disabled pending separate governed increments.
 
+INV-06 creates deterministic, immutable oversubscription plans after settlement intake is finalized. Pro-rata plans use largest remainder with settlement-time and UUID tie-breaks; first-settled plans allocate in settlement order. Unallocated cash is recorded as a refund liability. Independent approval does not issue units, post journals, or execute refunds.
+
 Rollback before approval means disabling `financial.investments.configure`; approved evidence remains readable. For INV-02, disable `financial.investments.subscribe` first. The subscription-intent table may be removed only if no durable intent exists; otherwise preserve it and use a forward corrective migration. Schema rollback must preserve exported product versions, disclosures, intents, events, and audit records.
