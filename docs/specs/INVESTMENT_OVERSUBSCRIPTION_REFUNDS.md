@@ -1,6 +1,6 @@
-# Investment oversubscription refund servicing proposal
+# Investment oversubscription refund servicing
 
-Status: proposed for product-owner approval
+Status: approved
 
 ## Purpose
 
@@ -62,19 +62,18 @@ Before durable obligations, rollback may remove empty tables after disabling ser
 
 | Decision | Recommendation | Status |
 | --- | --- | --- |
-| INV-07A | Use settlement-linked investment refund obligations instead of fabricated payment records | Proposed |
-| INV-07B | Debit investor_subscriptions_payable and credit new investment_refunds_payable when recognizing obligations | Proposed |
-| INV-07C | Post cash movement only after verified provider success; failure preserves the payable | Proposed |
-| INV-07D | Require original-provider/original-rail routing; unsupported routing enters manual review | Proposed |
-| INV-07E | Keep provider fees separate and never reduce the approved investor refund | Proposed |
-| INV-07F | Permit unit issuance after every obligation and reclassification journal exists, without waiting for provider success | Proposed |
-| INV-07G | Restore refund payable through a compensating journal after verified post-success reversal | Proposed |
+| INV-07A | Use settlement-linked investment refund obligations instead of fabricated payment records | Approved |
+| INV-07B | Debit investor_subscriptions_payable and credit new investment_refunds_payable when recognizing obligations | Approved |
+| INV-07C | Post cash movement only after verified provider success; failure preserves the payable | Approved |
+| INV-07D | Require original-provider/original-rail routing; unsupported routing enters manual review | Approved |
+| INV-07E | Keep provider fees separate and never reduce the approved investor refund | Approved |
+| INV-07F | Permit unit issuance after every obligation and reclassification journal exists, without waiting for provider success | Approved |
+| INV-07G | Restore refund payable through a compensating journal after verified post-success reversal | Approved |
 
 ## Required acceptance evidence
 
 CI must prove exact obligation amounts, one obligation per plan item, balanced/idempotent reclassification, immutable settlement journals, provider success/failure/timeout/unknown/duplicate/late-success/reversal contracts, no premature cash journal, retry and webhook replay safety, tenant isolation, feature enforcement, reconciliation with durable exceptions and zero unexplained variance, unit-issuance gating according to INV-07F, clean and legacy migrations, rollback, recovery, audit, and security.
 
-Approved by: _pending_
+Approved by: Product owner (Codex task)
 
-Approval date: _pending_
-
+Approval date: 2026-08-14
