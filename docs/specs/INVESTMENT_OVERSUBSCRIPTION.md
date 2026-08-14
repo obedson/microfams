@@ -1,6 +1,6 @@
 # Investment oversubscription allocation proposal
 
-Status: proposed for product-owner approval
+Status: approved
 
 ## Purpose
 
@@ -63,13 +63,13 @@ Before any plan is approved, rollback means disabling investment servicing and r
 
 | Decision | Recommendation | Status |
 | --- | --- | --- |
-| INV-06A | Whole-unit capacity uses floor division of funding target by unit price | Proposed |
-| INV-06B | Pro-rata uses largest-remainder allocation with deterministic settlement-time and UUID tie-breaks | Proposed |
-| INV-06C | First-settled permits a partial whole-unit allocation for the final eligible subscription | Proposed |
-| INV-06D | Unallocated settled cash becomes an explicit refund liability | Proposed |
-| INV-06E | Maker-checker approval is required before any allocation execution | Proposed |
+| INV-06A | Whole-unit capacity uses floor division of funding target by unit price | Approved |
+| INV-06B | Pro-rata uses largest-remainder allocation with deterministic settlement-time and UUID tie-breaks | Approved |
+| INV-06C | First-settled permits a partial whole-unit allocation for the final eligible subscription | Approved |
+| INV-06D | Unallocated settled cash becomes an explicit refund liability | Approved |
+| INV-06E | Maker-checker approval is required before any allocation execution | Approved |
 
-Approved by: _pending_
+Approved by: Product owner (iObedson review on PR #90)
 
-Approval date: _pending_
+Approval date: 2026-08-14
 
