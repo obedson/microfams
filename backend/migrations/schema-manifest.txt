@@ -111,3 +111,4 @@ install_investment_offer_opening.sql
 install_investment_subscription_settlement.sql
 install_investment_fixed_unit_allocation.sql
 install_investment_oversubscription_planning.sql
+install_investment_refund_obligations.sql

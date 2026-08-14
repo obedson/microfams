@@ -4,7 +4,7 @@ export type FinancialAccountPurpose =
   | 'operating_cash' | 'provider_clearing' | 'settlement_receivable' | 'loan_principal_receivable'
   | 'individual_wallet_funds' | 'group_wallet_funds' | 'pending_payout' | 'escrow_funds_held'
   | 'savings_principal' | 'savings_accrued_return' | 'investor_subscriptions_payable'
-  | 'investor_redemptions_payable' | 'dividends_payable' | 'platform_fee_revenue'
+  | 'investment_refunds_payable' | 'investor_redemptions_payable' | 'dividends_payable' | 'platform_fee_revenue'
   | 'provider_processing_fee' | 'credit_loss_writeoff' | 'opening_balance_equity' | 'retained_surplus';
 
 export class FinancialAccountService {
