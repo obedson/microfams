@@ -1,4 +1,4 @@
--- INV-09 database contract: durable original-provider refund submission without cash success posting.
+-- INV-09/10 database contract: durable submission, recovery, and verified success posting.
 SET search_path=public,extensions;
 BEGIN;
 DO $$
@@ -40,6 +40,16 @@ BEGIN
  IF result->'attempt'->>'state'<>'processing' OR result->'obligation'->>'state'<>'processing' OR result->'attempt'->>'provider_reported_state'<>'succeeded' THEN RAISE EXCEPTION 'INV09: synchronous provider success was treated as final or not recorded'; END IF;
  IF (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count THEN RAISE EXCEPTION 'INV09: provider submission posted premature cash movement'; END IF;
  IF (SELECT provider_reference_masked FROM investment_refund_attempts WHERE id=attempt)='det-refund-sensitive-987654321' OR (SELECT provider_reference_hash FROM investment_refund_attempts WHERE id=attempt) IS NULL THEN RAISE EXCEPTION 'INV09: raw provider reference was stored'; END IF;
+ result:=prepare_investment_refund_recovery(org,maker,obligation);
+ IF (result->'attempt'->>'id')::UUID<>attempt OR result->>'provider_payment_reference'<>'inv09-provider-payment-001' THEN RAISE EXCEPTION 'INV10: recovery did not use the durable original-provider route'; END IF;
+ result_hash:=encode(digest(convert_to('inv10-provider-success-001','UTF8'),'sha256'),'hex');
+ result:=complete_investment_refund_recovery(org,maker,attempt,'succeeded','succeeded','det-refund-sensitive-987654321',100000,'NGN',NULL,NULL,result_hash,'2026-10-02T00:06:00Z');
+ IF result->'attempt'->>'state'<>'succeeded' OR result->'obligation'->>'state'<>'succeeded' OR result->'obligation'->>'success_journal_id' IS NULL THEN RAISE EXCEPTION 'INV10: verified provider success was not finalized'; END IF;
+ IF (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count+1 THEN RAISE EXCEPTION 'INV10: verified success did not post exactly one journal'; END IF;
+ IF EXISTS(SELECT 1 FROM journal_entries j LEFT JOIN journal_lines l ON l.journal_entry_id=j.id WHERE j.id=(result->'obligation'->>'success_journal_id')::UUID GROUP BY j.id HAVING sum(CASE WHEN l.side='debit' THEN l.amount_minor ELSE 0 END)<>100000 OR sum(CASE WHEN l.side='credit' THEN l.amount_minor ELSE 0 END)<>100000) THEN RAISE EXCEPTION 'INV10: success journal is not exact and balanced'; END IF;
+ replay:=complete_investment_refund_recovery(org,maker,attempt,'succeeded','succeeded','det-refund-sensitive-987654321',100000,'NGN',NULL,NULL,result_hash,'2026-10-02T00:07:00Z');
+ IF (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count+1 OR (SELECT count(*) FROM investment_refund_recovery_events WHERE attempt_id=attempt)<>1 THEN RAISE EXCEPTION 'INV10: recovery replay duplicated journal or evidence'; END IF;
+ IF EXISTS(SELECT 1 FROM investment_refund_recovery_events WHERE attempt_id=attempt AND provider_reference_masked='det-refund-sensitive-987654321') THEN RAISE EXCEPTION 'INV10: raw provider reference was retained'; END IF;
  replay:=begin_investment_refund_submission(org,maker,obligation,'00000000-0000-4000-8000-000000000905','inv09-submit-001','2026-10-03T00:00:00Z');
  IF NOT (replay->>'replayed')::BOOLEAN OR (replay->'attempt'->>'id')::UUID<>attempt OR (SELECT count(*) FROM investment_refund_attempts WHERE obligation_id=obligation)<>1 THEN RAISE EXCEPTION 'INV09: idempotent replay duplicated provider attempt evidence'; END IF;
  failed:=FALSE; BEGIN PERFORM begin_investment_refund_submission(org,maker,obligation,'00000000-0000-4000-8000-000000000906','inv09-submit-001','2026-10-03T00:01:00Z'); EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%different investment refund submission facts%' THEN failed:=TRUE; END IF; END; IF NOT failed THEN RAISE EXCEPTION 'INV09: changed replay facts were accepted'; END IF;

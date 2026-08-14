@@ -136,6 +136,7 @@ Specifications requiring approval before code:
   - [x] Add INV-07 settlement-linked refund-obligation recognition with balanced liability reclassification; provider submission and oversubscribed unit execution remain disabled.
   - [x] Add INV-08 idempotent oversubscribed unit execution after every required refund obligation and recognition journal exists; provider submission remains disabled.
   - [x] Add INV-09 durable original-provider refund submission attempts with deterministic/sandbox routing, masked evidence, and non-final synchronous results; recovery and success posting remain disabled.
+  - [x] Add INV-10 original-provider recovery queries with append-only evidence and exactly-once verified success posting; callbacks, broad reconciliation, and reversals remain disabled.
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.
 
