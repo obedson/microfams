@@ -81,7 +81,7 @@ BEGIN
   IF replay_id<>intent_id THEN RAISE EXCEPTION 'INV02: idempotent replay created different evidence'; END IF;
 
   IF (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count
-    OR to_regclass('public.investment_units') IS NOT NULL
+    OR EXISTS(SELECT 1 FROM investment_units WHERE organization_id=org)
     OR to_regclass('public.investment_allocations') IS NOT NULL
   THEN RAISE EXCEPTION 'INV02: intent created forbidden money or allocation artifacts'; END IF;
 

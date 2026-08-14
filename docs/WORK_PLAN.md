@@ -131,6 +131,7 @@ Specifications requiring approval before code:
   - [x] Add INV-02 disclosure-bound pending subscription intents with offer, amount, jurisdiction, tenant, and replay controls; no cash or unit allocation.
   - [x] Add INV-03 governed approved-to-open offer activation with window validation, replay protection, and subscription gating.
   - [x] Add INV-04 verified provider-settlement binding for pending subscriptions without duplicate journals or unit allocation.
+  - [x] Add INV-05 immutable fixed-price unit allocation after non-oversubscribed offers close; defer governed oversubscription, valuation, and redemption.
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.
 
