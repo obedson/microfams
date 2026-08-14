@@ -1,0 +1,51 @@
+-- INV-09 database contract: durable original-provider refund submission without cash success posting.
+SET search_path=public,extensions;
+BEGIN;
+DO $$
+DECLARE org UUID; maker UUID; checker UUID; product UUID; intent UUID; settlement UUID; settlement_journal UUID; plan UUID; obligation UUID; attempt UUID; result JSONB; replay JSONB; facts JSONB; failed BOOLEAN; journal_count BIGINT; result_hash TEXT;
+BEGIN
+ SELECT organization_id,user_id INTO org,maker FROM organization_memberships WHERE role='owner' AND status='active' ORDER BY created_at LIMIT 1;
+ INSERT INTO users(email,password,name,role) VALUES('inv09-checker-'||gen_random_uuid()||'@example.test','test','INV-09 Checker','farmer') RETURNING id INTO checker;
+ INSERT INTO organization_memberships(organization_id,user_id,role,permissions,status,joined_at) VALUES(org,checker,'finance_manager',ARRAY['financial.investments.configure','financial.investments.service_existing'],'active',NOW());
+ facts:=jsonb_build_object('issuerName','Farm Project Issuer','operatorName','Licensed Investment Operator','underlyingReference','farm-project-inv09','fundingTargetMinor',100000,'minimumSubscriptionMinor',100000,'maximumSubscriptionMinor',200000,'offerOpensAt','2026-09-01T00:00:00Z','offerClosesAt','2026-09-30T00:00:00Z','unitMethod','fixed_unit_price','unitPriceMinor',100000,'oversubscriptionPolicy','pro_rata','fees','[]'::JSONB,'expectedReturnDisclosure','Expected returns are estimates and are not guaranteed.','lossAllocationRule',jsonb_build_object('method','pro_rata_units'),'reportingSchedule',jsonb_build_object('frequency','quarterly'),'maturityAt','2027-09-30T00:00:00Z','exitRules',jsonb_build_object('earlyExit',FALSE),'jurisdictionEligibility',jsonb_build_object('countries',jsonb_build_array('NG'),'investorTypes',jsonb_build_array('individual')),'riskDisclosureVersion','INV-09.1','riskDisclosureHash',repeat('c',64),'conflictsDisclosure','The operator discloses all related-party interests.');
+ result:=create_investment_product_draft(org,maker,'INV.FARM.09','INV-09 farm units','NGN',facts,'inv09-product-create','2026-08-14T06:00:00Z'); product:=(result->'product'->>'id')::UUID;
+ PERFORM submit_investment_product(org,maker,product,1,'inv09-product-submit','2026-08-14T06:01:00Z');
+ PERFORM approve_investment_product(org,checker,product,1,'inv09-product-approve','2026-08-14T06:02:00Z');
+ PERFORM open_investment_product_offer(org,checker,product,1,'inv09-product-open','2026-09-15T11:59:00Z');
+ intent:=(create_investment_subscription_intent(org,maker,product,200000,'NG','individual','INV-09.1',repeat('c',64),'00000000-0000-4000-8000-000000000901','inv09-subscribe-001','2026-09-15T12:00:00Z')->'subscription'->>'id')::UUID;
+ SELECT post_wallet_journal(org,'investment.test.custody','inv09-settlement-source','INV-09 settlement',jsonb_build_array(jsonb_build_object('account_id',ensure_wallet_system_account(org,'PAYMENT.BANK_CASH','Test bank cash','asset','debit'),'line_number',1,'side','debit','amount_minor',200000,'memo','INV-09 cash'),jsonb_build_object('account_id',ensure_wallet_system_account(org,'PAYMENT.CLEARING.INV09','Test clearing','asset','debit'),'line_number',2,'side','credit','amount_minor',200000,'memo','INV-09 clearing'))) INTO settlement_journal;
+ PERFORM set_config('microfams.payment_engine','on',TRUE);
+ INSERT INTO settlements(organization_id,provider_name,provider_environment,provider_reference,currency,gross_amount_minor,fee_amount_minor,net_amount_minor,source_hash,state,settled_at,journal_entry_id) VALUES(org,'deterministic','deterministic','inv09-provider-payment-001','NGN',200000,0,200000,encode(digest(convert_to('inv09-provider-payment-001','UTF8'),'sha256'),'hex'),'posted','2026-09-15T12:03:00Z',settlement_journal) RETURNING id INTO settlement;
+ PERFORM settle_investment_subscription(org,checker,intent,settlement,'00000000-0000-4000-8000-000000000902','inv09-settle-001','2026-09-15T12:05:00Z');
+ result:=create_investment_allocation_plan(org,maker,product,'2026-09-30T00:01:00Z','00000000-0000-4000-8000-000000000903','inv09-plan-create-001','2026-10-01T00:00:00Z'); plan:=(result->'plan'->>'id')::UUID;
+ PERFORM approve_investment_allocation_plan(org,checker,plan,'inv09-plan-approve-001','2026-10-02T00:02:00Z');
+ IF NOT EXISTS(SELECT 1 FROM accounting_periods WHERE organization_id=org AND status='open' AND DATE '2026-10-02' BETWEEN starts_on AND ends_on) THEN INSERT INTO accounting_periods(organization_id,name,starts_on,ends_on,status) VALUES(org,'INV-09 recognition period','2026-01-01','2026-12-31','open'); END IF;
+ result:=recognize_investment_refund_obligations(org,maker,plan,'00000000-0000-4000-8000-000000000904','inv09-refund-recognize-001','2026-10-02T00:03:00Z');
+ SELECT id INTO obligation FROM investment_refund_obligations WHERE organization_id=org AND plan_id=plan;
+ SELECT count(*) INTO journal_count FROM journal_entries WHERE organization_id=org;
+ BEGIN
+  result:=begin_investment_refund_submission(org,maker,obligation,'00000000-0000-4000-8000-000000000905','inv09-submit-timeout-001','2026-10-02T00:03:30Z'); attempt:=(result->'attempt'->>'id')::UUID;
+  result_hash:=encode(digest(convert_to('inv09-provider-timeout-001','UTF8'),'sha256'),'hex');
+  result:=complete_investment_refund_submission(org,maker,attempt,'unknown',NULL,NULL,NULL,NULL,'provider_response_ambiguous','Provider response timed out.',result_hash,'2026-10-02T00:03:45Z');
+  IF result->'attempt'->>'state'<>'unknown' OR result->'obligation'->>'state'<>'unknown' OR result->'attempt'->>'reported_amount_minor' IS NOT NULL OR result->'attempt'->>'reported_currency' IS NOT NULL THEN RAISE EXCEPTION 'INV09: timeout evidence required fabricated provider money'; END IF;
+  IF (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count THEN RAISE EXCEPTION 'INV09: unknown provider result posted premature cash movement'; END IF;
+  RAISE EXCEPTION 'INV09_UNKNOWN_ROLLBACK';
+ EXCEPTION WHEN SQLSTATE 'P0001' THEN
+  IF SQLERRM<>'INV09_UNKNOWN_ROLLBACK' THEN RAISE; END IF;
+ END;
+ result:=begin_investment_refund_submission(org,maker,obligation,'00000000-0000-4000-8000-000000000905','inv09-submit-001','2026-10-02T00:04:00Z'); attempt:=(result->'attempt'->>'id')::UUID;
+ IF (result->>'replayed')::BOOLEAN OR result->'attempt'->>'state'<>'prepared' OR result->>'provider_payment_reference'<>'inv09-provider-payment-001' OR (result->'obligation'->>'amount_minor')::BIGINT<>100000 THEN RAISE EXCEPTION 'INV09: prepared submission did not pin exact original-provider facts'; END IF;
+ result_hash:=encode(digest(convert_to('inv09-provider-result-001','UTF8'),'sha256'),'hex');
+ result:=complete_investment_refund_submission(org,maker,attempt,'processing','succeeded','det-refund-sensitive-987654321',100000,'NGN',NULL,NULL,result_hash,'2026-10-02T00:05:00Z');
+ IF result->'attempt'->>'state'<>'processing' OR result->'obligation'->>'state'<>'processing' OR result->'attempt'->>'provider_reported_state'<>'succeeded' THEN RAISE EXCEPTION 'INV09: synchronous provider success was treated as final or not recorded'; END IF;
+ IF (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count THEN RAISE EXCEPTION 'INV09: provider submission posted premature cash movement'; END IF;
+ IF (SELECT provider_reference_masked FROM investment_refund_attempts WHERE id=attempt)='det-refund-sensitive-987654321' OR (SELECT provider_reference_hash FROM investment_refund_attempts WHERE id=attempt) IS NULL THEN RAISE EXCEPTION 'INV09: raw provider reference was stored'; END IF;
+ replay:=begin_investment_refund_submission(org,maker,obligation,'00000000-0000-4000-8000-000000000905','inv09-submit-001','2026-10-03T00:00:00Z');
+ IF NOT (replay->>'replayed')::BOOLEAN OR (replay->'attempt'->>'id')::UUID<>attempt OR (SELECT count(*) FROM investment_refund_attempts WHERE obligation_id=obligation)<>1 THEN RAISE EXCEPTION 'INV09: idempotent replay duplicated provider attempt evidence'; END IF;
+ failed:=FALSE; BEGIN PERFORM begin_investment_refund_submission(org,maker,obligation,'00000000-0000-4000-8000-000000000906','inv09-submit-001','2026-10-03T00:01:00Z'); EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%different investment refund submission facts%' THEN failed:=TRUE; END IF; END; IF NOT failed THEN RAISE EXCEPTION 'INV09: changed replay facts were accepted'; END IF;
+ failed:=FALSE; BEGIN PERFORM begin_investment_refund_submission(checker,maker,obligation,'00000000-0000-4000-8000-000000000907','inv09-cross-tenant','2026-10-03T00:02:00Z'); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END; IF NOT failed THEN RAISE EXCEPTION 'INV09: cross-tenant submission was accepted'; END IF;
+ failed:=FALSE; BEGIN UPDATE investment_refund_attempts SET state='failed' WHERE id=attempt; EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%immutable%' THEN failed:=TRUE; END IF; END; IF NOT failed THEN RAISE EXCEPTION 'INV09: provider attempt evidence was mutable'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM organization_audit_log WHERE organization_id=org AND action='INVESTMENT_REFUND_SUBMISSION_RECORDED' AND resource_id=obligation::TEXT AND after_value->>'provider_reference' LIKE 'det-%4321') THEN RAISE EXCEPTION 'INV09: masked provider submission audit evidence is missing'; END IF;
+END $$;
+ROLLBACK;
+SELECT 'investment refund provider submission schema tests passed' AS result;
