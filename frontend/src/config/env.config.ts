@@ -3,8 +3,10 @@
  * Following Industry Standard: Single source of truth for all environment variables.
  */
 
+export const normalizeEnvValue = (value: string | undefined): string => value?.trim() ?? '';
+
 const getEnv = (key: string, required = true): string => {
-  const value = process.env[key];
+  const value = normalizeEnvValue(process.env[key]);
 
   if (!value && required) {
     if (process.env.NODE_ENV === 'development') {
@@ -14,11 +16,16 @@ const getEnv = (key: string, required = true): string => {
     return '';
   }
 
-  return value || '';
+  return value;
 };
 
+export const resolveApiUrl = (
+  value = process.env.REACT_APP_API_URL,
+  fallback = 'http://localhost:3000/api',
+): string => normalizeEnvValue(value) || fallback;
+
 export const CONFIG = {
-  API_URL: getEnv('REACT_APP_API_URL', true),
+  API_URL: resolveApiUrl(),
   SUPABASE: {
     URL: getEnv('REACT_APP_SUPABASE_URL', false), // Set to false if we want the app to stay alive
     ANON_KEY: getEnv('REACT_APP_SUPABASE_ANON_KEY', false),
