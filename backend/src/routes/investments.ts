@@ -15,4 +15,5 @@ router.post('/allocation-plans/:planId/approve',requireFeature('financial.invest
 router.post('/allocation-plans/:planId/refund-obligations',requireFeature('financial.investments.service_existing'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentAllocationPlanController.recognizeRefunds);
 router.post('/allocation-plans/:planId/execute',requireFeature('financial.investments.service_existing'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentAllocationPlanController.execute);
 router.post('/refund-obligations/:obligationId/submit',requireFeature('financial.investments.refund_provider_submission'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentRefundSubmissionController.submit);
+router.post('/refund-obligations/:obligationId/recover',requireFeature('financial.investments.service_existing'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentRefundSubmissionController.recover);
 export default router;
