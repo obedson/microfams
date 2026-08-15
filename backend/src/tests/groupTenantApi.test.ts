@@ -10,6 +10,7 @@ jest.mock('../middleware/auth.js', () => ({
   },
 }));
 jest.mock('../middleware/tenant.js', () => ({
+  requireTenantPermission: () => (_req: any, _res: any, next: any) => next(),
   resolveTenant: (req: any, _res: any, next: any) => {
     req.tenant = { id: 'organization-1', jurisdiction: 'NG' };
     next();
