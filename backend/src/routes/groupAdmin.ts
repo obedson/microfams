@@ -11,6 +11,7 @@ import { groupAdmissionController } from '../controllers/groupAdmissionControlle
 import { groupDisciplineController } from '../controllers/groupDisciplineController.js';
 import { groupContributionController } from '../controllers/groupContributionController.js';
 import { groupContributionCycleController } from '../controllers/groupContributionCycleController.js';
+import { groupProjectController } from '../controllers/groupProjectController.js';
 import { groupTreasuryController } from '../controllers/groupTreasuryController.js';
 import { groupCommitteeController } from '../controllers/groupCommitteeController.js';
 import { groupTreasuryEmergencyController } from '../controllers/groupTreasuryEmergencyController.js';
@@ -41,6 +42,11 @@ const treasuryCommandLimiter = rateLimit({
 router.use(authenticateToken as any);
 router.use(resolveTenant);
 
+router.get('/:id/projects', groupProjectController.list);
+router.post('/:id/projects', requireFeature('groups.governance.manage'), groupProjectController.create);
+router.post('/:id/projects/:projectId/submit', requireFeature('groups.governance.manage'), groupProjectController.submit);
+router.post('/:id/projects/:projectId/approve', requireFeature('groups.governance.manage'), groupProjectController.approve);
+router.post('/:id/projects/:projectId/activate', requireFeature('groups.governance.manage'), groupProjectController.activate);
 router.get('/:id/admin/dashboard', groupAdminController.getAdminDashboard);
 router.post('/:id/invitations', invitationCommandLimiter, requireFeature('groups.membership.manage'), groupInvitationController.create);
 router.post('/:id/invitations/accept', invitationCommandLimiter, requireFeature('groups.membership.manage'), groupInvitationController.accept);
