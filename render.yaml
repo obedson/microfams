@@ -22,6 +22,9 @@ services:
         sync: false
       - key: FRONTEND_URL
         sync: false
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://microfams.vercel.app
+      # Vercel preview origins are restricted in code to the Micro Fams project hostname pattern.
       - key: PAYSTACK_SECRET_KEY
         sync: false
       - key: PAYSTACK_PUBLIC_KEY

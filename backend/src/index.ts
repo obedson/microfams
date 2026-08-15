@@ -15,6 +15,7 @@ process.on('unhandledRejection', (reason, promise) => {
 import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
+import { isCorsOriginAllowed } from './config/cors.js';
 import authRoutes from './routes/auth.js';
 import propertyRoutes from './routes/properties.js';
 import bookingRoutes from './routes/bookings.js';
@@ -69,7 +70,7 @@ app.use(helmet({
   }
 }));
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://localhost:3001', 'https://microfams.vercel.app'],
+  origin: (origin, callback) => callback(null, isCorsOriginAllowed(origin)),
   credentials: true
 }));
 
