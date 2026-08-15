@@ -187,6 +187,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add GT-09 proposal-executed committee mandates traceable to the authorizing vote, effective-dated committee membership with a single sitting chair, notice-validated meetings with snapshot-based quorum, attendance records that confer no approval, and immutable approved minutes corrected only by linked addenda.
   - [x] Add GT-10A tenant-scoped group document metadata, governed publication, immutable approved versions, linked corrections, and append-only evidence.
   - [x] Add GT-10B permission-checked, rate-limited document download URLs with short expiry and immutable access evidence.
+  - [x] Add GT-10C tenant-scoped shared-asset registration with governed custody, lifecycle metadata, idempotency, and immutable acquisition evidence.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
