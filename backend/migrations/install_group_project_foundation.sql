@@ -81,3 +81,32 @@ REVOKE ALL ON FUNCTION submit_group_project(UUID,UUID,UUID,UUID,UUID,UUID,TIMEST
 REVOKE ALL ON FUNCTION approve_group_project(UUID,UUID,UUID,UUID,UUID,TIMESTAMPTZ) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION activate_group_project(UUID,UUID,UUID,UUID,UUID,TIMESTAMPTZ) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION create_group_project(UUID,UUID,UUID,TEXT,TEXT,TEXT,UUID,UUID,DATE,DATE,JSONB,JSONB,JSONB,TEXT,BIGINT,JSONB,JSONB,TEXT,UUID,TIMESTAMPTZ),submit_group_project(UUID,UUID,UUID,UUID,UUID,UUID,TIMESTAMPTZ),approve_group_project(UUID,UUID,UUID,UUID,UUID,TIMESTAMPTZ),activate_group_project(UUID,UUID,UUID,UUID,UUID,TIMESTAMPTZ) TO service_role;
+CREATE OR REPLACE FUNCTION create_group_project_budget_amendment(o UUID,g UUID,a UUID,project_id UUID,proposal_id UUID,currency_code TEXT,total BIGINT,lines JSONB,corr UUID,at_time TIMESTAMPTZ DEFAULT NOW()) RETURNS UUID LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE p group_projects; q group_proposals; budget_id UUID; next_version INTEGER; BEGIN
+ IF NOT group_project_actor_permitted(o,g,a) THEN RAISE EXCEPTION 'GROUP_PROJECT_PERMISSION_DENIED'; END IF;
+ SELECT * INTO p FROM group_projects WHERE id=project_id AND organization_id=o AND group_id=g FOR UPDATE;
+ SELECT * INTO q FROM group_proposals WHERE id=proposal_id AND organization_id=o AND group_id=g;
+ IF p.id IS NULL OR p.state NOT IN('approved','active','paused') OR q.id IS NULL OR q.proposal_type<>'project' OR q.constitution_id<>p.constitution_id OR q.execution_payload->>'project_key'<>p.project_key OR q.state NOT IN('draft','open','approved') THEN RAISE EXCEPTION 'GROUP_PROJECT_BUDGET_PROPOSAL_INVALID'; END IF;
+ IF currency_code !~ '^[A-Z]{3}$' OR total<0 OR jsonb_typeof(lines)<>'array' OR EXISTS(SELECT 1 FROM jsonb_array_elements(lines) x WHERE COALESCE(x->>'amount_minor','') !~ '^[0-9]+$') OR (SELECT COALESCE(sum((x->>'amount_minor')::BIGINT),0) FROM jsonb_array_elements(lines) x)<>total THEN RAISE EXCEPTION 'GROUP_PROJECT_BUDGET_INVALID'; END IF;
+ SELECT COALESCE(max(version),0)+1 INTO next_version FROM group_project_budget_versions WHERE group_project_budget_versions.project_id=create_group_project_budget_amendment.project_id;
+ PERFORM set_config('microfams.group_project_engine','on',TRUE);
+ INSERT INTO group_project_budget_versions(organization_id,group_id,project_id,version,currency,total_minor,budget_lines,proposal_id,created_by,created_at) VALUES(o,g,project_id,next_version,currency_code,total,lines,proposal_id,a,at_time) RETURNING id INTO budget_id;
+ INSERT INTO group_project_events(organization_id,group_id,project_id,actor_id,event_type,proposal_id,budget_version_id,correlation_id,evidence,occurred_at) VALUES(o,g,project_id,a,'BUDGET_AMENDMENT_PROPOSED',proposal_id,budget_id,corr,jsonb_build_object('version',next_version,'total_minor',total),at_time);
+ RETURN budget_id;
+END $$;
+CREATE OR REPLACE FUNCTION approve_group_project_budget_amendment(o UUID,g UUID,a UUID,project_id UUID,budget_id UUID,corr UUID,at_time TIMESTAMPTZ DEFAULT NOW()) RETURNS UUID LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE p group_projects; b group_project_budget_versions; q group_proposals; BEGIN
+ IF NOT group_project_actor_permitted(o,g,a) THEN RAISE EXCEPTION 'GROUP_PROJECT_PERMISSION_DENIED'; END IF;
+ SELECT * INTO p FROM group_projects WHERE id=project_id AND organization_id=o AND group_id=g FOR UPDATE;
+ SELECT * INTO b FROM group_project_budget_versions WHERE id=budget_id AND group_project_budget_versions.project_id=approve_group_project_budget_amendment.project_id AND organization_id=o FOR UPDATE;
+ SELECT * INTO q FROM group_proposals WHERE id=b.proposal_id;
+ IF p.id IS NULL OR b.id IS NULL OR b.state<>'draft' OR b.version<=1 OR q.state<>'approved' OR a=b.created_by OR a=q.proposer_id THEN RAISE EXCEPTION 'GROUP_PROJECT_BUDGET_APPROVAL_REQUIRED'; END IF;
+ PERFORM set_config('microfams.group_project_engine','on',TRUE);
+ UPDATE group_project_budget_versions SET state='superseded' WHERE id=p.current_budget_version_id AND state='approved';
+ UPDATE group_project_budget_versions SET state='approved',approved_by=a,approved_at=at_time WHERE id=b.id;
+ UPDATE group_projects SET current_budget_version_id=b.id,updated_at=at_time WHERE id=p.id;
+ INSERT INTO group_project_events(organization_id,group_id,project_id,actor_id,event_type,proposal_id,budget_version_id,correlation_id,evidence,occurred_at) VALUES(o,g,p.id,a,'BUDGET_AMENDMENT_APPROVED',q.id,b.id,corr,jsonb_build_object('version',b.version,'supersedes_budget_version_id',p.current_budget_version_id),at_time);
+ RETURN b.id;
+END $$;
+REVOKE ALL ON FUNCTION create_group_project_budget_amendment(UUID,UUID,UUID,UUID,UUID,TEXT,BIGINT,JSONB,UUID,TIMESTAMPTZ),approve_group_project_budget_amendment(UUID,UUID,UUID,UUID,UUID,UUID,TIMESTAMPTZ) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION create_group_project_budget_amendment(UUID,UUID,UUID,UUID,UUID,TEXT,BIGINT,JSONB,UUID,TIMESTAMPTZ),approve_group_project_budget_amendment(UUID,UUID,UUID,UUID,UUID,UUID,TIMESTAMPTZ) TO service_role;
