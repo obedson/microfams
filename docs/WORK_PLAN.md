@@ -140,6 +140,7 @@ Specifications requiring approval before code:
   - [x] Add INV-10 original-provider recovery queries with append-only evidence and exactly-once verified success posting; callbacks, broad reconciliation, and reversals remain disabled.
   - [x] Add INV-11 signed replay-safe provider refund callbacks with late-success handling and exactly-once verified success posting; broad reconciliation and reversals remain disabled.
   - [x] Add INV-12 append-only provider refund reconciliation with durable mismatch exceptions and no automated financial correction.
+  - [x] Add INV-13 maker-checker correction for verified post-success provider reversals with one compensating journal and preserved unit evidence.
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.
 

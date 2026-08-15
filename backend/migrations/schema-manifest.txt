@@ -117,3 +117,4 @@ install_investment_refund_provider_submission.sql
 install_investment_refund_recovery.sql
 install_investment_refund_callbacks.sql
 install_investment_refund_reconciliation.sql
+install_investment_refund_reversals.sql

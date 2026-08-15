@@ -2,6 +2,7 @@ import { Router } from 'express'; import rateLimit from 'express-rate-limit';
 import { investmentProductController } from '../controllers/investmentProductController.js'; import { investmentAllocationPlanController } from '../controllers/investmentAllocationPlanController.js'; import { investmentSubscriptionController } from '../controllers/investmentSubscriptionController.js'; import { authenticateToken } from '../middleware/auth.js'; import { requireFeature } from '../middleware/requireFeature.js'; import { requireTenantPermission,resolveTenant } from '../middleware/tenant.js';
 import { investmentRefundSubmissionController } from '../controllers/investmentRefundSubmissionController.js';
 import { investmentRefundReconciliationController } from '../controllers/investmentRefundReconciliationController.js';
+import { investmentRefundReversalController } from '../controllers/investmentRefundReversalController.js';
 const router=Router(); const limiter=rateLimit({windowMs:15*60*1000,max:20,standardHeaders:true,legacyHeaders:false,message:{success:false,error:'TOO_MANY_INVESTMENT_PRODUCT_COMMANDS'}});
 router.use(authenticateToken as any);router.use(resolveTenant);
 router.post('/products',requireFeature('financial.investments.configure'),requireTenantPermission('financial.investments.configure'),limiter,investmentProductController.create);
@@ -18,4 +19,6 @@ router.post('/allocation-plans/:planId/execute',requireFeature('financial.invest
 router.post('/refund-obligations/:obligationId/submit',requireFeature('financial.investments.refund_provider_submission'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentRefundSubmissionController.submit);
 router.post('/refund-obligations/:obligationId/recover',requireFeature('financial.investments.service_existing'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentRefundSubmissionController.recover);
 router.post('/refund-reconciliation-runs',requireFeature('financial.investments.service_existing'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentRefundReconciliationController.run);
+router.post('/refund-obligations/:obligationId/reversals',requireFeature('financial.investments.service_existing'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentRefundReversalController.propose);
+router.post('/refund-reversals/:reversalId/decide',requireFeature('financial.investments.service_existing'),requireTenantPermission('financial.investments.service_existing'),limiter,investmentRefundReversalController.decide);
 export default router;
