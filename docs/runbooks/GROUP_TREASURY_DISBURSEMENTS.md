@@ -174,3 +174,9 @@ tables are engine-locked exactly as the GT-06A four are.
 Emergency spending is disabled until an organization configures a constitution-pinned cap, member-notice deadline, and ratification window. A request must carry a reason and evidence and cannot benefit its maker. Two distinct treasury approvers are required; only the second approval posts one balanced journal.
 
 That transaction also creates a linked ratification proposal and durable in-app notices for every active member. Approval records `ratified`; rejection or expiry records `ratification_rejected` without deleting or rewriting the original journal.
+
+## GT-07A: treasury statements
+
+The group treasury statement is reconstructed from posted journal lines at a caller-supplied cutoff. Reservations are reconstructed from their creation and settlement timestamps at the same cutoff, so available value is reproducible rather than based on current mutable state.
+
+Every active paid member may read the group's aggregate treasury statement and contribution ownership classification. The response contains no other member's contribution rows or identifiers; member-attributed detail remains private.
