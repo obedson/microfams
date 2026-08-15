@@ -2,8 +2,8 @@ BEGIN;
 DO $$
 <<fixture>>
 DECLARE
- d TEXT; org UUID; owner UUID; deputy UUID; gid UUID; owner_member UUID; deputy_member UUID;
- proposal UUID; decided group_proposals; document_id UUID; version_id UUID; correction_id UUID;
+ d TEXT; org UUID; owner UUID; deputy UUID; outsider UUID; gid UUID; owner_member UUID; deputy_member UUID;
+ proposal UUID; decided group_proposals; document_id UUID; version_id UUID; correction_id UUID; access JSONB;
 BEGIN
  IF to_regclass('public.group_documents') IS NULL OR to_regclass('public.group_document_versions') IS NULL OR to_regclass('public.group_document_events') IS NULL THEN RAISE EXCEPTION 'GT10A document tables missing'; END IF;
  SELECT pg_get_functiondef('approve_group_document_version(UUID,UUID,UUID,UUID,UUID,UUID,UUID,TIMESTAMPTZ)'::regprocedure) INTO d;
@@ -16,6 +16,8 @@ BEGIN
  IF org IS NULL THEN RAISE EXCEPTION 'GT10A tenant fixture is unavailable'; END IF;
  INSERT INTO users(email,password,name,role) VALUES('gt10a-'||replace(gen_random_uuid()::TEXT,'-','')||'@example.test','test','GT10A Deputy','farmer') RETURNING id INTO deputy;
  INSERT INTO organization_memberships(organization_id,user_id,role,status,permissions,joined_at) VALUES(org,deputy,'member','active',ARRAY['groups.documents.manage'],NOW());
+ INSERT INTO users(email,password,name,role) VALUES('gt10b-'||replace(gen_random_uuid()::TEXT,'-','')||'@example.test','test','GT10B Outsider','farmer') RETURNING id INTO outsider;
+ INSERT INTO organization_memberships(organization_id,user_id,role,status,permissions,joined_at) VALUES(org,outsider,'member','active',ARRAY['groups.read'],NOW());
  INSERT INTO groups(name,category,creator_id,organization_id,max_members) VALUES('GT10A Group','cooperative',owner,org,10) RETURNING id INTO gid;
  INSERT INTO group_members(organization_id,group_id,user_id,role,status,is_active,payment_status,amount_paid) VALUES(org,gid,owner,'owner','active',TRUE,'paid',1000) RETURNING id INTO owner_member;
  INSERT INTO group_members(organization_id,group_id,user_id,role,status,is_active,payment_status,amount_paid) VALUES(org,gid,deputy,'member','active',TRUE,'paid',1000) RETURNING id INTO deputy_member;
@@ -43,6 +45,23 @@ BEGIN
  IF decided.state<>'approved' THEN RAISE EXCEPTION 'GT10A publication proposal was not approved'; END IF;
  PERFORM approve_group_document_version(org,gid,deputy,document_id,version_id,proposal,'00000000-0000-4000-8000-000000001013','2026-08-15T11:01:00Z');
  IF NOT EXISTS(SELECT 1 FROM group_document_versions WHERE id=version_id AND state='approved' AND approved_by=deputy AND proposal_id=proposal) OR NOT EXISTS(SELECT 1 FROM group_documents WHERE id=document_id AND current_version_id=version_id) THEN RAISE EXCEPTION 'GT10A publication was not recorded'; END IF;
+ access:=authorize_group_document_download(org,gid,deputy,version_id,'00000000-0000-4000-8000-000000001015','2026-08-15T11:08:00Z','2026-08-15T11:03:00Z');
+ IF access->>'storage_key'<>org::TEXT||'/'||gid::TEXT||'/documents/annual-minutes-v1.pdf' OR access->>'media_type'<>'application/pdf' THEN RAISE EXCEPTION 'GT10B authorized metadata was incorrect'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM group_document_access_events WHERE group_document_access_events.version_id=fixture.version_id AND actor_id=deputy AND event_type='DOWNLOAD_URL_AUTHORIZED') THEN RAISE EXCEPTION 'GT10B access evidence was not recorded'; END IF;
+ BEGIN
+  PERFORM authorize_group_document_download(org,gid,outsider,version_id,'00000000-0000-4000-8000-000000001016','2026-08-15T11:08:00Z','2026-08-15T11:03:00Z');
+  RAISE EXCEPTION 'private document access was granted to an unrelated member';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM='private document access was granted to an unrelated member' THEN RAISE; END IF;
+  IF SQLERRM NOT LIKE '%GROUP_DOCUMENT_ACCESS_DENIED%' THEN RAISE; END IF;
+ END;
+ BEGIN
+  UPDATE group_document_access_events SET metadata='{"tampered":true}' WHERE group_document_access_events.version_id=fixture.version_id;
+  RAISE EXCEPTION 'group document access evidence was mutated';
+ EXCEPTION WHEN OTHERS THEN
+  IF SQLERRM='group document access evidence was mutated' THEN RAISE; END IF;
+  IF SQLERRM NOT LIKE '%GROUP_DOCUMENT_ACCESS_EVIDENCE_IMMUTABLE%' THEN RAISE; END IF;
+ END;
 
  BEGIN
   UPDATE group_document_versions SET storage_key=org::TEXT||'/'||gid::TEXT||'/documents/tampered.pdf' WHERE id=version_id;

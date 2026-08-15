@@ -122,3 +122,4 @@ install_investment_refund_reconciliation.sql
 install_investment_refund_reversals.sql
 install_group_project_foundation.sql
 install_group_documents_foundation.sql
+install_group_document_access.sql

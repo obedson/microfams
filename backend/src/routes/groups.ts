@@ -1,14 +1,17 @@
 import { Router } from 'express';
+import rateLimit from 'express-rate-limit';
 import { authenticateToken, AuthRequest } from '../middleware/auth.js';
 import { validate } from '../middleware/validate.js';
 import { createGroupSchema } from '../utils/validation.js';
 import { GroupModel } from '../models/Group.js';
 import { Response } from 'express';
 import supabase from '../utils/supabase.js';
-import { resolveTenant, TenantRequest } from '../middleware/tenant.js';
+import { requireTenantPermission, resolveTenant, TenantRequest } from '../middleware/tenant.js';
 import { requireFeature } from '../middleware/requireFeature.js';
+import { groupDocumentAccessController } from '../controllers/groupDocumentAccessController.js';
 
 const router = Router();
+const documentAccessLimiter=rateLimit({windowMs:15*60*1000,max:60,standardHeaders:true,legacyHeaders:false,message:{success:false,error:'TOO_MANY_GROUP_DOCUMENT_ACCESS_REQUESTS'}});
 
 router.get('/search', async (req: TenantRequest, res: Response, next) => {
   try {
@@ -47,7 +50,9 @@ router.get('/:id', async (req: TenantRequest, res: Response, next) => {
 });
 
 router.use(authenticateToken as any);
+
 router.use(resolveTenant);
+router.post('/:groupId/documents/versions/:versionId/download-url',requireFeature('groups.documents.download'),requireTenantPermission('groups.read'),documentAccessLimiter,groupDocumentAccessController.issue);
 
 router.post(
   '/',
