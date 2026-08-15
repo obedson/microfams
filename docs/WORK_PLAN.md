@@ -178,6 +178,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add GT-06B1 external provider disbursements against a maker–checker verified off-platform beneficiary registry, an NGN-only inherited settlement ceiling, deferred Option-B posting that commits at begin and posts only on confirmed provider success, exactly-once reservation consume on success or release on failure, and provider timeout reconciliation that records a late success as a non-repaying exception.
   - [x] Add GT-06B2 disclosed emergency expenditure with mandatory post-hoc ratification.
   - [x] Add GT-07A journal-derived group treasury statements with cutoff reservations and aggregate ownership classification.
+  - [x] Add GT-08A governed group project drafts, immutable initial budgets, proposal binding, independent approval, and activation without financial posting.
   - [x] Add GT-09 proposal-executed committee mandates traceable to the authorizing vote, effective-dated committee membership with a single sitting chair, notice-validated meetings with snapshot-based quorum, attendance records that confer no approval, and immutable approved minutes corrected only by linked addenda.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
