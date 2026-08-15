@@ -168,3 +168,9 @@ Internal `execute` refuses an external disbursement outright
 `disbursing` payout is resolved by driving the provider outcome (success or
 failure) through the documented functions, never by editing the row: both new
 tables are engine-locked exactly as the GT-06A four are.
+
+## GT-06B2: emergency expenditure
+
+Emergency spending is disabled until an organization configures a constitution-pinned cap, member-notice deadline, and ratification window. A request must carry a reason and evidence and cannot benefit its maker. Two distinct treasury approvers are required; only the second approval posts one balanced journal.
+
+That transaction also creates a linked ratification proposal and durable in-app notices for every active member. Approval records `ratified`; rejection or expiry records `ratification_rejected` without deleting or rewriting the original journal.
