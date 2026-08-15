@@ -110,3 +110,21 @@ DECLARE p group_projects; b group_project_budget_versions; q group_proposals; BE
 END $$;
 REVOKE ALL ON FUNCTION create_group_project_budget_amendment(UUID,UUID,UUID,UUID,UUID,TEXT,BIGINT,JSONB,UUID,TIMESTAMPTZ),approve_group_project_budget_amendment(UUID,UUID,UUID,UUID,UUID,UUID,TIMESTAMPTZ) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION create_group_project_budget_amendment(UUID,UUID,UUID,UUID,UUID,TEXT,BIGINT,JSONB,UUID,TIMESTAMPTZ),approve_group_project_budget_amendment(UUID,UUID,UUID,UUID,UUID,UUID,TIMESTAMPTZ) TO service_role;
+CREATE OR REPLACE FUNCTION pause_group_project(o UUID,g UUID,a UUID,project_id UUID,reason TEXT,corr UUID,at_time TIMESTAMPTZ DEFAULT NOW()) RETURNS UUID LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE p group_projects; BEGIN
+ IF NOT group_project_actor_permitted(o,g,a) THEN RAISE EXCEPTION 'GROUP_PROJECT_PERMISSION_DENIED'; END IF;
+ SELECT * INTO p FROM group_projects WHERE id=project_id AND organization_id=o AND group_id=g FOR UPDATE;
+ IF p.id IS NULL OR p.state<>'active' OR char_length(trim(COALESCE(reason,'')))<3 THEN RAISE EXCEPTION 'GROUP_PROJECT_PAUSE_INVALID'; END IF;
+ PERFORM set_config('microfams.group_project_engine','on',TRUE); UPDATE group_projects SET state='paused',updated_at=at_time WHERE id=p.id;
+ INSERT INTO group_project_events(organization_id,group_id,project_id,actor_id,event_type,from_state,to_state,correlation_id,evidence,occurred_at) VALUES(o,g,p.id,a,'PROJECT_PAUSED','active','paused',corr,jsonb_build_object('reason',trim(reason)),at_time); RETURN p.id;
+END $$;
+CREATE OR REPLACE FUNCTION resume_group_project(o UUID,g UUID,a UUID,project_id UUID,reason TEXT,corr UUID,at_time TIMESTAMPTZ DEFAULT NOW()) RETURNS UUID LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE p group_projects; BEGIN
+ IF NOT group_project_actor_permitted(o,g,a) THEN RAISE EXCEPTION 'GROUP_PROJECT_PERMISSION_DENIED'; END IF;
+ SELECT * INTO p FROM group_projects WHERE id=project_id AND organization_id=o AND group_id=g FOR UPDATE;
+ IF p.id IS NULL OR p.state<>'paused' OR char_length(trim(COALESCE(reason,'')))<3 THEN RAISE EXCEPTION 'GROUP_PROJECT_RESUME_INVALID'; END IF;
+ PERFORM set_config('microfams.group_project_engine','on',TRUE); UPDATE group_projects SET state='active',updated_at=at_time WHERE id=p.id;
+ INSERT INTO group_project_events(organization_id,group_id,project_id,actor_id,event_type,from_state,to_state,correlation_id,evidence,occurred_at) VALUES(o,g,p.id,a,'PROJECT_RESUMED','paused','active',corr,jsonb_build_object('reason',trim(reason)),at_time); RETURN p.id;
+END $$;
+REVOKE ALL ON FUNCTION pause_group_project(UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ),resume_group_project(UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION pause_group_project(UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ),resume_group_project(UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ) TO service_role;

@@ -13,6 +13,7 @@ import { groupContributionController } from '../controllers/groupContributionCon
 import { groupContributionCycleController } from '../controllers/groupContributionCycleController.js';
 import { groupProjectController } from '../controllers/groupProjectController.js';
 import { groupProjectBudgetController } from '../controllers/groupProjectBudgetController.js';
+import { groupProjectLifecycleController } from '../controllers/groupProjectLifecycleController.js';
 import { groupTreasuryController } from '../controllers/groupTreasuryController.js';
 import { groupCommitteeController } from '../controllers/groupCommitteeController.js';
 import { groupTreasuryEmergencyController } from '../controllers/groupTreasuryEmergencyController.js';
@@ -48,6 +49,8 @@ router.post('/:id/projects', requireFeature('groups.governance.manage'), groupPr
 router.post('/:id/projects/:projectId/budget-amendments', requireFeature('groups.governance.manage'), groupProjectBudgetController.propose);
 router.post('/:id/projects/:projectId/budget-amendments/:budgetVersionId/approve', requireFeature('groups.governance.manage'), groupProjectBudgetController.approve);
 router.post('/:id/projects/:projectId/submit', requireFeature('groups.governance.manage'), groupProjectController.submit);
+router.post('/:id/projects/:projectId/pause', requireFeature('groups.governance.manage'), groupProjectLifecycleController.pause);
+router.post('/:id/projects/:projectId/resume', requireFeature('groups.governance.manage'), groupProjectLifecycleController.resume);
 router.post('/:id/projects/:projectId/approve', requireFeature('groups.governance.manage'), groupProjectController.approve);
 router.post('/:id/projects/:projectId/activate', requireFeature('groups.governance.manage'), groupProjectController.activate);
 router.get('/:id/admin/dashboard', groupAdminController.getAdminDashboard);
