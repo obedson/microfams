@@ -139,6 +139,7 @@ Specifications requiring approval before code:
   - [x] Add INV-09 durable original-provider refund submission attempts with deterministic/sandbox routing, masked evidence, and non-final synchronous results; recovery and success posting remain disabled.
   - [x] Add INV-10 original-provider recovery queries with append-only evidence and exactly-once verified success posting; callbacks, broad reconciliation, and reversals remain disabled.
   - [x] Add INV-11 signed replay-safe provider refund callbacks with late-success handling and exactly-once verified success posting; broad reconciliation and reversals remain disabled.
+  - [x] Add INV-12 append-only provider refund reconciliation with durable mismatch exceptions and no automated financial correction.
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.
 

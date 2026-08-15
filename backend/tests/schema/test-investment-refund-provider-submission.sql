@@ -83,6 +83,29 @@ BEGIN
  failed:=FALSE; BEGIN PERFORM begin_investment_refund_submission(checker,maker,obligation,'00000000-0000-4000-8000-000000000907','inv09-cross-tenant','2026-10-03T00:02:00Z'); EXCEPTION WHEN OTHERS THEN failed:=TRUE; END; IF NOT failed THEN RAISE EXCEPTION 'INV09: cross-tenant submission was accepted'; END IF;
  failed:=FALSE; BEGIN UPDATE investment_refund_attempts SET state='failed' WHERE id=attempt; EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%immutable%' THEN failed:=TRUE; END IF; END; IF NOT failed THEN RAISE EXCEPTION 'INV09: provider attempt evidence was mutable'; END IF;
  IF NOT EXISTS(SELECT 1 FROM organization_audit_log WHERE organization_id=org AND action='INVESTMENT_REFUND_SUBMISSION_RECORDED' AND resource_id=obligation::TEXT AND after_value->>'provider_reference' LIKE 'det-%4321') THEN RAISE EXCEPTION 'INV09: masked provider submission audit evidence is missing'; END IF;
+ SELECT count(*) INTO journal_count FROM journal_entries WHERE organization_id=org;
+ result:=run_investment_refund_reconciliation(org,maker,'deterministic','deterministic',repeat('d',64),
+   'inv12-reconciliation-001','2026-10-01T00:00:00Z','2026-10-04T00:00:00Z',jsonb_build_array(
+     jsonb_build_object('internalReference','investment-refund-'||attempt::TEXT,'providerReference','det-refund-sensitive-987654321','status','succeeded','amountMinor',100000,'currency','NGN','occurredAt','2026-10-02T00:09:00Z'),
+     jsonb_build_object('internalReference','investment-refund-'||attempt::TEXT,'providerReference','det-refund-sensitive-987654321','status','succeeded','amountMinor',100000,'currency','NGN','occurredAt','2026-10-02T00:09:01Z'),
+     jsonb_build_object('internalReference','investment-refund-00000000-0000-4000-8000-000000000999','providerReference','provider-only-ref','status','succeeded','amountMinor',25000,'currency','NGN','occurredAt','2026-10-02T00:10:00Z')
+   ),'2026-10-04T00:01:00Z');
+ IF (result->'run'->>'matched_count')::INTEGER<>1 OR (result->'run'->>'exception_count')::INTEGER<>2
+   OR NOT EXISTS(SELECT 1 FROM investment_refund_reconciliation_items WHERE run_id=(result->'run'->>'id')::UUID AND classification='duplicate_provider')
+   OR NOT EXISTS(SELECT 1 FROM investment_refund_reconciliation_items WHERE run_id=(result->'run'->>'id')::UUID AND classification='missing_local') THEN RAISE EXCEPTION 'INV12: provider comparison classifications are incomplete'; END IF;
+ IF (SELECT count(*) FROM investment_refund_reconciliation_exceptions WHERE run_id=(result->'run'->>'id')::UUID)<>2 THEN RAISE EXCEPTION 'INV12: durable exceptions were not created'; END IF;
+ IF (SELECT state FROM investment_refund_attempts WHERE id=attempt)<>'succeeded'
+   OR (SELECT state FROM investment_refund_obligations WHERE id=obligation)<>'succeeded'
+   OR (SELECT count(*) FROM journal_entries WHERE organization_id=org)<>journal_count THEN RAISE EXCEPTION 'INV12: reconciliation mutated financial state'; END IF;
+ replay:=run_investment_refund_reconciliation(org,maker,'deterministic','deterministic',repeat('d',64),
+   'inv12-reconciliation-001','2026-10-01T00:00:00Z','2026-10-04T00:00:00Z',jsonb_build_array(),'2026-10-04T00:02:00Z');
+ IF NOT (replay->>'duplicate')::BOOLEAN OR (replay->'run'->>'id')::UUID<>(result->'run'->>'id')::UUID THEN RAISE EXCEPTION 'INV12: idempotent replay duplicated the reconciliation run'; END IF;
+ replay:=run_investment_refund_reconciliation(org,maker,'deterministic','deterministic',repeat('e',64),
+   'inv12-reconciliation-002','2026-10-01T00:00:00Z','2026-10-04T00:00:00Z',jsonb_build_array(),'2026-10-04T00:03:00Z');
+ IF NOT EXISTS(SELECT 1 FROM investment_refund_reconciliation_items WHERE run_id=(replay->'run'->>'id')::UUID AND classification='missing_provider' AND attempt_id=attempt) THEN RAISE EXCEPTION 'INV12: missing provider evidence was not classified'; END IF;
+ failed:=FALSE; BEGIN UPDATE investment_refund_reconciliation_exceptions SET state='closed' WHERE run_id=(result->'run'->>'id')::UUID; EXCEPTION WHEN OTHERS THEN IF SQLERRM LIKE '%immutable%' THEN failed:=TRUE; END IF; END; IF NOT failed THEN RAISE EXCEPTION 'INV12: reconciliation exception evidence was mutable'; END IF;
+ IF EXISTS(SELECT 1 FROM investment_refund_reconciliation_items WHERE run_id=(result->'run'->>'id')::UUID AND provider_reference_masked='det-refund-sensitive-987654321') THEN RAISE EXCEPTION 'INV12: raw provider reference was retained'; END IF;
+ IF NOT EXISTS(SELECT 1 FROM organization_audit_log WHERE organization_id=org AND action='INVESTMENT_REFUND_RECONCILIATION_RECORDED' AND after_value->>'financial_correction'='none') THEN RAISE EXCEPTION 'INV12: no-correction audit evidence is missing'; END IF;
 END $$;
 ROLLBACK;
-SELECT 'investment refund provider submission, recovery, and callback schema tests passed' AS result;
+SELECT 'investment refund provider submission, recovery, callback, and reconciliation schema tests passed' AS result;
