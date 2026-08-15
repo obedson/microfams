@@ -14,6 +14,7 @@ import { groupContributionCycleController } from '../controllers/groupContributi
 import { groupTreasuryController } from '../controllers/groupTreasuryController.js';
 import { groupCommitteeController } from '../controllers/groupCommitteeController.js';
 import { groupTreasuryEmergencyController } from '../controllers/groupTreasuryEmergencyController.js';
+import { groupTreasuryStatementController } from '../controllers/groupTreasuryStatementController.js';
 
 const router = Router();
 const invitationCommandLimiter = rateLimit({
@@ -146,6 +147,10 @@ router.get(
 router.get('/:id/treasury/reservations', groupTreasuryController.listReservations);
 router.get('/:id/treasury/emergency-policy', groupTreasuryEmergencyController.getPolicy);
 router.get('/:id/treasury/emergencies', groupTreasuryEmergencyController.list);
+router.get(
+  '/:id/treasury/statement', requireFeature('groups.treasury.service_existing'),
+  groupTreasuryStatementController.read,
+);
 router.put(
   '/:id/treasury/emergency-policy', treasuryCommandLimiter,
   requireFeature('groups.treasury.create_disbursement'),
