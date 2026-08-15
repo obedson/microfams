@@ -28,4 +28,10 @@ Signed refund callbacks are accepted at `/api/webhooks/paystack/investment-refun
 
 After callback evidence exists, rollback must preserve the event and any success journal; disable provider delivery and use a forward corrective migration. Broad reconciliation, post-success reversals, and live-provider activation remain separate release work.
 
+## Refund reconciliation
+
+INV-12 accepts an authoritative provider evidence batch and records an append-only comparison against local refund attempts. It classifies exact matches, duplicate provider evidence, missing local or provider evidence, late success after timeout or failure, and amount, currency, or status mismatches. Every non-match creates a durable open exception and preserves the refund liability.
+
+Reconciliation never changes an obligation or attempt, posts a journal, submits a refund, or treats a provider success as final. Verified callbacks or recovery commands remain the only success-posting paths. Post-success reversals and automated financial correction remain disabled.
+
 Rollback before approval means disabling `financial.investments.configure`; approved evidence remains readable. For INV-02, disable `financial.investments.subscribe` first. The subscription-intent table may be removed only if no durable intent exists; otherwise preserve it and use a forward corrective migration. Schema rollback must preserve exported product versions, disclosures, intents, events, and audit records.
