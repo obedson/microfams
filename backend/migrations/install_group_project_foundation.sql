@@ -128,3 +128,32 @@ DECLARE p group_projects; BEGIN
 END $$;
 REVOKE ALL ON FUNCTION pause_group_project(UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ),resume_group_project(UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION pause_group_project(UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ),resume_group_project(UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ) TO service_role;
+CREATE TABLE IF NOT EXISTS group_project_completions (
+ id UUID PRIMARY KEY DEFAULT gen_random_uuid(), organization_id UUID NOT NULL REFERENCES organizations(id), group_id UUID NOT NULL REFERENCES groups(id),
+ project_id UUID NOT NULL UNIQUE REFERENCES group_projects(id), deliverables JSONB NOT NULL CHECK(jsonb_typeof(deliverables)='array'),
+ residual_fund_disposition JSONB NOT NULL CHECK(jsonb_typeof(residual_fund_disposition)='object'),
+ assets_created_or_acquired JSONB NOT NULL CHECK(jsonb_typeof(assets_created_or_acquired)='array'),
+ final_reconciliation JSONB NOT NULL CHECK(jsonb_typeof(final_reconciliation)='object'),
+ evidence_refs JSONB NOT NULL CHECK(jsonb_typeof(evidence_refs)='array'), completed_by UUID NOT NULL REFERENCES users(id),
+ completed_at TIMESTAMPTZ NOT NULL
+);
+DROP TRIGGER IF EXISTS protect_group_project_evidence ON group_project_completions;
+CREATE TRIGGER protect_group_project_evidence BEFORE INSERT OR UPDATE OR DELETE ON group_project_completions FOR EACH ROW EXECUTE FUNCTION protect_group_project_evidence();
+ALTER TABLE group_project_completions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_read ON group_project_completions FOR SELECT USING(has_active_organization_membership(organization_id));
+REVOKE ALL ON group_project_completions FROM PUBLIC,anon,authenticated; GRANT SELECT ON group_project_completions TO service_role;
+CREATE OR REPLACE FUNCTION complete_group_project(o UUID,g UUID,a UUID,project_id UUID,deliverables JSONB,residual JSONB,assets JSONB,reconciliation JSONB,evidence JSONB,corr UUID,at_time TIMESTAMPTZ DEFAULT NOW()) RETURNS UUID LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE p group_projects; completion_id UUID; BEGIN
+ IF NOT group_project_actor_permitted(o,g,a) THEN RAISE EXCEPTION 'GROUP_PROJECT_PERMISSION_DENIED'; END IF;
+ SELECT * INTO p FROM group_projects WHERE id=project_id AND organization_id=o AND group_id=g FOR UPDATE;
+ IF p.id IS NULL OR p.state NOT IN('active','paused') OR p.created_by=a OR jsonb_typeof(deliverables)<>'array' OR jsonb_array_length(deliverables)=0 OR jsonb_typeof(residual)<>'object' OR jsonb_typeof(assets)<>'array' OR jsonb_typeof(reconciliation)<>'object' OR jsonb_typeof(evidence)<>'array' OR jsonb_array_length(evidence)=0 THEN RAISE EXCEPTION 'GROUP_PROJECT_COMPLETION_INVALID'; END IF;
+ IF NOT (reconciliation ? 'as_of' AND reconciliation ? 'currency' AND reconciliation ? 'approved_budget_minor' AND reconciliation ? 'actual_spend_minor' AND reconciliation ? 'residual_minor') THEN RAISE EXCEPTION 'GROUP_PROJECT_RECONCILIATION_INCOMPLETE'; END IF;
+ IF (reconciliation->>'approved_budget_minor')::BIGINT<>(SELECT total_minor FROM group_project_budget_versions WHERE id=p.current_budget_version_id AND state='approved') OR (reconciliation->>'actual_spend_minor')::BIGINT+(reconciliation->>'residual_minor')::BIGINT<>(reconciliation->>'approved_budget_minor')::BIGINT THEN RAISE EXCEPTION 'GROUP_PROJECT_RECONCILIATION_UNBALANCED'; END IF;
+ PERFORM set_config('microfams.group_project_engine','on',TRUE);
+ INSERT INTO group_project_completions(organization_id,group_id,project_id,deliverables,residual_fund_disposition,assets_created_or_acquired,final_reconciliation,evidence_refs,completed_by,completed_at) VALUES(o,g,p.id,deliverables,residual,assets,reconciliation,evidence,a,at_time) RETURNING id INTO completion_id;
+ UPDATE group_projects SET state='completed',updated_at=at_time WHERE id=p.id;
+ INSERT INTO group_project_events(organization_id,group_id,project_id,actor_id,event_type,from_state,to_state,correlation_id,evidence,occurred_at) VALUES(o,g,p.id,a,'PROJECT_COMPLETED',p.state,'completed',corr,jsonb_build_object('completion_id',completion_id,'final_reconciliation',reconciliation),at_time);
+ RETURN completion_id;
+END $$;
+REVOKE ALL ON FUNCTION complete_group_project(UUID,UUID,UUID,UUID,JSONB,JSONB,JSONB,JSONB,JSONB,UUID,TIMESTAMPTZ) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION complete_group_project(UUID,UUID,UUID,UUID,JSONB,JSONB,JSONB,JSONB,JSONB,UUID,TIMESTAMPTZ) TO service_role;
