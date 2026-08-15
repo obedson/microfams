@@ -13,6 +13,7 @@ import { groupContributionController } from '../controllers/groupContributionCon
 import { groupContributionCycleController } from '../controllers/groupContributionCycleController.js';
 import { groupTreasuryController } from '../controllers/groupTreasuryController.js';
 import { groupCommitteeController } from '../controllers/groupCommitteeController.js';
+import { groupTreasuryEmergencyController } from '../controllers/groupTreasuryEmergencyController.js';
 
 const router = Router();
 const invitationCommandLimiter = rateLimit({
@@ -143,6 +144,32 @@ router.get(
   '/:id/treasury/disbursements/:disbursementId', groupTreasuryController.getDisbursement,
 );
 router.get('/:id/treasury/reservations', groupTreasuryController.listReservations);
+router.get('/:id/treasury/emergency-policy', groupTreasuryEmergencyController.getPolicy);
+router.get('/:id/treasury/emergencies', groupTreasuryEmergencyController.list);
+router.put(
+  '/:id/treasury/emergency-policy', treasuryCommandLimiter,
+  requireFeature('groups.treasury.create_disbursement'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryEmergencyController.configurePolicy,
+);
+router.post(
+  '/:id/treasury/emergencies', treasuryCommandLimiter,
+  requireFeature('groups.treasury.create_disbursement'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryEmergencyController.request,
+);
+router.post(
+  '/:id/treasury/emergencies/:emergencyId/approve', treasuryCommandLimiter,
+  requireFeature('groups.treasury.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryEmergencyController.approve,
+);
+router.post(
+  '/:id/treasury/emergencies/:emergencyId/ratify', treasuryCommandLimiter,
+  requireFeature('groups.treasury.service_existing'),
+  requireFeature('groups.governance.manage'),
+  groupTreasuryEmergencyController.ratify,
+);
 // Activating a budget and requesting a spend create new exposure, so both are
 // gated on acquisition as well as governance.
 router.post(
