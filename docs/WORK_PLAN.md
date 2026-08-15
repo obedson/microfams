@@ -185,6 +185,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add GT-08B4 proposal-authorized project closeout after completion evidence, residual disposition, and budget finality.
   - [x] Add GT-08B5 active-project, approved-budget, cumulative-cap, and restricted-fund guards to project treasury requests.
   - [x] Add GT-09 proposal-executed committee mandates traceable to the authorizing vote, effective-dated committee membership with a single sitting chair, notice-validated meetings with snapshot-based quorum, attendance records that confer no approval, and immutable approved minutes corrected only by linked addenda.
+  - [x] Add GT-10A tenant-scoped group document metadata, governed publication, immutable approved versions, linked corrections, and append-only evidence.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
