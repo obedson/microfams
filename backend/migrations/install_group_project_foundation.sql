@@ -175,3 +175,35 @@ DECLARE p group_projects; q group_proposals; c group_project_completions; BEGIN
 END $$;
 REVOKE ALL ON FUNCTION close_group_project(UUID,UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION close_group_project(UUID,UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ) TO service_role;
+CREATE OR REPLACE FUNCTION enforce_group_project_restricted_disbursement() RETURNS TRIGGER
+LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
+DECLARE p group_projects; b group_project_budget_versions; spent BIGINT; restricted_spent BIGINT; rule JSONB; matched BOOLEAN:=FALSE; rule_cap BIGINT;
+BEGIN
+ IF NEW.beneficiary_kind<>'project' THEN RETURN NEW; END IF;
+ SELECT * INTO p FROM group_projects WHERE id=NEW.beneficiary_project_id AND organization_id=NEW.organization_id AND group_id=NEW.group_id FOR UPDATE;
+ IF p.id IS NULL OR p.state<>'active' THEN RAISE EXCEPTION 'GROUP_PROJECT_SPEND_REQUIRES_ACTIVE_PROJECT'; END IF;
+ SELECT * INTO b FROM group_project_budget_versions WHERE id=p.current_budget_version_id AND project_id=p.id AND state='approved';
+ IF b.id IS NULL OR b.currency<>NEW.currency THEN RAISE EXCEPTION 'GROUP_PROJECT_SPEND_BUDGET_INVALID'; END IF;
+ SELECT COALESCE(sum(amount_minor),0) INTO spent FROM group_treasury_disbursements
+ WHERE organization_id=NEW.organization_id AND group_id=NEW.group_id AND beneficiary_project_id=p.id
+   AND state IN('requested','approved','executed') AND id IS DISTINCT FROM NEW.id;
+ IF spent+NEW.amount_minor>b.total_minor THEN RAISE EXCEPTION 'GROUP_PROJECT_SPEND_EXCEEDS_APPROVED_BUDGET'; END IF;
+ IF jsonb_array_length(p.restricted_fund_rules)>0 THEN
+   FOR rule IN SELECT value FROM jsonb_array_elements(p.restricted_fund_rules) LOOP
+     IF COALESCE(rule->>'treasury_budget_id','')=NEW.budget_id::TEXT
+       AND COALESCE(rule->>'max_minor','')~'^[0-9]+$' THEN
+       rule_cap:=(rule->>'max_minor')::BIGINT;
+       SELECT COALESCE(sum(amount_minor),0) INTO restricted_spent FROM group_treasury_disbursements
+       WHERE organization_id=NEW.organization_id AND group_id=NEW.group_id AND beneficiary_project_id=p.id
+         AND budget_id=NEW.budget_id AND state IN('requested','approved','executed') AND id IS DISTINCT FROM NEW.id;
+       IF restricted_spent+NEW.amount_minor<=rule_cap THEN matched:=TRUE; END IF;
+       EXIT;
+     END IF;
+   END LOOP;
+   IF NOT matched THEN RAISE EXCEPTION 'GROUP_PROJECT_RESTRICTED_FUND_RULE_VIOLATION'; END IF;
+ END IF;
+ RETURN NEW;
+END $$;
+DROP TRIGGER IF EXISTS enforce_group_project_restricted_disbursement ON group_treasury_disbursements;
+CREATE TRIGGER enforce_group_project_restricted_disbursement BEFORE INSERT ON group_treasury_disbursements FOR EACH ROW EXECUTE FUNCTION enforce_group_project_restricted_disbursement();
+REVOKE ALL ON FUNCTION enforce_group_project_restricted_disbursement() FROM PUBLIC,anon,authenticated;
