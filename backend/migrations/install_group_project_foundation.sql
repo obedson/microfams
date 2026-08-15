@@ -157,3 +157,21 @@ DECLARE p group_projects; completion_id UUID; BEGIN
 END $$;
 REVOKE ALL ON FUNCTION complete_group_project(UUID,UUID,UUID,UUID,JSONB,JSONB,JSONB,JSONB,JSONB,UUID,TIMESTAMPTZ) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION complete_group_project(UUID,UUID,UUID,UUID,JSONB,JSONB,JSONB,JSONB,JSONB,UUID,TIMESTAMPTZ) TO service_role;
+ALTER TABLE group_projects ADD COLUMN IF NOT EXISTS closed_by UUID REFERENCES users(id);
+ALTER TABLE group_projects ADD COLUMN IF NOT EXISTS closed_at TIMESTAMPTZ;
+CREATE OR REPLACE FUNCTION close_group_project(o UUID,g UUID,a UUID,project_id UUID,proposal_id UUID,reason TEXT,corr UUID,at_time TIMESTAMPTZ DEFAULT NOW()) RETURNS UUID LANGUAGE plpgsql SECURITY DEFINER AS $$
+DECLARE p group_projects; q group_proposals; c group_project_completions; BEGIN
+ IF NOT group_project_actor_permitted(o,g,a) THEN RAISE EXCEPTION 'GROUP_PROJECT_PERMISSION_DENIED'; END IF;
+ SELECT * INTO p FROM group_projects WHERE id=project_id AND organization_id=o AND group_id=g FOR UPDATE;
+ SELECT * INTO c FROM group_project_completions WHERE group_project_completions.project_id=close_group_project.project_id AND organization_id=o;
+ SELECT * INTO q FROM group_proposals WHERE id=proposal_id AND organization_id=o AND group_id=g;
+ IF p.id IS NULL OR p.state<>'completed' OR c.id IS NULL OR q.id IS NULL OR q.proposal_type<>'project' OR q.state<>'approved' OR q.constitution_id<>p.constitution_id OR q.execution_payload->>'project_key'<>p.project_key OR q.execution_payload->>'action'<>'close' OR a=p.created_by OR a=q.proposer_id OR char_length(trim(COALESCE(reason,'')))<3 THEN RAISE EXCEPTION 'GROUP_PROJECT_CLOSEOUT_INVALID'; END IF;
+ IF c.residual_fund_disposition->>'status' NOT IN('none','executed','transferred') THEN RAISE EXCEPTION 'GROUP_PROJECT_RESIDUAL_DISPOSITION_PENDING'; END IF;
+ IF EXISTS(SELECT 1 FROM group_project_budget_versions b WHERE b.project_id=p.id AND b.state='draft') THEN RAISE EXCEPTION 'GROUP_PROJECT_BUDGET_AMENDMENT_PENDING'; END IF;
+ PERFORM set_config('microfams.group_project_engine','on',TRUE);
+ UPDATE group_projects SET state='closed',closed_by=a,closed_at=at_time,updated_at=at_time WHERE id=p.id;
+ INSERT INTO group_project_events(organization_id,group_id,project_id,actor_id,event_type,from_state,to_state,proposal_id,correlation_id,evidence,occurred_at) VALUES(o,g,p.id,a,'PROJECT_CLOSED','completed','closed',q.id,corr,jsonb_build_object('completion_id',c.id,'reason',trim(reason),'residual_fund_disposition',c.residual_fund_disposition),at_time);
+ RETURN p.id;
+END $$;
+REVOKE ALL ON FUNCTION close_group_project(UUID,UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION close_group_project(UUID,UUID,UUID,UUID,UUID,TEXT,UUID,TIMESTAMPTZ) TO service_role;
