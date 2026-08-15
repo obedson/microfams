@@ -15,6 +15,7 @@ import { groupProjectController } from '../controllers/groupProjectController.js
 import { groupProjectBudgetController } from '../controllers/groupProjectBudgetController.js';
 import { groupProjectLifecycleController } from '../controllers/groupProjectLifecycleController.js';
 import { groupProjectCompletionController } from '../controllers/groupProjectCompletionController.js';
+import { groupProjectCloseoutController } from '../controllers/groupProjectCloseoutController.js';
 import { groupTreasuryController } from '../controllers/groupTreasuryController.js';
 import { groupCommitteeController } from '../controllers/groupCommitteeController.js';
 import { groupTreasuryEmergencyController } from '../controllers/groupTreasuryEmergencyController.js';
@@ -55,6 +56,7 @@ router.post('/:id/projects/:projectId/resume', requireFeature('groups.governance
 router.post('/:id/projects/:projectId/approve', requireFeature('groups.governance.manage'), groupProjectController.approve);
 router.post('/:id/projects/:projectId/complete', requireFeature('groups.governance.manage'), groupProjectCompletionController.complete);
 router.post('/:id/projects/:projectId/activate', requireFeature('groups.governance.manage'), groupProjectController.activate);
+router.post('/:id/projects/:projectId/close', requireFeature('groups.governance.manage'), groupProjectCloseoutController.close);
 router.get('/:id/admin/dashboard', groupAdminController.getAdminDashboard);
 router.post('/:id/invitations', invitationCommandLimiter, requireFeature('groups.membership.manage'), groupInvitationController.create);
 router.post('/:id/invitations/accept', invitationCommandLimiter, requireFeature('groups.membership.manage'), groupInvitationController.accept);
