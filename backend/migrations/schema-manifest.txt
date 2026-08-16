@@ -130,3 +130,4 @@ install_group_asset_loss_events.sql
 install_group_asset_reservation_cancellation.sql
 install_group_asset_custody_loss.sql
 install_group_asset_lifecycle_cancellation.sql
+install_group_asset_disposal_proposals.sql
