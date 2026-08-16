@@ -133,3 +133,4 @@ install_group_asset_lifecycle_cancellation.sql
 install_group_asset_disposal_proposals.sql
 install_group_asset_transfer_proposals.sql
 install_group_asset_accounting_mappings.sql
+install_group_asset_disposal_accounting_facts.sql
