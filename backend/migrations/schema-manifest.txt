@@ -126,3 +126,4 @@ install_group_document_access.sql
 install_group_shared_assets.sql
 install_group_asset_reservations.sql
 install_group_asset_condition_events.sql
+install_group_asset_loss_events.sql

@@ -190,6 +190,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add GT-10C tenant-scoped shared-asset registration with governed custody, lifecycle metadata, idempotency, and immutable acquisition evidence.
   - [x] Add GT-10D non-overlapping confirmed shared-asset reservations with auditable check-out and check-in custody evidence.
   - [x] Add GT-10E manager-controlled damage reporting and maintenance servicing with immutable before/after condition evidence and reservation-aware availability guards.
+  - [x] Add GT-10F manager-controlled loss reporting for uncommitted assets with immutable lifecycle, condition, custody, location, and evidence snapshots.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
