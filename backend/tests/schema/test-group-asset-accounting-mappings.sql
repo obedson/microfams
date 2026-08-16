@@ -7,7 +7,9 @@ BEGIN
  IF NOT EXISTS(SELECT 1 FROM financial_account_purpose_rules WHERE purpose='asset_disposal_loss' AND account_class='expense' AND normal_side='debit') THEN RAISE EXCEPTION 'asset disposal loss purpose is invalid'; END IF;
  IF EXISTS(SELECT 1 FROM financial_account_purpose_rules WHERE purpose='transfer_clearing') THEN RAISE EXCEPTION 'book-value transfer unexpectedly provisions clearing'; END IF;
 
- IF (SELECT count(*) FROM group_asset_journal_mappings)<>3 OR EXISTS(SELECT 1 FROM group_asset_journal_mappings WHERE execution_enabled) THEN RAISE EXCEPTION 'approved mapping catalogue is invalid or executable'; END IF;
+ IF (SELECT count(*) FROM group_asset_journal_mappings)<>3
+  OR NOT EXISTS(SELECT 1 FROM group_asset_journal_mappings WHERE mapping_key IN('disposal_with_proceeds','disposal_without_proceeds') AND execution_enabled GROUP BY version HAVING count(*)=2)
+  OR EXISTS(SELECT 1 FROM group_asset_journal_mappings WHERE mapping_key='book_value_transfer' AND execution_enabled) THEN RAISE EXCEPTION 'approved mapping execution state is invalid'; END IF;
  IF NOT EXISTS(SELECT 1 FROM group_asset_journal_mappings WHERE mapping_key='book_value_transfer' AND version=1 AND accounting_basis='book_value_no_gain_loss' AND required_facts@>ARRAY['source_group_id','destination_group_id','destination_acceptance_evidence','carrying_value_minor']) THEN RAISE EXCEPTION 'book-value transfer contract is invalid'; END IF;
  IF NOT EXISTS(SELECT 1 FROM group_asset_journal_mappings WHERE mapping_key='disposal_with_proceeds' AND required_facts@>ARRAY['proceeds_minor','proceeds_evidence','cost_ledger_source','depreciation_ledger_source']) THEN RAISE EXCEPTION 'disposal proceeds facts are incomplete'; END IF;
  IF NOT EXISTS(SELECT 1 FROM group_asset_journal_mappings WHERE mapping_key='disposal_without_proceeds' AND NOT required_facts@>ARRAY['proceeds_minor']) THEN RAISE EXCEPTION 'zero-proceeds disposal contract is invalid'; END IF;

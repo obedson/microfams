@@ -198,6 +198,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add GT-10K governed shared-asset transfer proposals with destination evidence, conflict guards, maker-checker approval, and execution disabled pending journal mappings.
   - [x] Add GT-10L approved disposal and book-value transfer journal mapping contracts with fixed-asset account purposes and execution disabled.
   - [x] Add GT-10M immutable, period-validated disposal accounting facts bound to approved ledger accounts and journal mappings, without execution.
+  - [x] Add GT-10N atomic approved-disposal execution with balanced journal posting, lifecycle finalization, idempotency, and reconciliation evidence.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
