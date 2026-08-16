@@ -127,3 +127,4 @@ install_group_shared_assets.sql
 install_group_asset_reservations.sql
 install_group_asset_condition_events.sql
 install_group_asset_loss_events.sql
+install_group_asset_reservation_cancellation.sql
