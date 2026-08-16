@@ -31,8 +31,9 @@ BEGIN
  EXCEPTION WHEN OTHERS THEN IF SQLERRM='unauthorized loss report accepted' OR SQLERRM NOT LIKE '%GROUP_SHARED_ASSET_PERMISSION_DENIED%' THEN RAISE; END IF; END;
  reservation_id:=request_group_shared_asset_reservation(org,gid,manager,committed_asset,manager_member,'Field preparation','2026-08-19T10:00:00Z','2026-08-19T12:00:00Z','[{"kind":"work_order"}]','gt10f-reservation-request','00000000-0000-4000-8000-000000001409','2026-08-19T08:08:00Z');
  PERFORM confirm_group_shared_asset_reservation(org,gid,manager,reservation_id,'gt10f-reservation-confirm','00000000-0000-4000-8000-000000001410','2026-08-19T08:09:00Z');
+ PERFORM check_out_group_shared_asset(org,gid,manager,reservation_id,manager_member,'good','{"label":"Main shed"}','[{"kind":"handover"}]','gt10f-reservation-checkout','00000000-0000-4000-8000-000000001411','2026-08-19T10:00:00Z');
  BEGIN
-  PERFORM report_group_shared_asset_loss(org,gid,manager,committed_asset,'misplaced','Tractor location cannot be confirmed','{"label":"Unknown"}','[{"kind":"custody_check"}]','gt10f-committed-loss','00000000-0000-4000-8000-000000001411','2026-08-19T08:10:00Z');
+  PERFORM report_group_shared_asset_loss(org,gid,manager,committed_asset,'misplaced','Tractor location cannot be confirmed','{"label":"Unknown"}','[{"kind":"custody_check"}]','gt10f-committed-loss','00000000-0000-4000-8000-000000001415','2026-08-19T10:01:00Z');
   RAISE EXCEPTION 'committed asset loss accepted';
  EXCEPTION WHEN OTHERS THEN IF SQLERRM='committed asset loss accepted' OR SQLERRM NOT LIKE '%GROUP_ASSET_LOSS_ASSET_COMMITTED%' THEN RAISE; END IF; END;
  loss_id:=report_group_shared_asset_loss(org,gid,manager,asset_id,'theft','Pump missing after locked-storage inspection','{"label":"Last known pump shed"}','[{"kind":"incident_report","reference":"loss-01"}]','gt10f-loss-report','00000000-0000-4000-8000-000000001412','2026-08-19T08:11:00Z');

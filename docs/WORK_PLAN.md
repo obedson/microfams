@@ -193,6 +193,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add GT-10F manager-controlled loss reporting for uncommitted assets with immutable lifecycle, condition, custody, location, and evidence snapshots.
   - [x] Add GT-10G requester-or-manager reservation cancellation with immutable evidence, idempotency, custody-state guards, and availability recomputation.
   - [x] Add GT-10H atomic checked-out custody-loss resolution with linked reservation and asset lifecycle evidence after pending bookings are cancelled.
+  - [x] Add GT-10I atomic lifecycle-linked cancellation of requested and confirmed reservations when an uncommitted asset is reported lost.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
