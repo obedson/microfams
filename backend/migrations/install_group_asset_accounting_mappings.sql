@@ -5,6 +5,7 @@ SET search_path=public,extensions;
 INSERT INTO financial_account_purpose_rules(
   purpose,account_class,normal_side,allowed_owner_types,is_control
 ) VALUES
+ ('operating_cash','asset','debit',ARRAY['organization','system'],TRUE),
  ('shared_asset_cost','asset','debit',ARRAY['group'],TRUE),
  ('accumulated_depreciation','asset','credit',ARRAY['group'],TRUE),
  ('asset_sale_receivable','asset','debit',ARRAY['organization','group'],TRUE),
