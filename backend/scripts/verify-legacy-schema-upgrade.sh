@@ -99,6 +99,13 @@ if [[ "$financial_account_provisioning_present" == "f" ]]; then
   migrations+=(create_financial_account_provisioning.sql)
 fi
 
+group_asset_accounting_mappings_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regclass('public.group_asset_journal_mappings') IS NOT NULL")"
+if [[ "$group_asset_accounting_mappings_present" == "f" ]]; then
+  migrations+=(install_group_asset_accounting_mappings.sql)
+fi
+
 booking_refund_schema_present="$(docker exec "$container" psql --username postgres --dbname microfams \
   --no-psqlrc --tuples-only --no-align \
   --command "SELECT to_regclass('public.booking_cancellations') IS NOT NULL")"
