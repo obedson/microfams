@@ -195,6 +195,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add GT-10H atomic checked-out custody-loss resolution with linked reservation and asset lifecycle evidence after pending bookings are cancelled.
   - [x] Add GT-10I atomic lifecycle-linked cancellation of requested and confirmed reservations when an uncommitted asset is reported lost.
   - [x] Add GT-10J governed shared-asset disposal proposals with evidence, conflict guards, maker-checker approval, and execution disabled pending journal mappings.
+  - [x] Add GT-10K governed shared-asset transfer proposals with destination evidence, conflict guards, maker-checker approval, and execution disabled pending journal mappings.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
