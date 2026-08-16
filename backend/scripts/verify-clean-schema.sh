@@ -562,3 +562,4 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-group-asset-reservations.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-group-asset-condition-events.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-group-asset-loss-events.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-group-asset-reservation-cancellation.sql"
