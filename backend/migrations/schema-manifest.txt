@@ -135,3 +135,4 @@ install_group_asset_transfer_proposals.sql
 install_group_asset_accounting_mappings.sql
 install_group_asset_disposal_accounting_facts.sql
 install_group_asset_disposal_execution.sql
+install_group_asset_transfer_accounting_facts.sql
