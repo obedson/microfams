@@ -202,6 +202,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add GT-10O immutable, period-validated book-value transfer accounting facts bound to source/destination ledger accounts and destination acceptance, without execution.
   - [x] Add GT-10P atomic approved book-value transfer execution with balanced journal posting, destination custody, idempotency, and reconciliation evidence.
 - [ ] Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.
+  - [x] Add AC-01 permission-checked, cutoff-reproducible, journal-derived organization trial balances with balanced debit/credit totals.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
 
