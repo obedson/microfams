@@ -102,6 +102,7 @@ install_accounting_trial_balance.sql
 install_accounting_income_statement.sql
 install_accounting_balance_sheet.sql
 install_accounting_cash_flow.sql
+install_accounting_budgets.sql
 install_loan_application_underwriting.sql
 install_loan_review_offers.sql
 install_loan_repayment_schedules.sql
