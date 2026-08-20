@@ -149,3 +149,4 @@ install_group_asset_disposal_execution.sql
 install_group_asset_transfer_accounting_facts.sql
 install_group_asset_transfer_execution.sql
 install_escrow_contract_foundation.sql
+install_escrow_wallet_funding.sql
