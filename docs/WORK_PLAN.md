@@ -142,6 +142,7 @@ Specifications requiring approval before code:
   - [x] Add INV-12 append-only provider refund reconciliation with durable mismatch exceptions and no automated financial correction.
   - [x] Add INV-13 maker-checker correction for verified post-success provider reversals with one compensating journal and preserved unit evidence.
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
+- [x] Add ESC-01 immutable tenant-scoped escrow contract terms with idempotent maker-checker activation before funding.
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.
 
 Exit gate: approved rules, complete ledger mappings, simulations, and feature-flagged live tests.
