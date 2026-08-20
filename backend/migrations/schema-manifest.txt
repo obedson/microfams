@@ -108,6 +108,7 @@ install_dividend_entitlement_snapshots.sql
 install_dividend_review_approval.sql
 install_dividend_payable_recognition.sql
 install_dividend_payment_servicing.sql
+install_accounting_audit_export.sql
 install_loan_application_underwriting.sql
 install_loan_review_offers.sql
 install_loan_repayment_schedules.sql
