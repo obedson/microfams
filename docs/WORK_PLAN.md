@@ -144,6 +144,7 @@ Specifications requiring approval before code:
 - [ ] escrow funding, release conditions, disputes, partial release, expiry;
 - [x] Add ESC-01 immutable tenant-scoped escrow contract terms with idempotent maker-checker activation before funding.
   - [x] Add ESC-02 exactly-once internal-wallet funding with hold-aware balance checks, canonical escrow liability accounts, and balanced journals.
+  - [x] Add ESC-03 governed milestone release-request evidence with beneficiary or arbiter authorization and no money movement.
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.
 
 Exit gate: approved rules, complete ledger mappings, simulations, and feature-flagged live tests.
