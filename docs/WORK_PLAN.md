@@ -207,6 +207,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add AC-03 permission-checked, cutoff-reproducible, journal-derived balance sheets with current-period earnings and accounting-equation validation.
   - [x] Add AC-04 permission-checked, cutoff-reproducible, journal-derived cash-flow reports with classified and unclassified cash movements.
   - [x] Add AC-05 immutable approved budget versions with cutoff-reproducible budget-versus-actual reporting.
+  - [x] Add AC-06 permission-checked, journal-derived member account statements with pagination and cutoff reproducibility.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
 
