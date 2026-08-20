@@ -152,3 +152,4 @@ install_escrow_contract_foundation.sql
 install_escrow_wallet_funding.sql
 install_escrow_release_request.sql
 install_escrow_release_approval.sql
+install_escrow_release_execution.sql
