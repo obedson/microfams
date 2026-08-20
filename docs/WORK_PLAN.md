@@ -212,6 +212,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add DIV-02 maker-checker dividend review and approval with immutable transition evidence; payable recognition and payment remain separate.
   - [x] Add DIV-03 exactly-once approved-dividend payable recognition against retained surplus with disclosed residual preservation; payment remains separate.
   - [x] Add DIV-04 exactly-once internal wallet payment servicing from dividends payable, with immutable payment evidence; external provider payout remains separate.
+  - [x] Add AC-07 tenant-scoped, cutoff-reproducible accounting journal audit exports with complete entry and line evidence.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
 
