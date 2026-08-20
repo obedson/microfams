@@ -209,6 +209,7 @@ Exit gate: approved rules, complete ledger mappings, simulations, and feature-fl
   - [x] Add AC-05 immutable approved budget versions with cutoff-reproducible budget-versus-actual reporting.
   - [x] Add AC-06 permission-checked, journal-derived member account statements with pagination and cutoff reproducibility.
   - [x] Add DIV-01 immutable proportional paid-unit dividend entitlement snapshots with disclosed rounding residuals; approval and payment remain separate.
+  - [x] Add DIV-02 maker-checker dividend review and approval with immutable transition evidence; payable recognition and payment remain separate.
 
 ## Phase 6 — Farm operations, assets, marketplace, and education
 
