@@ -146,6 +146,7 @@ Specifications requiring approval before code:
   - [x] Add ESC-02 exactly-once internal-wallet funding with hold-aware balance checks, canonical escrow liability accounts, and balanced journals.
   - [x] Add ESC-03 governed milestone release-request evidence with beneficiary or arbiter authorization and no money movement.
 - [x] Add ESC-04 independent escrow release approval and rejection evidence without moving funds.
+  - [x] Add ESC-05 exactly-once approved escrow release execution into beneficiary wallets with balanced journals and terminal-state evidence.
 - [ ] dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.
 
 Exit gate: approved rules, complete ledger mappings, simulations, and feature-flagged live tests.
