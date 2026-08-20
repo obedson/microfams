@@ -100,6 +100,7 @@ install_savings_provider_certification.sql
 install_loan_product_foundation.sql
 install_accounting_trial_balance.sql
 install_accounting_income_statement.sql
+install_accounting_balance_sheet.sql
 install_loan_application_underwriting.sql
 install_loan_review_offers.sql
 install_loan_repayment_schedules.sql
