@@ -30,18 +30,6 @@ describe('Analytics Property Tests - Full Compliance', () => {
     if (ownerError || !owner) throw ownerError ?? new Error('Failed to create analytics owner');
     testOwnerId = owner.id;
 
-    const organizationRows = [
-      { id: testOwnerId, name: 'Analytics Owner Workspace', slug: `analytics-owner-${suffix}`, type: 'farm_business', created_by: testOwnerId },
-      { id: testFarmerId, name: 'Analytics Farmer Workspace', slug: `analytics-farmer-${suffix}`, type: 'farm_business', created_by: testFarmerId }
-    ];
-    const { error: organizationError } = await supabase.from('organizations').upsert(organizationRows, { onConflict: 'id', ignoreDuplicates: true });
-    if (organizationError) throw organizationError;
-    const { error: membershipError } = await supabase.from('organization_memberships').upsert([
-      { organization_id: testOwnerId, user_id: testOwnerId, role: 'owner', status: 'active' },
-      { organization_id: testFarmerId, user_id: testFarmerId, role: 'owner', status: 'active' }
-    ]);
-    if (membershipError) throw membershipError;
-
     // Create a dedicated test property
     const { data: property } = await supabase
       .from('properties')
