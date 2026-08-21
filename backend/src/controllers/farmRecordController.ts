@@ -13,6 +13,13 @@ export const createRecord = asyncHandler(async (req: TenantRequest, res: Respons
     throw createError('Livestock type and record date are required', 400);
   }
 
+  await FarmRecordService.validateCreateReferences(
+    booking_id || null,
+    property_id || null,
+    req.tenant!.id,
+    userId
+  );
+
   const finalData = { 
     ...recordData,
     farmer_id: userId,

@@ -2,6 +2,30 @@ import { supabase } from '../utils/supabase.js';
 import { logger } from '../utils/logger.js';
 
 export class FarmRecordService {
+  static async validateCreateReferences(
+    bookingId: string | null,
+    propertyId: string | null,
+    organizationId: string,
+    farmerId: string
+  ) {
+    if (!bookingId) return;
+
+    const { data: booking, error } = await supabase
+      .from('bookings')
+      .select('id, property_id')
+      .eq('id', bookingId)
+      .eq('organization_id', organizationId)
+      .eq('farmer_id', farmerId)
+      .maybeSingle();
+
+    if (error) throw error;
+    if (!booking) throw new Error('Booking does not belong to the active organization and farmer');
+    if (propertyId && propertyId !== booking.property_id) {
+      throw new Error('Farm record property must match the linked booking property');
+    }
+  }
+
+
   /**
    * Link a farm record to a specific booking
    */
