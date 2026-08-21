@@ -10,6 +10,20 @@ export const REPORT_EXPORT_FIELDS: Readonly<Record<string, readonly string[]>> =
   audit_logs: ['id', 'user_id', 'action', 'resource_type', 'resource_id', 'created_at'],
 };
 
+export type ReportTenantScope = 'organization_id' | 'booking_participant' | 'order_participant';
+
+export const REPORT_TENANT_SCOPES: Readonly<Record<string, ReportTenantScope>> = {
+  bookings: 'booking_participant',
+  properties: 'organization_id',
+  groups: 'organization_id',
+  farm_records: 'organization_id',
+  orders: 'order_participant',
+  courses: 'organization_id',
+  member_contributions: 'organization_id',
+  wallet_transactions: 'organization_id',
+  audit_logs: 'organization_id',
+};
+
 export const validateReportExport = (table: unknown, fields: unknown): { table: string; fields: string[] } => {
   if (typeof table !== 'string' || !Array.isArray(fields) || fields.length === 0) {
     throw new Error('Table and a non-empty fields array are required');
