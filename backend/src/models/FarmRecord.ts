@@ -65,12 +65,29 @@ export class FarmRecordModel {
     return data;
   }
 
-  static async update(id: string, organizationId: string, updates: Partial<FarmRecord>) {
+  static async update(id: string, organizationId: string, farmerId: string, updates: Partial<FarmRecord>) {
+    const mutableFields: Array<keyof FarmRecord> = [
+      'property_id',
+      'livestock_type',
+      'livestock_count',
+      'feed_consumption',
+      'mortality_count',
+      'expenses',
+      'expense_category',
+      'notes',
+      'record_date',
+    ];
+    const safeUpdates = Object.fromEntries(
+      mutableFields
+        .filter((field) => updates[field] !== undefined)
+        .map((field) => [field, updates[field]])
+    );
     const { data, error } = await supabase
       .from('farm_records')
-      .update(updates)
+      .update(safeUpdates)
       .eq('id', id)
       .eq('organization_id', organizationId)
+      .eq('farmer_id', farmerId)
       .select()
       .single();
 
@@ -78,12 +95,13 @@ export class FarmRecordModel {
     return data;
   }
 
-  static async delete(id: string, organizationId: string) {
+  static async delete(id: string, organizationId: string, farmerId: string) {
     const { error } = await supabase
       .from('farm_records')
       .delete()
       .eq('id', id)
-      .eq('organization_id', organizationId);
+      .eq('organization_id', organizationId)
+      .eq('farmer_id', farmerId);
 
     if (error) throw error;
   }

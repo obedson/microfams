@@ -5,13 +5,14 @@ export class FarmRecordService {
   /**
    * Link a farm record to a specific booking
    */
-  static async linkToBooking(recordId: string, bookingId: string, organizationId: string) {
+  static async linkToBooking(recordId: string, bookingId: string, organizationId: string, farmerId: string) {
     try {
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
         .select('id')
         .eq('id', bookingId)
         .eq('organization_id', organizationId)
+        .eq('farmer_id', farmerId)
         .maybeSingle();
 
       if (bookingError) throw bookingError;
@@ -22,6 +23,7 @@ export class FarmRecordService {
         .update({ booking_id: bookingId })
         .eq('id', recordId)
         .eq('organization_id', organizationId)
+        .eq('farmer_id', farmerId)
         .select()
         .single();
 
