@@ -43,6 +43,25 @@ app.use('/api/farm-records', farmRecordRoutes);
 describe('farm record API ownership boundary', () => {
   beforeEach(() => jest.clearAllMocks());
 
+  it('validates booking and property references before creating a record', async () => {
+    const validateCreateReferences = jest.fn().mockResolvedValue(undefined);
+    (FarmRecordService as any).validateCreateReferences = validateCreateReferences;
+    (FarmRecordModel.create as jest.Mock).mockResolvedValue({ id: 'record-1' });
+
+    await request(app).post('/api/farm-records').send({
+      livestock_type: 'goat', record_date: '2026-08-21',
+      booking_id: 'booking-1', property_id: 'property-1',
+    }).expect(201);
+
+    expect(validateCreateReferences).toHaveBeenCalledWith(
+      'booking-1', 'property-1', 'organization-1', 'farmer-1'
+    );
+    expect(FarmRecordModel.create).toHaveBeenCalledWith(expect.objectContaining({
+      farmer_id: 'farmer-1', organization_id: 'organization-1',
+      booking_id: 'booking-1', property_id: 'property-1',
+    }));
+  });
+
   it('passes tenant and authenticated farmer to update and delete commands', async () => {
     (FarmRecordModel.update as jest.Mock).mockResolvedValue({ id: 'record-1' });
     (FarmRecordModel.delete as jest.Mock).mockResolvedValue(undefined);
