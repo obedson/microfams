@@ -73,7 +73,7 @@ export class CacheManager {
       // Get active properties and their owners
       const { data: properties } = await supabase
         .from('properties')
-        .select('id, owner_id')
+        .select('id, owner_id, organization_id')
         .eq('is_active', true)
         .limit(50); // Limit to avoid overwhelming the system
 
@@ -82,13 +82,19 @@ export class CacheManager {
         return;
       }
 
-      const propertyIds = properties.map(p => p.id);
-      const ownerIds = [...new Set(properties.map(p => p.owner_id))]; // Unique owner IDs
+      const byOrganization = new Map<string, { propertyIds: string[]; ownerIds: string[] }>();
+      for (const property of properties) {
+        const current = byOrganization.get(property.organization_id) ?? { propertyIds: [], ownerIds: [] };
+        current.propertyIds.push(property.id);
+        if (!current.ownerIds.includes(property.owner_id)) current.ownerIds.push(property.owner_id);
+        byOrganization.set(property.organization_id, current);
+      }
 
-      // Warm up the cache
-      await AnalyticsService.warmUpCache(propertyIds, ownerIds);
+      for (const [organizationId, group] of byOrganization) {
+        await AnalyticsService.warmUpCache(organizationId, group.propertyIds, group.ownerIds);
+      }
       
-      logger.info(`Cache warming completed for ${propertyIds.length} properties and ${ownerIds.length} owners`);
+      logger.info(`Cache warming completed for ${properties.length} properties across ${byOrganization.size} organizations`);
     } catch (error) {
       logger.error('Error warming up analytics cache:', error);
     }

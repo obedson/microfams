@@ -30,11 +30,24 @@ describe('Analytics Property Tests - Full Compliance', () => {
     if (ownerError || !owner) throw ownerError ?? new Error('Failed to create analytics owner');
     testOwnerId = owner.id;
 
+    const organizationRows = [
+      { id: testOwnerId, name: 'Analytics Owner Workspace', slug: `analytics-owner-${suffix}`, type: 'farm_business', created_by: testOwnerId },
+      { id: testFarmerId, name: 'Analytics Farmer Workspace', slug: `analytics-farmer-${suffix}`, type: 'farm_business', created_by: testFarmerId }
+    ];
+    const { error: organizationError } = await supabase.from('organizations').upsert(organizationRows, { onConflict: 'id', ignoreDuplicates: true });
+    if (organizationError) throw organizationError;
+    const { error: membershipError } = await supabase.from('organization_memberships').upsert([
+      { organization_id: testOwnerId, user_id: testOwnerId, role: 'owner', status: 'active' },
+      { organization_id: testFarmerId, user_id: testFarmerId, role: 'owner', status: 'active' }
+    ]);
+    if (membershipError) throw membershipError;
+
     // Create a dedicated test property
     const { data: property } = await supabase
       .from('properties')
       .insert({
         owner_id: testOwnerId,
+        organization_id: testOwnerId,
         title: 'Analytics Test Property',
         description: 'Property for analytics testing',
         livestock_type: 'poultry',
@@ -68,6 +81,8 @@ describe('Analytics Property Tests - Full Compliance', () => {
     // Cleanup test data
     await supabase.from('bookings').delete().eq('property_id', testPropertyId);
     await supabase.from('properties').delete().eq('id', testPropertyId);
+    if (testFarmerId) await supabase.from('organizations').delete().eq('id', testFarmerId);
+    if (testOwnerId) await supabase.from('organizations').delete().eq('id', testOwnerId);
     if (testFarmerId) await supabase.from('users').delete().eq('id', testFarmerId);
     if (testOwnerId) await supabase.from('users').delete().eq('id', testOwnerId);
     console.log(`Cleaned up test property: ${testPropertyId}`);
@@ -100,6 +115,8 @@ describe('Analytics Property Tests - Full Compliance', () => {
             return {
               property_id: testPropertyId,
               farmer_id: testFarmerId,
+              organization_id: testFarmerId,
+              provider_organization_id: testOwnerId,
               start_date: startDate.toISOString().split('T')[0],
               end_date: endDate.toISOString().split('T')[0],
               total_amount: 1000 * booking.duration,
@@ -113,7 +130,7 @@ describe('Analytics Property Tests - Full Compliance', () => {
           // Calculate occupancy rate for the test period
           const startDate = '2024-01-01';
           const endDate = '2024-12-31';
-          const occupancyRate = await AnalyticsService.calculateOccupancyRate(testPropertyId, startDate, endDate);
+          const occupancyRate = await AnalyticsService.calculateOccupancyRate(testOwnerId, testPropertyId, startDate, endDate);
 
           // Property: Occupancy rate is between 0 and 100 percent
           expect(occupancyRate).toBeGreaterThanOrEqual(0);
@@ -159,6 +176,8 @@ describe('Analytics Property Tests - Full Compliance', () => {
           const bookingData = bookings.map((booking, index) => ({
             property_id: testPropertyId,
             farmer_id: testFarmerId,
+            organization_id: testFarmerId,
+            provider_organization_id: testOwnerId,
             start_date: new Date(2024, 0, index + 1).toISOString().split('T')[0],
             end_date: new Date(2024, 0, index + 2).toISOString().split('T')[0],
             total_amount: booking.amount,
@@ -169,7 +188,7 @@ describe('Analytics Property Tests - Full Compliance', () => {
           await supabase.from('bookings').insert(bookingData);
 
           // Get revenue breakdown
-          const breakdown = await AnalyticsService.getRevenueBreakdown(testPropertyId);
+          const breakdown = await AnalyticsService.getRevenueBreakdown(testOwnerId, testPropertyId);
 
           // Debug: Log the breakdown to see what's happening
           console.log('Breakdown result:', breakdown);
@@ -212,6 +231,8 @@ describe('Analytics Property Tests - Full Compliance', () => {
       {
         property_id: testPropertyId,
         farmer_id: testFarmerId,
+        organization_id: testFarmerId,
+        provider_organization_id: testOwnerId,
         start_date: '2024-01-01',
         end_date: '2024-01-05', // 5 days
         total_amount: 5000,
@@ -221,6 +242,8 @@ describe('Analytics Property Tests - Full Compliance', () => {
       {
         property_id: testPropertyId,
         farmer_id: testFarmerId,
+        organization_id: testFarmerId,
+        provider_organization_id: testOwnerId,
         start_date: '2024-02-01',
         end_date: '2024-02-10', // 10 days
         total_amount: 10000,
@@ -232,7 +255,7 @@ describe('Analytics Property Tests - Full Compliance', () => {
     await supabase.from('bookings').insert(bookingData);
 
     // Calculate average duration
-    const avgDuration = await AnalyticsService.calculateAverageBookingDuration(testPropertyId);
+    const avgDuration = await AnalyticsService.calculateAverageBookingDuration(testOwnerId, testPropertyId);
 
     // Property: Average duration is positive
     expect(avgDuration).toBeGreaterThan(0);
@@ -273,6 +296,8 @@ describe('Analytics Property Tests - Full Compliance', () => {
             allBookings.push({
               property_id: testPropertyId,
               farmer_id: testFarmerId,
+              organization_id: testFarmerId,
+              provider_organization_id: testOwnerId,
               start_date: new Date(2024, 0, i + 1).toISOString().split('T')[0],
               end_date: new Date(2024, 0, i + 2).toISOString().split('T')[0],
               total_amount: 1000,
@@ -286,6 +311,8 @@ describe('Analytics Property Tests - Full Compliance', () => {
             allBookings.push({
               property_id: testPropertyId,
               farmer_id: testFarmerId,
+              organization_id: testFarmerId,
+              provider_organization_id: testOwnerId,
               start_date: new Date(2024, 1, i + 1).toISOString().split('T')[0],
               end_date: new Date(2024, 1, i + 2).toISOString().split('T')[0],
               total_amount: 1000,
@@ -297,7 +324,7 @@ describe('Analytics Property Tests - Full Compliance', () => {
           await supabase.from('bookings').insert(allBookings);
 
           // Calculate cancellation rate
-          const cancellationRate = await AnalyticsService.calculateCancellationRate(testPropertyId);
+          const cancellationRate = await AnalyticsService.calculateCancellationRate(testOwnerId, testPropertyId);
 
           // Property: Cancellation rate is between 0 and 100 percent
           expect(cancellationRate).toBeGreaterThanOrEqual(0);
@@ -338,6 +365,7 @@ describe('Analytics Property Tests - Full Compliance', () => {
       .from('properties')
       .insert({
         owner_id: testOwnerId,
+        organization_id: testOwnerId,
         title: 'Empty Test Property',
         description: 'Property with no bookings for testing',
         livestock_type: 'poultry',
@@ -358,10 +386,10 @@ describe('Analytics Property Tests - Full Compliance', () => {
 
     try {
       // Test with property that has no bookings
-      const occupancyRate = await AnalyticsService.calculateOccupancyRate(emptyPropertyId, '2024-01-01', '2024-12-31');
-      const breakdown = await AnalyticsService.getRevenueBreakdown(emptyPropertyId);
-      const avgDuration = await AnalyticsService.calculateAverageBookingDuration(emptyPropertyId);
-      const cancellationRate = await AnalyticsService.calculateCancellationRate(emptyPropertyId);
+      const occupancyRate = await AnalyticsService.calculateOccupancyRate(testOwnerId, emptyPropertyId, '2024-01-01', '2024-12-31');
+      const breakdown = await AnalyticsService.getRevenueBreakdown(testOwnerId, emptyPropertyId);
+      const avgDuration = await AnalyticsService.calculateAverageBookingDuration(testOwnerId, emptyPropertyId);
+      const cancellationRate = await AnalyticsService.calculateCancellationRate(testOwnerId, emptyPropertyId);
 
       // All methods should return valid defaults for empty data
       expect(occupancyRate).toBe(0);

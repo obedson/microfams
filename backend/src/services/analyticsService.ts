@@ -62,11 +62,12 @@ export class AnalyticsService {
    * Occupancy rate = (Total booked days / Total available days) * 100
    */
   static async calculateOccupancyRate(
+    organizationId: string,
     propertyId: string, 
     startDate: string, 
     endDate: string
   ): Promise<number> {
-    const cacheKey = CacheKeys.occupancyRate(propertyId, startDate, endDate);
+    const cacheKey = CacheKeys.occupancyRate(organizationId, propertyId, startDate, endDate);
     
     // Try to get from cache first
     const cached = await cacheService.get(cacheKey);
@@ -80,6 +81,7 @@ export class AnalyticsService {
         .from('bookings')
         .select('start_date, end_date')
         .eq('property_id', propertyId)
+        .eq('provider_organization_id', organizationId)
         .in('status', ['confirmed', 'completed'])
         .or(`and(start_date.lte.${endDate},end_date.gte.${startDate})`);
 
@@ -154,12 +156,13 @@ export class AnalyticsService {
    * Get revenue breakdown by booking status with enhanced categorization
    */
   static async getRevenueBreakdown(
+    organizationId: string,
     propertyId?: string, 
     ownerId?: string,
     startDate?: string,
     endDate?: string
   ): Promise<RevenueBreakdown> {
-    const cacheKey = CacheKeys.revenueBreakdown(propertyId, ownerId, startDate, endDate);
+    const cacheKey = CacheKeys.revenueBreakdown(organizationId, propertyId, ownerId, startDate, endDate);
     
     // Try to get from cache first
     const cached = await cacheService.get(cacheKey);
@@ -197,7 +200,8 @@ export class AnalyticsService {
         // Handle property-specific or general query
         let query = supabase
           .from('bookings')
-          .select('status, payment_status, total_amount');
+          .select('status, payment_status, total_amount')
+          .eq('provider_organization_id', organizationId);
 
         if (propertyId) {
           query = query.eq('property_id', propertyId);
@@ -260,6 +264,7 @@ export class AnalyticsService {
    * Calculate average booking duration using simple arithmetic mean
    */
   static async calculateAverageBookingDuration(
+    organizationId: string,
     propertyId: string,
     startDate?: string,
     endDate?: string
@@ -269,6 +274,7 @@ export class AnalyticsService {
         .from('bookings')
         .select('start_date, end_date')
         .eq('property_id', propertyId)
+        .eq('provider_organization_id', organizationId)
         .in('status', ['confirmed', 'completed']);
 
       if (startDate) {
@@ -307,6 +313,7 @@ export class AnalyticsService {
    * Calculate cancellation rate with trend analysis
    */
   static async calculateCancellationRate(
+    organizationId: string,
     propertyId: string,
     startDate?: string,
     endDate?: string
@@ -315,7 +322,8 @@ export class AnalyticsService {
       let query = supabase
         .from('bookings')
         .select('status, created_at')
-        .eq('property_id', propertyId);
+        .eq('property_id', propertyId)
+        .eq('provider_organization_id', organizationId);
 
       if (startDate) {
         query = query.gte('created_at', startDate);
@@ -345,12 +353,13 @@ export class AnalyticsService {
    * Enhanced property performance ranking with multiple metrics
    */
   static async getPropertyPerformanceRanking(
+    organizationId: string,
     ownerId?: string,
     startDate?: string,
     endDate?: string,
     limit: number = 10
   ): Promise<PropertyPerformance[]> {
-    const cacheKey = CacheKeys.propertyPerformance(ownerId, startDate, endDate, limit);
+    const cacheKey = CacheKeys.propertyPerformance(organizationId, ownerId, startDate, endDate, limit);
     
     // Try to get from cache first
     const cached = await cacheService.get(cacheKey);
@@ -361,7 +370,8 @@ export class AnalyticsService {
     try {
       let query = supabase
         .from('booking_analytics')
-        .select('*');
+        .select('*')
+        .eq('organization_id', organizationId);
 
       if (ownerId) {
         query = query.eq('owner_id', ownerId);
@@ -425,11 +435,12 @@ export class AnalyticsService {
    * Get monthly revenue trends with seasonal analysis
    */
   static async getMonthlyTrends(
+    organizationId: string,
     ownerId?: string,
     propertyId?: string,
     months: number = 12
   ): Promise<BookingTrend[]> {
-    const cacheKey = CacheKeys.monthlyTrends(ownerId, propertyId, months);
+    const cacheKey = CacheKeys.monthlyTrends(organizationId, ownerId, propertyId, months);
     
     // Try to get from cache first
     const cached = await cacheService.get(cacheKey);
@@ -450,6 +461,7 @@ export class AnalyticsService {
         let ownerQuery = supabase
           .from('bookings')
           .select('created_at, total_amount, status, payment_status, property_id, start_date, end_date, properties!inner(owner_id)')
+          .eq('provider_organization_id', organizationId)
           .gte('created_at', startDate.toISOString())
           .lte('created_at', endDate.toISOString())
           .eq('properties.owner_id', ownerId);
@@ -466,6 +478,7 @@ export class AnalyticsService {
         let query = supabase
           .from('bookings')
           .select('created_at, total_amount, status, payment_status, property_id, start_date, end_date')
+          .eq('provider_organization_id', organizationId)
           .gte('created_at', startDate.toISOString())
           .lte('created_at', endDate.toISOString());
 
@@ -517,6 +530,7 @@ export class AnalyticsService {
             const monthEnd = new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0);
             
             const occupancyRate = await this.calculateOccupancyRate(
+              organizationId,
               propertyId,
               monthStart.toISOString().split('T')[0],
               monthEnd.toISOString().split('T')[0]
@@ -547,11 +561,12 @@ export class AnalyticsService {
    * Get comprehensive property analytics with caching
    */
   static async getPropertyAnalytics(
+    organizationId: string,
     propertyId: string,
     startDate?: string,
     endDate?: string
   ): Promise<PropertyAnalytics | null> {
-    const cacheKey = CacheKeys.propertyAnalytics(propertyId, startDate, endDate);
+    const cacheKey = CacheKeys.propertyAnalytics(organizationId, propertyId, startDate, endDate);
     
     // Try to get from cache first
     const cached = await cacheService.get(cacheKey);
@@ -564,6 +579,7 @@ export class AnalyticsService {
       const { data: analytics, error } = await supabase
         .from('booking_analytics')
         .select('*')
+        .eq('organization_id', organizationId)
         .eq('property_id', propertyId)
         .single();
 
@@ -582,9 +598,9 @@ export class AnalyticsService {
       let cancellationRate = parseFloat(analytics.cancellation_rate?.toString() || '0');
 
       if (startDate && endDate) {
-        occupancyRate = await this.calculateOccupancyRate(propertyId, startDate, endDate);
-        avgDuration = await this.calculateAverageBookingDuration(propertyId, startDate, endDate);
-        cancellationRate = await this.calculateCancellationRate(propertyId, startDate, endDate);
+        occupancyRate = await this.calculateOccupancyRate(organizationId, propertyId, startDate, endDate);
+        avgDuration = await this.calculateAverageBookingDuration(organizationId, propertyId, startDate, endDate);
+        cancellationRate = await this.calculateCancellationRate(organizationId, propertyId, startDate, endDate);
       }
 
       const result: PropertyAnalytics = {
@@ -619,11 +635,12 @@ export class AnalyticsService {
    * Get dashboard analytics for an owner with caching
    */
   static async getDashboardAnalytics(
-    ownerId: string,
+    organizationId: string,
+    ownerId?: string,
     startDate?: string,
     endDate?: string
   ): Promise<DashboardAnalytics> {
-    const cacheKey = CacheKeys.dashboardAnalytics(ownerId, startDate, endDate);
+    const cacheKey = CacheKeys.dashboardAnalytics(organizationId, ownerId, startDate, endDate);
     
     // Try to get from cache first
     const cached = await cacheService.get(cacheKey);
@@ -633,21 +650,25 @@ export class AnalyticsService {
 
     try {
       // Get all properties for the owner
-      const { data: properties, error: propertiesError } = await supabase
+      let propertiesQuery = supabase
         .from('properties')
         .select('id')
-        .eq('owner_id', ownerId)
+        .eq('organization_id', organizationId)
         .eq('is_active', true);
+      if (ownerId) propertiesQuery = propertiesQuery.eq('owner_id', ownerId);
+      const { data: properties, error: propertiesError } = await propertiesQuery;
 
       if (propertiesError) throw propertiesError;
 
       const propertyIds = properties?.map(p => p.id) || [];
 
       // Get analytics from the view
-      const { data: analytics, error: analyticsError } = await supabase
+      let analyticsQuery = supabase
         .from('booking_analytics')
         .select('*')
-        .eq('owner_id', ownerId);
+        .eq('organization_id', organizationId);
+      if (ownerId) analyticsQuery = analyticsQuery.eq('owner_id', ownerId);
+      const { data: analytics, error: analyticsError } = await analyticsQuery;
 
       if (analyticsError) throw analyticsError;
 
@@ -677,13 +698,13 @@ export class AnalyticsService {
       const averageCancellationRate = propertiesWithData > 0 ? totalCancellationRate / propertiesWithData : 0;
 
       // Get revenue breakdown
-      const revenueBreakdown = await this.getRevenueBreakdown(undefined, ownerId, startDate, endDate);
+      const revenueBreakdown = await this.getRevenueBreakdown(organizationId, undefined, ownerId, startDate, endDate);
 
       // Get monthly trends
-      const monthlyTrends = await this.getMonthlyTrends(ownerId, undefined, 12);
+      const monthlyTrends = await this.getMonthlyTrends(organizationId, ownerId, undefined, 12);
 
       // Get top properties
-      const topProperties = await this.getPropertyPerformanceRanking(ownerId, startDate, endDate, 5);
+      const topProperties = await this.getPropertyPerformanceRanking(organizationId, ownerId, startDate, endDate, 5);
 
       const result: DashboardAnalytics = {
         total_properties: propertyIds.length,
@@ -722,12 +743,13 @@ export class AnalyticsService {
   /**
    * Get dashboard analytics for a farmer
    */
-  static async getFarmerDashboardAnalytics(farmerId: string): Promise<any> {
+  static async getFarmerDashboardAnalytics(organizationId: string, farmerId: string): Promise<any> {
     try {
       const { data: bookings, error } = await supabase
         .from('bookings')
         .select('status, payment_status, total_amount')
-        .eq('farmer_id', farmerId);
+        .eq('farmer_id', farmerId)
+        .eq('organization_id', organizationId);
 
       if (error) throw error;
 
@@ -772,18 +794,18 @@ export class AnalyticsService {
   /**
    * Warm up cache for frequently accessed analytics
    */
-  static async warmUpCache(propertyIds: string[], ownerIds: string[]): Promise<void> {
+  static async warmUpCache(organizationId: string, propertyIds: string[], ownerIds: string[]): Promise<void> {
     try {
       const promises: Promise<any>[] = [];
 
       // Warm up property analytics
       for (const propertyId of propertyIds) {
-        promises.push(this.getPropertyAnalytics(propertyId));
+        promises.push(this.getPropertyAnalytics(organizationId, propertyId));
       }
 
       // Warm up owner dashboard analytics
       for (const ownerId of ownerIds) {
-        promises.push(this.getDashboardAnalytics(ownerId));
+        promises.push(this.getDashboardAnalytics(organizationId, ownerId));
       }
 
       await Promise.allSettled(promises);

@@ -157,3 +157,4 @@ install_escrow_dispute_handling.sql
 install_escrow_partial_release.sql
 install_escrow_expiry_servicing.sql
 install_escrow_dispute_resolution.sql
+install_tenant_scoped_booking_analytics.sql
