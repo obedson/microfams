@@ -1,5 +1,6 @@
 import express from 'express';
 import { authenticateToken } from '../middleware/auth.js';
+import { resolveTenant } from '../middleware/tenant.js';
 import {
   getPropertyAnalytics,
   getDashboardAnalytics,
@@ -13,6 +14,7 @@ const router = express.Router();
 
 // All analytics routes require authentication
 router.use(authenticateToken);
+router.use(resolveTenant);
 
 // Property-specific analytics
 router.get('/property/:id', getPropertyAnalytics);

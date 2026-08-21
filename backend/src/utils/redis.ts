@@ -175,39 +175,40 @@ export const cacheService = new CacheService();
 
 // Cache key generators for analytics
 export const CacheKeys = {
-  propertyAnalytics: (propertyId: string, startDate?: string, endDate?: string) => {
+  propertyAnalytics: (organizationId: string, propertyId: string, startDate?: string, endDate?: string) => {
     const dateKey = startDate && endDate ? `_${startDate}_${endDate}` : '';
-    return `analytics:property:${propertyId}${dateKey}`;
+    return `analytics:organization:${organizationId}:property:${propertyId}${dateKey}`;
   },
   
-  dashboardAnalytics: (ownerId: string, startDate?: string, endDate?: string) => {
+  dashboardAnalytics: (organizationId: string, ownerId?: string, startDate?: string, endDate?: string) => {
     const dateKey = startDate && endDate ? `_${startDate}_${endDate}` : '';
-    return `analytics:dashboard:${ownerId}${dateKey}`;
+    const ownerKey = ownerId ? `owner_${ownerId}` : 'all';
+    return `analytics:organization:${organizationId}:dashboard:${ownerKey}${dateKey}`;
   },
   
-  revenueBreakdown: (propertyId?: string, ownerId?: string, startDate?: string, endDate?: string) => {
+  revenueBreakdown: (organizationId: string, propertyId?: string, ownerId?: string, startDate?: string, endDate?: string) => {
     const propKey = propertyId ? `_prop_${propertyId}` : '';
     const ownerKey = ownerId ? `_owner_${ownerId}` : '';
     const dateKey = startDate && endDate ? `_${startDate}_${endDate}` : '';
-    return `analytics:revenue${propKey}${ownerKey}${dateKey}`;
+    return `analytics:organization:${organizationId}:revenue${propKey}${ownerKey}${dateKey}`;
   },
   
-  occupancyRate: (propertyId: string, startDate: string, endDate: string) => {
-    return `analytics:occupancy:${propertyId}_${startDate}_${endDate}`;
+  occupancyRate: (organizationId: string, propertyId: string, startDate: string, endDate: string) => {
+    return `analytics:organization:${organizationId}:occupancy:${propertyId}_${startDate}_${endDate}`;
   },
   
-  propertyPerformance: (ownerId?: string, startDate?: string, endDate?: string, limit?: number) => {
+  propertyPerformance: (organizationId: string, ownerId?: string, startDate?: string, endDate?: string, limit?: number) => {
     const ownerKey = ownerId ? `_owner_${ownerId}` : '';
     const dateKey = startDate && endDate ? `_${startDate}_${endDate}` : '';
     const limitKey = limit ? `_limit_${limit}` : '';
-    return `analytics:performance${ownerKey}${dateKey}${limitKey}`;
+    return `analytics:organization:${organizationId}:performance${ownerKey}${dateKey}${limitKey}`;
   },
   
-  monthlyTrends: (ownerId?: string, propertyId?: string, months?: number) => {
+  monthlyTrends: (organizationId: string, ownerId?: string, propertyId?: string, months?: number) => {
     const ownerKey = ownerId ? `_owner_${ownerId}` : '';
     const propKey = propertyId ? `_prop_${propertyId}` : '';
     const monthsKey = months ? `_months_${months}` : '';
-    return `analytics:trends${ownerKey}${propKey}${monthsKey}`;
+    return `analytics:organization:${organizationId}:trends${ownerKey}${propKey}${monthsKey}`;
   }
 };
 

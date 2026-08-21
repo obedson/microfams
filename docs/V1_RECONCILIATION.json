@@ -262,9 +262,9 @@
         ],
         "api": [
           "backend/src/controllers/savingsProviderCertificationController.ts",
+          "backend/src/controllers/analyticsController.ts",
           "backend/src/controllers/bookingController.ts",
-          "backend/src/controllers/farmRecordController.ts",
-          "backend/src/controllers/groupContributionCycleController.ts"
+          "backend/src/controllers/farmRecordController.ts"
         ],
         "client": [
           "frontend/src/services/farmRecordAPI.ts",
@@ -557,9 +557,9 @@
         ],
         "api": [
           "backend/src/controllers/groupCommitteeController.ts",
+          "backend/src/controllers/analyticsController.ts",
           "backend/src/controllers/contributionController.ts",
-          "backend/src/controllers/groupAdminController.ts",
-          "backend/src/controllers/investmentProductController.ts"
+          "backend/src/controllers/groupAdminController.ts"
         ],
         "client": [
           "frontend/src/store/organizationStore.ts"

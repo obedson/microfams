@@ -1,32 +1,35 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
+import { TenantRequest } from '../middleware/tenant.js';
 import { AnalyticsService } from '../services/analyticsService.js';
 import { logger } from '../utils/logger.js';
 import supabase from '../utils/supabase.js';
 
-interface AuthenticatedRequest extends Request {
-  user: {
-    id: string;
-    role: string;
-  };
-}
+const ORGANIZATION_ANALYTICS_ROLES = new Set([
+  'owner', 'admin', 'finance_manager', 'program_manager', 'farm_manager', 'auditor',
+]);
+
+const canViewOrganizationAnalytics = (req: TenantRequest) =>
+  ORGANIZATION_ANALYTICS_ROLES.has(req.tenant!.role);
 
 /**
  * Get analytics for a specific property
  * GET /api/analytics/property/:id
  */
-export const getPropertyAnalytics = async (req: Request, res: Response) => {
+export const getPropertyAnalytics = async (req: TenantRequest, res: Response) => {
   try {
     const { id: propertyId } = req.params;
     const { start_date, end_date } = req.query;
-    const userId = (req as AuthenticatedRequest).user.id;
-    const userRole = (req as AuthenticatedRequest).user.role;
+    const userId = req.user!.id;
+    const organizationId = req.tenant!.id;
+    const userRole = req.user!.role;
 
     // Verify property ownership (unless admin)
-    if (userRole !== 'admin') {
+    if (!canViewOrganizationAnalytics(req)) {
       const { data: property, error } = await supabase
         .from('properties')
         .select('owner_id')
         .eq('id', propertyId)
+        .eq('organization_id', organizationId)
         .single();
 
       if (error || !property) {
@@ -45,6 +48,7 @@ export const getPropertyAnalytics = async (req: Request, res: Response) => {
     }
 
     const analytics = await AnalyticsService.getPropertyAnalytics(
+      organizationId,
       propertyId,
       start_date as string,
       end_date as string
@@ -74,14 +78,15 @@ export const getPropertyAnalytics = async (req: Request, res: Response) => {
  * Get dashboard analytics for the authenticated user
  * GET /api/analytics/dashboard
  */
-export const getDashboardAnalytics = async (req: Request, res: Response) => {
+export const getDashboardAnalytics = async (req: TenantRequest, res: Response) => {
   try {
-    const userId = (req as AuthenticatedRequest).user.id;
-    const userRole = (req as AuthenticatedRequest).user.role;
+    const userId = req.user!.id;
+    const organizationId = req.tenant!.id;
+    const userRole = req.user!.role;
     const { start_date, end_date } = req.query;
 
     if (userRole === 'farmer') {
-      const analytics = await AnalyticsService.getFarmerDashboardAnalytics(userId);
+      const analytics = await AnalyticsService.getFarmerDashboardAnalytics(organizationId, userId);
       return res.json({
         success: true,
         data: analytics
@@ -90,7 +95,8 @@ export const getDashboardAnalytics = async (req: Request, res: Response) => {
 
     // For property owners, get their dashboard analytics
     const analytics = await AnalyticsService.getDashboardAnalytics(
-      userId,
+      organizationId,
+      canViewOrganizationAnalytics(req) ? undefined : userId,
       start_date as string,
       end_date as string
     );
@@ -112,10 +118,11 @@ export const getDashboardAnalytics = async (req: Request, res: Response) => {
  * Get revenue breakdown
  * GET /api/analytics/revenue-breakdown
  */
-export const getRevenueBreakdown = async (req: Request, res: Response) => {
+export const getRevenueBreakdown = async (req: TenantRequest, res: Response) => {
   try {
-    const userId = (req as AuthenticatedRequest).user.id;
-    const userRole = (req as AuthenticatedRequest).user.role;
+    const userId = req.user!.id;
+    const organizationId = req.tenant!.id;
+    const userRole = req.user!.role;
     const { property_id, start_date, end_date } = req.query;
 
     if (userRole === 'farmer') {
@@ -126,11 +133,12 @@ export const getRevenueBreakdown = async (req: Request, res: Response) => {
     }
 
     // Verify property ownership if property_id is provided
-    if (property_id && userRole !== 'admin') {
+    if (property_id && !canViewOrganizationAnalytics(req)) {
       const { data: property, error } = await supabase
         .from('properties')
         .select('owner_id')
         .eq('id', property_id as string)
+        .eq('organization_id', organizationId)
         .single();
 
       if (error || !property || property.owner_id !== userId) {
@@ -142,8 +150,9 @@ export const getRevenueBreakdown = async (req: Request, res: Response) => {
     }
 
     const breakdown = await AnalyticsService.getRevenueBreakdown(
+      organizationId,
       property_id as string,
-      userRole === 'admin' ? undefined : userId,
+      canViewOrganizationAnalytics(req) ? undefined : userId,
       start_date as string,
       end_date as string
     );
@@ -165,10 +174,11 @@ export const getRevenueBreakdown = async (req: Request, res: Response) => {
  * Get property performance ranking
  * GET /api/analytics/property-performance
  */
-export const getPropertyPerformance = async (req: Request, res: Response) => {
+export const getPropertyPerformance = async (req: TenantRequest, res: Response) => {
   try {
-    const userId = (req as AuthenticatedRequest).user.id;
-    const userRole = (req as AuthenticatedRequest).user.role;
+    const userId = req.user!.id;
+    const organizationId = req.tenant!.id;
+    const userRole = req.user!.role;
     const { start_date, end_date, limit = '10' } = req.query;
 
     if (userRole === 'farmer') {
@@ -179,7 +189,8 @@ export const getPropertyPerformance = async (req: Request, res: Response) => {
     }
 
     const performance = await AnalyticsService.getPropertyPerformanceRanking(
-      userRole === 'admin' ? undefined : userId,
+      organizationId,
+      canViewOrganizationAnalytics(req) ? undefined : userId,
       start_date as string,
       end_date as string,
       parseInt(limit as string)
@@ -202,10 +213,11 @@ export const getPropertyPerformance = async (req: Request, res: Response) => {
  * Get monthly trends
  * GET /api/analytics/monthly-trends
  */
-export const getMonthlyTrends = async (req: Request, res: Response) => {
+export const getMonthlyTrends = async (req: TenantRequest, res: Response) => {
   try {
-    const userId = (req as AuthenticatedRequest).user.id;
-    const userRole = (req as AuthenticatedRequest).user.role;
+    const userId = req.user!.id;
+    const organizationId = req.tenant!.id;
+    const userRole = req.user!.role;
     const { property_id, months = '12' } = req.query;
 
     if (userRole === 'farmer') {
@@ -216,11 +228,12 @@ export const getMonthlyTrends = async (req: Request, res: Response) => {
     }
 
     // Verify property ownership if property_id is provided
-    if (property_id && userRole !== 'admin') {
+    if (property_id && !canViewOrganizationAnalytics(req)) {
       const { data: property, error } = await supabase
         .from('properties')
         .select('owner_id')
         .eq('id', property_id as string)
+        .eq('organization_id', organizationId)
         .single();
 
       if (error || !property || property.owner_id !== userId) {
@@ -232,7 +245,8 @@ export const getMonthlyTrends = async (req: Request, res: Response) => {
     }
 
     const trends = await AnalyticsService.getMonthlyTrends(
-      userRole === 'admin' ? undefined : userId,
+      organizationId,
+      canViewOrganizationAnalytics(req) ? undefined : userId,
       property_id as string,
       parseInt(months as string)
     );
@@ -254,12 +268,13 @@ export const getMonthlyTrends = async (req: Request, res: Response) => {
  * Get occupancy rate for a property
  * GET /api/analytics/occupancy-rate/:propertyId
  */
-export const getOccupancyRate = async (req: Request, res: Response) => {
+export const getOccupancyRate = async (req: TenantRequest, res: Response) => {
   try {
     const { propertyId } = req.params;
     const { start_date, end_date } = req.query;
-    const userId = (req as AuthenticatedRequest).user.id;
-    const userRole = (req as AuthenticatedRequest).user.role;
+    const userId = req.user!.id;
+    const organizationId = req.tenant!.id;
+    const userRole = req.user!.role;
 
     if (!start_date || !end_date) {
       return res.status(400).json({
@@ -269,11 +284,12 @@ export const getOccupancyRate = async (req: Request, res: Response) => {
     }
 
     // Verify property ownership (unless admin)
-    if (userRole !== 'admin') {
+    if (!canViewOrganizationAnalytics(req)) {
       const { data: property, error } = await supabase
         .from('properties')
         .select('owner_id')
         .eq('id', propertyId)
+        .eq('organization_id', organizationId)
         .single();
 
       if (error || !property) {
@@ -292,6 +308,7 @@ export const getOccupancyRate = async (req: Request, res: Response) => {
     }
 
     const occupancyRate = await AnalyticsService.calculateOccupancyRate(
+      organizationId,
       propertyId,
       start_date as string,
       end_date as string
