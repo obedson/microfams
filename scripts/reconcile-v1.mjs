@@ -19,7 +19,8 @@ const walk = directory => {
   });
 };
 const repoFiles = execFileSync('git', ['ls-files', '-z'], { cwd: root }).toString('utf8').split('\0').filter(Boolean).map(path => join(root, path));
-const searchableFiles = repoFiles.filter(path => /\.(md|sql|ts|tsx|js|jsx|mjs|yml|yaml)$/i.test(path));
+const generatedArtifacts = new Set(['docs/V1_RECONCILIATION.json', 'docs/V1_RECONCILIATION.md', 'docs/V1_GAPS.md', 'docs/V1_RELEASE_READINESS.md']);
+const searchableFiles = repoFiles.filter(path => /\.(md|sql|ts|tsx|js|jsx|mjs|yml|yaml)$/i.test(path) && !generatedArtifacts.has(relative(root, path).replaceAll('\\', '/')));
 const contents = new Map(searchableFiles.map(path => [path, read(path).toLowerCase()]));
 const rel = path => relative(root, path).replaceAll('\\', '/');
 const corpusCache = new Map();
