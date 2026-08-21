@@ -11,6 +11,7 @@ const markdownPath = join(root, 'docs', 'V1_RECONCILIATION.md');
 const checkOnly = process.argv.includes('--check');
 
 const read = path => readFileSync(path, 'utf8');
+const canonicalText = text => text.replaceAll('\r\n', '\n');
 const walk = directory => {
   if (!existsSync(directory)) return [];
   return readdirSync(directory, { withFileTypes: true }).flatMap(entry => {
@@ -91,7 +92,7 @@ for (const [index, line] of read(workPlanPath).split(/\r?\n/).entries()) {
 }
 
 const summary = {
-  workPlanSha256: createHash('sha256').update(read(workPlanPath)).digest('hex'),
+  workPlanSha256: createHash('sha256').update(canonicalText(read(workPlanPath))).digest('hex'),
   total: items.length,
   checked: items.filter(item => item.workPlanChecked).length,
   candidateComplete: items.filter(item => item.status === 'candidate_complete').length,
