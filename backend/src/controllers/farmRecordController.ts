@@ -29,7 +29,12 @@ export const linkToBooking = asyncHandler(async (req: TenantRequest, res: Respon
   const { id: recordId } = req.params;
   const { booking_id } = req.body;
   
-  const record = await FarmRecordService.linkToBooking(recordId, booking_id, req.tenant!.id);
+  const record = await FarmRecordService.linkToBooking(
+    recordId,
+    booking_id,
+    req.tenant!.id,
+    (req as any).user.id
+  );
   res.json({ success: true, data: record });
 });
 
@@ -90,12 +95,13 @@ export const updateRecord = asyncHandler(async (req: TenantRequest, res: Respons
   const { id } = req.params;
   const userId = (req as any).user.id;
 
-  const record = await FarmRecordModel.update(id, req.tenant!.id, req.body);
+  const record = await FarmRecordModel.update(id, req.tenant!.id, userId, req.body);
   res.json({ success: true, data: record });
 });
 
 export const deleteRecord = asyncHandler(async (req: TenantRequest, res: Response) => {
   const { id } = req.params;
-  await FarmRecordModel.delete(id, req.tenant!.id);
+  const userId = (req as any).user.id;
+  await FarmRecordModel.delete(id, req.tenant!.id, userId);
   res.json({ success: true, message: 'Record deleted' });
 });
