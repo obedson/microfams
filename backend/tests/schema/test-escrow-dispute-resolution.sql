@@ -11,7 +11,7 @@ BEGIN
  PERFORM activate_escrow_contract(org,checker,contract,'esc09-activate-001',now_at);
  PERFORM atomic_wallet_credit(wallet,1000,'COLLECTION','esc09-credit-001'); PERFORM fund_escrow_contract_from_wallet(org,payer,contract,'esc09-funding-001','00000000-0000-4000-0000-000000000911',now_at);
  result:=open_escrow_dispute(org,payer,contract,'issue','The dispute requires independent review and resolution.','esc09-open-001','00000000-0000-4000-0000-000000000910',now_at); dispute:=(result->>'id')::UUID;
- result:=resolve_escrow_dispute(org,checker,dispute,'Resolution recorded without financial movement.','esc09-resolve-001',now_at); replay:=resolve_escrow_dispute(org,checker,dispute,'Resolution recorded without financial movement.','esc09-resolve-001',now_at+INTERVAL'1 second');
+ result:=resolve_escrow_dispute(org,checker,dispute,'Resolution recorded without financial movement.',30000,20000,'esc09-resolve-001',now_at); replay:=resolve_escrow_dispute(org,checker,dispute,'Resolution recorded without financial movement.',30000,20000,'esc09-resolve-001',now_at+INTERVAL'1 second');
  IF result->>'state'<>'resolved' OR replay->>'id'<>result->>'id' OR (SELECT state FROM escrow_contracts WHERE id=contract)<>'resolved' THEN RAISE EXCEPTION 'ESC09: resolution failed'; END IF;
 END $$;
 ROLLBACK;
