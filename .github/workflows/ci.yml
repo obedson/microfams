@@ -132,6 +132,8 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Verify V1 reconciliation report is current
+        run: node scripts/reconcile-v1.mjs --check
       - name: Reject committed private keys and common live-token formats
         shell: bash
         run: |
