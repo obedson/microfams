@@ -156,3 +156,4 @@ install_escrow_release_execution.sql
 install_escrow_dispute_handling.sql
 install_escrow_partial_release.sql
 install_escrow_expiry_servicing.sql
+install_escrow_dispute_resolution.sql
