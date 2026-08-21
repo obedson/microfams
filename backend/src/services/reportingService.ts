@@ -1,6 +1,6 @@
 import { supabase } from '../utils/supabase.js';
 import { logger } from '../utils/logger.js';
-import { buildCsv } from './reportingPolicy.js';
+import { buildCsv, REPORT_TENANT_SCOPES } from './reportingPolicy.js';
 
 export class ReportingService {
   static async getBookingReport(organizationId: string, startDate: string, endDate: string) {
@@ -76,10 +76,12 @@ export class ReportingService {
   }
 
   static async exportToCSV(organizationId: string, tableName: string, fields: string[]) {
+    const scope = REPORT_TENANT_SCOPES[tableName];
+    if (!scope) throw new Error('Export tenant scope is not configured');
     let query = supabase.from(tableName).select(fields.join(',')).limit(1000);
-    if (tableName === 'bookings') {
+    if (scope === 'booking_participant') {
       query = query.or(`organization_id.eq.${organizationId},provider_organization_id.eq.${organizationId}`);
-    } else if (tableName === 'orders') {
+    } else if (scope === 'order_participant') {
       query = query.or(`organization_id.eq.${organizationId},supplier_organization_id.eq.${organizationId}`);
     } else {
       query = query.eq('organization_id', organizationId);
