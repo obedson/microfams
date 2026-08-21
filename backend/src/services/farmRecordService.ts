@@ -33,7 +33,7 @@ export class FarmRecordService {
     try {
       const { data: booking, error: bookingError } = await supabase
         .from('bookings')
-        .select('id')
+        .select('id, property_id')
         .eq('id', bookingId)
         .eq('organization_id', organizationId)
         .eq('farmer_id', farmerId)
@@ -44,7 +44,7 @@ export class FarmRecordService {
 
       const { data, error } = await supabase
         .from('farm_records')
-        .update({ booking_id: bookingId })
+        .update({ booking_id: bookingId, property_id: booking.property_id })
         .eq('id', recordId)
         .eq('organization_id', organizationId)
         .eq('farmer_id', farmerId)

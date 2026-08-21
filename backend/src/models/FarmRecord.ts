@@ -67,7 +67,7 @@ export class FarmRecordModel {
 
   static async update(id: string, organizationId: string, farmerId: string, updates: Partial<FarmRecord>) {
     const mutableFields: Array<keyof FarmRecord> = [
-      'property_id',
+
       'livestock_type',
       'livestock_count',
       'feed_consumption',
