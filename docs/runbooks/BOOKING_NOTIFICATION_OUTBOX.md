@@ -4,6 +4,8 @@
 
 Booking money transitions enqueue tenant-aware notification events in the same database transaction. Delivery happens later, so a notification-provider failure never rolls back payment custody, completion, disputes, refunds, payouts, reversals, or recovery accounting.
 
+Platform administrators can inspect aggregate queue health at `GET /api/admin/operations/outbox/booking-notifications`. The response contains only counts by state and a total; it does not expose event payloads, event keys, recipient identifiers, or dispute evidence.
+
 Covered events are payment custody, service completion, dispute deadline, dispute opening, evidence request, resolution proposal/approval, refund state, payout state, reversal, and recovery.
 
 ## Worker controls

@@ -11,6 +11,7 @@ import { requireFeature } from '../middleware/requireFeature.js';
 import { decideBookingDisputeResolution } from '../controllers/bookingDisputeResolutionController.js';
 import { resolveTenant } from '../middleware/tenant.js';
 import { requireBookingPermission } from '../middleware/requireBookingPermission.js';
+import { outboxOperationsController } from '../controllers/outboxOperationsController.js';
 
 const router = Router();
 
@@ -35,6 +36,7 @@ router.post(
 );
 
 router.get('/platform-administrators', platformAdministrationController.list);
+router.get('/operations/outbox/booking-notifications', outboxOperationsController.bookingNotificationHealth);
 router.post('/platform-administrators', platformAdministrationController.grant);
 router.delete('/platform-administrators/:userId', platformAdministrationController.revoke);
 router.post('/users/:id/suspend', requireFeature('trust.suspensions'), platformAdministrationController.suspend);
