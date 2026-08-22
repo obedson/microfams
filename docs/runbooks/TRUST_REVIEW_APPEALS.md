@@ -41,6 +41,8 @@ If access is incorrectly restricted, inspect immutable case, decision, suspensio
 
 Retention runs are report-only. Confirm the policy version, organization scope, and legal holds before creating a dry run. Review `data_retention_run_items` for `held`, `excluded`, `would_anonymize`, and `would_delete` classifications. No source data is changed.
 
+Every five minutes the retention selection worker claims planned dry runs and invokes the service-role `select_retention_dry_run_items` RPC. It records only aggregate success/failure in logs, continues processing independent runs after an error, and never executes destructive retention. Hold or policy lookup failures leave the run planned for retry.
+
 Do not enable destructive retention. It requires a separately approved migration, privacy/legal approval, restore testing, and a new operational runbook. Financial ledgers and required audit evidence remain excluded from destructive deletion.
 
 ## Monitoring and incident response
