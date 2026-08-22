@@ -167,7 +167,7 @@
         "api": "missing",
         "client": "not_required",
         "tests": "missing",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -183,7 +183,9 @@
           "frontend/src/config/env.config.ts"
         ],
         "tests": [],
-        "operations": []
+        "operations": [
+          "docs/runbooks/BACKEND_DEPENDENCY_AUDIT.md"
+        ]
       }
     },
     {
