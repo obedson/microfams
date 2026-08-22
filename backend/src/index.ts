@@ -45,6 +45,7 @@ import trustRoutes from './routes/trust.js';
 import savingsRoutes from './routes/savings.js';
 import creditRoutes from './routes/credit.js';
 import investmentRoutes from './routes/investments.js';
+import escrowRoutes from "./routes/escrow.js";
 import { startCronJobs } from './jobs/contributionJobs.js';
 import { startBookingJobs } from './jobs/bookingJobs.js';
 import { startWalletJobs } from './jobs/walletJobs.js';
