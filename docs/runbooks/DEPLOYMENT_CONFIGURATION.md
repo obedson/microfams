@@ -1,4 +1,6 @@
-# Deployment Configuration
+## Request correlation and health checks
+
+Every request receives a validated `x-correlation-id` response header. A valid UUID supplied by an upstream gateway is preserved; malformed values are replaced with a generated UUID. Operators should include this ID when correlating API responses, logs, job attempts, and provider incidents. `GET /health` returns the same correlation ID and confirms the process is serving requests; dependency readiness remains a separate deployment check.# Deployment Configuration
 
 ## Browser API routing
 
