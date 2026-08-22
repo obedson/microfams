@@ -1075,7 +1075,7 @@
       "status": "claimed_complete_evidence_gap",
       "layers": {
         "specification": "evidence_found",
-        "implementation": "missing",
+        "implementation": "evidence_found",
         "api": "missing",
         "client": "not_required",
         "tests": "evidence_found",
@@ -1088,10 +1088,13 @@
           ".kiro/specs/farmle-platform-enhancement/design.md",
           ".kiro/specs/farmle-platform-enhancement/requirements.md"
         ],
-        "implementation": [],
+        "implementation": [
+          "backend/src/services/retentionSelectionWorker.ts"
+        ],
         "api": [],
         "client": [],
         "tests": [
+          "backend/src/tests/retentionSelectionWorker.test.ts",
           "backend/tests/schema/test-retention-item-selection.sql"
         ],
         "operations": [
