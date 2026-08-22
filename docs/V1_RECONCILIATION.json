@@ -699,7 +699,8 @@
         ],
         "api": [
           "backend/src/controllers/bookingController.ts",
-          "backend/src/controllers/bookingDisputeResolutionController.ts"
+          "backend/src/controllers/bookingDisputeResolutionController.ts",
+          "backend/src/routes/admin.ts"
         ],
         "client": [],
         "tests": [
