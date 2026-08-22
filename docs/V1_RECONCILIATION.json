@@ -1045,10 +1045,10 @@
           "backend/src/domains/trust/legalHoldService.ts"
         ],
         "api": [
+          "backend/src/controllers/escrowController.ts",
           "backend/src/controllers/groupTreasuryController.ts",
           "backend/src/controllers/legalHoldController.ts",
-          "backend/src/routes/admin.ts",
-          "backend/src/routes/bookings.ts"
+          "backend/src/routes/admin.ts"
         ],
         "client": [
           "frontend/src/pages/AdminLegalHolds.tsx",
@@ -3356,6 +3356,7 @@
           "backend/migrations/install_escrow_expiry_servicing.sql"
         ],
         "api": [
+          "backend/src/controllers/escrowController.ts",
           "backend/src/routes/admin.ts",
           "backend/src/routes/bookings.ts"
         ],
@@ -3482,7 +3483,9 @@
           "backend/migrations/install_escrow_release_approval.sql",
           "backend/migrations/install_escrow_release_execution.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/controllers/escrowController.ts"
+        ],
         "client": [
           "frontend/src/pages/Wallet.tsx"
         ],
@@ -3525,6 +3528,7 @@
           "backend/migrations/install_booking_reversal_recovery.sql"
         ],
         "api": [
+          "backend/src/controllers/escrowController.ts",
           "backend/src/controllers/groupTreasuryController.ts",
           "backend/src/routes/groupAdmin.ts"
         ],
@@ -3573,7 +3577,7 @@
           "backend/src/routes/groupAdmin.ts",
           "backend/src/controllers/bookingSettlementController.ts",
           "backend/src/controllers/bookingSupplierPayoutController.ts",
-          "backend/src/controllers/groupTreasuryController.ts"
+          "backend/src/controllers/escrowController.ts"
         ],
         "client": [
           "frontend/src/pages/Wallet.tsx"
