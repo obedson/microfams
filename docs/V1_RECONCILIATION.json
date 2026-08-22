@@ -86,8 +86,8 @@
         "api": [
           "backend/src/controllers/adminController.ts",
           "backend/src/controllers/bookingController.ts",
-          "backend/src/controllers/paymentController_old.ts",
-          "backend/src/controllers/paymentController.ts"
+          "backend/src/controllers/paymentController.ts",
+          "backend/src/controllers/paymentOrchestrationController.ts"
         ],
         "client": [
           "frontend/src/pages/Properties.tsx",
