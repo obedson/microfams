@@ -247,7 +247,7 @@
         "api": "evidence_found",
         "client": "not_required",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -280,7 +280,9 @@
           "backend/tests/schema/test-booking-settlement-foundation.sql",
           "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
+        ]
       }
     },
     {
@@ -7107,7 +7109,7 @@
         "api": "evidence_found",
         "client": "not_required",
         "tests": "missing",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -7123,7 +7125,9 @@
         ],
         "client": [],
         "tests": [],
-        "operations": []
+        "operations": [
+          "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
+        ]
       }
     }
   ]
