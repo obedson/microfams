@@ -271,8 +271,8 @@
         "client": [
           "frontend/src/services/farmRecordAPI.ts",
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/components/groups/GroupDisciplineCaseForm.tsx",
+          "frontend/src/pages/AdminDashboard.tsx"
         ],
         "tests": [
           "backend/src/tests/featureFlagService.test.ts",
@@ -902,9 +902,9 @@
         ],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/TrustStatus.tsx"
+          "frontend/src/pages/TrustStatus.tsx",
+          "frontend/src/services/trustAPI.ts",
+          "frontend/src/components/groups/GroupDisciplineCaseForm.tsx"
         ],
         "tests": [
           "backend/src/tests/trustApi.test.ts",
@@ -1000,9 +1000,9 @@
         ],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/SuspendedAccountRecovery.test.tsx"
+          "frontend/src/pages/SuspendedAccountRecovery.test.tsx",
+          "frontend/src/pages/SuspendedAccountRecovery.tsx",
+          "frontend/src/services/trustAPI.ts"
         ],
         "tests": [
           "backend/tests/schema/test-suspended-account-recovery.sql",
@@ -1054,7 +1054,7 @@
           "frontend/src/pages/AdminLegalHolds.tsx",
           "frontend/src/services/trustAPI.ts",
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/pages/Wallet.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-legal-hold-commands.sql",
@@ -1136,9 +1136,9 @@
         ],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/SuspendedAccountRecovery.test.tsx"
+          "frontend/src/pages/SuspendedAccountRecovery.test.tsx",
+          "frontend/src/pages/SuspendedAccountRecovery.tsx",
+          "frontend/src/services/trustAPI.ts"
         ],
         "tests": [
           "backend/tests/schema/test-trust-recovery-negative-e2e.sql",
@@ -1559,9 +1559,9 @@
         ],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/Dashboard.tsx"
+          "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/pages/GroupMemberDashboard.tsx",
+          "frontend/src/pages/SavingsDashboard.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql",
@@ -1658,9 +1658,8 @@
         ],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/SuspendedAccountRecovery.test.tsx"
+          "frontend/src/pages/SuspendedAccountRecovery.test.tsx",
+          "frontend/src/pages/SuspendedAccountRecovery.tsx"
         ],
         "tests": [
           "backend/src/tests/accountingIncomeStatementApi.test.ts",
@@ -1711,8 +1710,8 @@
         "client": [
           "frontend/src/api/wallet.ts",
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/pages/Profile.tsx",
+          "frontend/src/pages/Wallet.tsx"
         ],
         "tests": [
           "backend/src/tests/financialStatementService.test.ts",
@@ -1763,8 +1762,8 @@
         "client": [
           "frontend/src/.backup/OwnerBookings_OLD.tsx",
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/components/bookings/__tests__/BookingLifecycleActions.test.tsx",
+          "frontend/src/components/bookings/BookingCard.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-group-contributions.sql",
@@ -1813,8 +1812,8 @@
         "client": [
           "frontend/src/pages/SavingsDashboard.test.tsx",
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/pages/SavingsDashboard.tsx",
+          "frontend/src/services/savingsAPI.ts"
         ],
         "tests": [
           "backend/src/tests/savingsProductService.test.ts",
@@ -2147,9 +2146,8 @@
         ],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/ContributionDashboard.tsx"
+          "frontend/src/pages/ContributionDashboard.tsx",
+          "frontend/src/pages/Wallet.tsx"
         ],
         "tests": [
           "backend/src/tests/savingsApiContract.test.ts",
@@ -3798,8 +3796,8 @@
         "client": [
           "frontend/src/.backup/OwnerBookings_OLD.tsx",
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/components/bookings/__tests__/BookingLifecycleActions.test.tsx",
+          "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-supplier-payout.sql",
@@ -6435,9 +6433,9 @@
         ],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/IncomeStatement.tsx"
+          "frontend/src/pages/IncomeStatement.tsx",
+          "frontend/src/api/wallet.ts",
+          "frontend/src/components/trust/SuspensionBanner.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-savings-statements-reconciliation.sql",
@@ -6666,9 +6664,8 @@
         "api": [],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/IncomeStatement.tsx"
+          "frontend/src/pages/IncomeStatement.tsx",
+          "frontend/src/pages/Wallet.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-accounting-audit-export.sql",
@@ -7042,9 +7039,9 @@
         "api": [],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/components/analytics/__tests__/AnalyticsDashboard.test.tsx"
+          "frontend/src/components/analytics/__tests__/AnalyticsDashboard.test.tsx",
+          "frontend/src/components/analytics/AnalyticsDashboard.tsx",
+          "frontend/src/components/communication/__tests__/MessageButton.properties.test.tsx"
         ],
         "tests": [
           "backend/src/tests/booking-api-integration.test.ts",
