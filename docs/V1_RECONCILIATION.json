@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 49,
-    "checkedWithEvidenceGaps": 64,
+    "candidateComplete": 50,
+    "checkedWithEvidenceGaps": 63,
     "partial": 38,
     "notStarted": 3
   },
@@ -752,9 +752,9 @@
         ],
         "client": [
           "frontend/src/pages/SavingsDashboard.tsx",
+          "frontend/src/App.tsx",
           "frontend/src/pages/AdminDashboard.tsx",
-          "frontend/src/pages/BecomeAMember.tsx",
-          "frontend/src/pages/CreateGroup.tsx"
+          "frontend/src/pages/BecomeAMember.tsx"
         ],
         "tests": [
           "backend/src/tests/groupDocumentVersioningContract.test.ts",
@@ -1187,9 +1187,9 @@
         ],
         "client": [
           "frontend/src/pages/BalanceSheet.tsx",
+          "frontend/src/pages/CashFlow.tsx",
           "frontend/src/pages/CreditProducts.tsx",
-          "frontend/src/pages/IncomeStatement.tsx",
-          "frontend/src/pages/SavingsDashboard.tsx"
+          "frontend/src/pages/IncomeStatement.tsx"
         ],
         "tests": [
           "backend/src/tests/financialLedgerService.test.ts",
@@ -1605,9 +1605,9 @@
         ],
         "api": [
           "backend/src/controllers/accountingBalanceSheetController.ts",
+          "backend/src/controllers/accountingCashFlowController.ts",
           "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/authController.ts",
-          "backend/src/controllers/bookingSupplierPayoutController.ts"
+          "backend/src/controllers/authController.ts"
         ],
         "client": [
           "frontend/src/pages/GroupAdminDashboard.tsx"
@@ -1654,9 +1654,9 @@
         ],
         "api": [
           "backend/src/controllers/accountingBalanceSheetController.ts",
+          "backend/src/controllers/accountingCashFlowController.ts",
           "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/groupTreasuryStatementController.ts",
-          "backend/src/controllers/savingsController.ts"
+          "backend/src/controllers/groupTreasuryStatementController.ts"
         ],
         "client": [
           "frontend/src/App.tsx",
@@ -2047,8 +2047,8 @@
         "api": [
           "backend/src/routes/savings.ts",
           "backend/src/controllers/accountingBalanceSheetController.ts",
-          "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/groupTreasuryStatementController.ts"
+          "backend/src/controllers/accountingCashFlowController.ts",
+          "backend/src/controllers/accountingController.ts"
         ],
         "client": [
           "frontend/src/pages/IncomeStatement.tsx"
@@ -4295,8 +4295,8 @@
         "api": [
           "backend/src/controllers/bookingSettlementController.ts",
           "backend/src/controllers/accountingBalanceSheetController.ts",
-          "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/bookingDisputeResolutionController.ts"
+          "backend/src/controllers/accountingCashFlowController.ts",
+          "backend/src/controllers/accountingController.ts"
         ],
         "client": [],
         "tests": [
@@ -5037,7 +5037,7 @@
           "backend/src/controllers/groupTreasuryStatementController.ts",
           "backend/src/routes/groupAdmin.ts",
           "backend/src/controllers/accountingBalanceSheetController.ts",
-          "backend/src/controllers/accountingController.ts"
+          "backend/src/controllers/accountingCashFlowController.ts"
         ],
         "client": [
           "frontend/src/pages/IncomeStatement.tsx"
@@ -5985,8 +5985,8 @@
         "client": [
           "frontend/src/pages/BalanceSheet.tsx",
           "frontend/src/pages/BalanceSheet.test.tsx",
-          "frontend/src/pages/IncomeStatement.tsx",
-          "frontend/src/pages/SavingsDashboard.tsx"
+          "frontend/src/pages/CashFlow.tsx",
+          "frontend/src/pages/IncomeStatement.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-group-asset-accounting-mappings.sql",
@@ -6274,9 +6274,9 @@
         ],
         "api": [
           "backend/src/controllers/accountingBalanceSheetController.ts",
+          "backend/src/controllers/accountingCashFlowController.ts",
           "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/groupTreasuryStatementController.ts",
-          "backend/src/controllers/walletController.ts"
+          "backend/src/controllers/groupTreasuryStatementController.ts"
         ],
         "client": [
           "frontend/src/pages/IncomeStatement.tsx",
@@ -6345,12 +6345,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add AC-04 permission-checked, cutoff-reproducible, journal-derived cash-flow reports with classified and unclassified cash movements.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -6368,15 +6368,18 @@
           "backend/migrations/install_accounting_member_accounts.sql"
         ],
         "api": [],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CashFlow.tsx",
+          "frontend/src/services/accountingCashFlowAPI.ts",
+          "frontend/src/pages/CashFlow.test.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-accounting-cash-flow.sql",
-          "backend/src/tests/groupContributionRules.test.ts",
-          "backend/tests/schema/test-group-shared-assets.sql"
+          "frontend/src/pages/CashFlow.test.tsx"
         ],
         "operations": [
-          "docs/runbooks/INBOUND_PAYMENTS.md",
-          "docs/runbooks/SAVINGS_STATEMENTS_RECONCILIATION.md"
+          "docs/runbooks/ACCOUNTING_CASH_FLOW.md",
+          "docs/runbooks/INBOUND_PAYMENTS.md"
         ]
       }
     },
@@ -6456,8 +6459,8 @@
         "api": [
           "backend/src/controllers/walletController.ts",
           "backend/src/controllers/accountingBalanceSheetController.ts",
-          "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/groupAdminController.ts"
+          "backend/src/controllers/accountingCashFlowController.ts",
+          "backend/src/controllers/accountingController.ts"
         ],
         "client": [
           "frontend/src/App.tsx",
@@ -6691,10 +6694,10 @@
         ],
         "api": [],
         "client": [
+          "frontend/src/pages/CashFlow.tsx",
+          "frontend/src/services/accountingCashFlowAPI.ts",
           "frontend/src/App.tsx",
-          "frontend/src/pages/BalanceSheet.tsx",
-          "frontend/src/pages/IncomeStatement.tsx",
-          "frontend/src/pages/Wallet.tsx"
+          "frontend/src/pages/BalanceSheet.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-accounting-audit-export.sql",
