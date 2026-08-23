@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 47,
-    "checkedWithEvidenceGaps": 66,
+    "candidateComplete": 48,
+    "checkedWithEvidenceGaps": 65,
     "partial": 38,
     "notStarted": 3
   },
@@ -1186,6 +1186,7 @@
           "backend/src/routes/wallet.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProducts.tsx",
           "frontend/src/pages/IncomeStatement.tsx",
           "frontend/src/pages/SavingsDashboard.tsx"
         ],
@@ -2197,9 +2198,10 @@
           "backend/src/controllers/savingsController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/CreateGroup.tsx",
-          "frontend/src/pages/SavingsDashboard.test.tsx",
-          "frontend/src/services/savingsAPI.ts"
+          "frontend/src/pages/CreditProducts.test.tsx",
+          "frontend/src/pages/CreditProducts.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-loan-writeoff.sql",
@@ -2293,6 +2295,8 @@
           "backend/src/controllers/savingsController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProducts.test.tsx",
+          "frontend/src/pages/CreditProducts.tsx",
           "frontend/src/pages/SavingsDashboard.test.tsx",
           "frontend/src/services/savingsAPI.ts"
         ],
@@ -2343,6 +2347,7 @@
         ],
         "client": [
           "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx",
+          "frontend/src/pages/CreditProducts.tsx",
           "frontend/src/pages/SavingsDashboard.test.tsx"
         ],
         "tests": [
@@ -2392,7 +2397,9 @@
           "backend/src/controllers/loanProductController.ts",
           "backend/src/controllers/loanScheduleController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CreditProducts.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-loan-disbursement-orchestration.sql",
           "backend/tests/schema/test-loan-repayment-schedules.sql",
@@ -2534,6 +2541,7 @@
           "backend/src/routes/credit.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProducts.tsx",
           "frontend/src/pages/SavingsDashboard.tsx",
           "mobile/src/store/__tests__/cartStore.test.ts"
         ],
@@ -2766,6 +2774,7 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProducts.tsx",
           "frontend/src/pages/Dashboard.tsx",
           "frontend/src/pages/SavingsDashboard.tsx"
         ],
@@ -4428,8 +4437,8 @@
         "client": [
           "frontend/src/pages/Payment.tsx",
           "frontend/src/components/bookings/BookingCard.tsx",
-          "frontend/src/pages/GroupDetail.tsx",
-          "frontend/src/pages/SavingsDashboard.tsx"
+          "frontend/src/pages/CreditProducts.test.tsx",
+          "frontend/src/pages/GroupDetail.tsx"
         ],
         "tests": [
           "backend/src/tests/groupDocumentVersioningContract.test.ts",
@@ -5079,6 +5088,7 @@
         "client": [
           "frontend/src/components/groups/GroupDisciplineCaseForm.tsx",
           "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx",
+          "frontend/src/pages/CreditProducts.tsx",
           "frontend/src/pages/SavingsDashboard.tsx"
         ],
         "tests": [
@@ -6207,6 +6217,7 @@
         ],
         "api": [],
         "client": [
+          "frontend/src/pages/CreditProducts.test.tsx",
           "frontend/src/pages/Wallet.test.tsx"
         ],
         "tests": [
