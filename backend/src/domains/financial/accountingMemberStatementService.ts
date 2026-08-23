@@ -1,0 +1,5 @@
+import { supabase } from '../../utils/supabase.js';
+import { AccountingReportValidationError } from './accountingIncomeStatementService.js';
+export interface MemberStatementQuery { organizationId:string; actorId:string; memberId:string; currency:string; from:string; to:string; cutoff:string; offset:number; limit:number }
+export class AccountingMemberStatementService { async read(q:MemberStatementQuery){if(!/^[A-Z]{3}$/.test(q.currency)||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(q.from)||!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(q.to)||q.from>q.to||Number.isNaN(Date.parse(q.cutoff))||!Number.isInteger(q.offset)||q.offset<0||!Number.isInteger(q.limit)||q.limit<1||q.limit>100)throw new AccountingReportValidationError('Member statement query is invalid.');const{data,error}=await supabase.rpc('read_accounting_member_statement',{p_organization:q.organizationId,p_actor:q.actorId,p_member:q.memberId,p_currency:q.currency,p_from:q.from,p_to:q.to,p_cutoff:q.cutoff,p_offset:q.offset,p_limit:q.limit});if(error)throw error;return data;} }
+export const accountingMemberStatementService=new AccountingMemberStatementService();
