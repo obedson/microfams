@@ -55,6 +55,7 @@ import AdminRetentionDryRuns from './pages/AdminRetentionDryRuns';
 import SuspendedAccountRecovery from './pages/SuspendedAccountRecovery';
 import SavingsDashboard from './pages/SavingsDashboard';
 import IncomeStatement from './pages/IncomeStatement';
+import MemberStatement from './pages/MemberStatement';
 import BudgetVsActual from './pages/BudgetVsActual';
 import CashFlow from './pages/CashFlow';
 import BalanceSheet from './pages/BalanceSheet';
@@ -104,6 +105,7 @@ function App() {
         <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
         <Route path="/savings" element={<ProtectedRoute><SavingsDashboard /></ProtectedRoute>} />
         <Route path="/accounting/income-statement" element={<ProtectedRoute><IncomeStatement /></ProtectedRoute>} />
+        <Route path="/accounting/member-statement" element={<ProtectedRoute><MemberStatement /></ProtectedRoute>} />
         <Route path="/accounting/budget-vs-actual" element={<ProtectedRoute><BudgetVsActual /></ProtectedRoute>} />
         <Route path="/accounting/cash-flow" element={<ProtectedRoute><CashFlow /></ProtectedRoute>} />
         <Route path="/accounting/balance-sheet" element={<ProtectedRoute><BalanceSheet /></ProtectedRoute>} />
