@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { accountingController } from '../controllers/accountingController.js';
+import { dividendEntitlementController } from '../controllers/dividendEntitlementController.js';
 import { accountingBudgetController } from '../controllers/accountingBudgetController.js';
 import { accountingCashFlowController } from '../controllers/accountingCashFlowController.js';
 import { accountingBalanceSheetController } from '../controllers/accountingBalanceSheetController.js';
@@ -11,4 +12,5 @@ router.get('/income-statement', requireFeature('financial.accounting.read'), req
 router.get('/budget-vs-actual', requireFeature('financial.accounting.read'), requireTenantPermission('financial.accounting.read'), accountingBudgetController.budgetVsActual);
 router.get('/cash-flow', requireFeature('financial.accounting.read'), requireTenantPermission('financial.accounting.read'), accountingCashFlowController.cashFlow);
 router.get('/balance-sheet', requireFeature('financial.accounting.read'), requireTenantPermission('financial.accounting.read'), accountingBalanceSheetController.balanceSheet);
+router.post('/dividends/entitlements', requireFeature('financial.accounting.post'), requireTenantPermission('financial.accounting.post'), dividendEntitlementController.calculate);
 export default router;

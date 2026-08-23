@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 52,
-    "checkedWithEvidenceGaps": 61,
+    "candidateComplete": 53,
+    "checkedWithEvidenceGaps": 60,
     "partial": 38,
     "notStarted": 3
   },
@@ -3662,6 +3662,7 @@
           "backend/src/controllers/groupContributionController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/CreateGroup.tsx",
           "frontend/src/pages/MakeContribution.tsx",
           "mobile/src/screens/BookingDetailScreen.tsx"
@@ -6177,14 +6178,14 @@
           "backend/migrations/create_financial_account_provisioning.sql"
         ],
         "api": [
+          "backend/src/routes/accounting.ts",
           "backend/src/routes/groupAdmin.ts",
           "backend/src/controllers/accountingBalanceSheetController.ts",
-          "backend/src/controllers/accountingBudgetController.ts",
-          "backend/src/controllers/groupAdminController.ts"
+          "backend/src/controllers/accountingBudgetController.ts"
         ],
         "client": [
-          "frontend/src/pages/Wallet.tsx",
           "frontend/src/App.tsx",
+          "frontend/src/pages/Wallet.tsx",
           "frontend/src/pages/BalanceSheet.test.tsx",
           "frontend/src/pages/BalanceSheet.tsx"
         ],
@@ -6495,12 +6496,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add DIV-01 immutable proportional paid-unit dividend entitlement snapshots with disclosed rounding residuals; approval and payment remain separate.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
-        "api": "missing",
-        "client": "missing",
+        "api": "evidence_found",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -6517,8 +6518,12 @@
           "backend/migrations/install_dividend_payment_servicing.sql",
           "backend/migrations/install_dividend_review_approval.sql"
         ],
-        "api": [],
-        "client": [],
+        "api": [
+          "backend/src/routes/accounting.ts"
+        ],
+        "client": [
+          "frontend/src/App.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-dividend-entitlement-snapshots.sql",
           "backend/tests/schema/test-dividend-review-approval.sql",
@@ -6567,9 +6572,9 @@
         ],
         "client": [
           "frontend/src/.backup/OwnerBookings_OLD.tsx",
+          "frontend/src/App.tsx",
           "frontend/src/components/admin/ReportingDashboard.tsx",
-          "frontend/src/components/analytics/__tests__/PendingPayments.properties.test.tsx",
-          "frontend/src/components/BookingForm.tsx"
+          "frontend/src/components/analytics/__tests__/PendingPayments.properties.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-settlement-eligibility-fees.sql",
@@ -6657,6 +6662,7 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/Payment.tsx",
           "frontend/src/pages/TrustReviewQueue.tsx"
         ],
