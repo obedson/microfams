@@ -6539,7 +6539,7 @@
           "backend/tests/schema/test-dividend-entitlement-snapshots.sql",
           "backend/tests/schema/test-dividend-review-approval.sql",
           "backend/src/tests/dividendEntitlementApi.test.ts",
-          "backend/tests/schema/test-booking-reservations.sql"
+          "backend/src/tests/dividendReviewApprovalApi.test.ts"
         ],
         "operations": [
           "docs/runbooks/DIVIDEND_ENTITLEMENTS.md"
