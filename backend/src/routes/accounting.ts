@@ -17,4 +17,5 @@ router.get('/balance-sheet', requireFeature('financial.accounting.read'), requir
 router.post('/dividends/entitlements', requireFeature('financial.accounting.post'), requireTenantPermission('financial.accounting.post'), dividendEntitlementController.calculate);
 router.post('/dividends/review', requireFeature('financial.accounting.post'), requireTenantPermission('financial.accounting.post'), dividendEntitlementController.review);
 router.post('/dividends/approve', requireFeature('financial.rules.approve'), requireTenantPermission('financial.rules.approve'), dividendEntitlementController.approve);
+router.post('/dividends/payable', requireFeature('financial.accounting.post'), requireTenantPermission('financial.accounting.post'), dividendEntitlementController.recognizePayable);
 export default router;
