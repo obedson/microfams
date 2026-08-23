@@ -1186,6 +1186,7 @@
           "backend/src/routes/wallet.ts"
         ],
         "client": [
+          "frontend/src/pages/IncomeStatement.tsx",
           "frontend/src/pages/SavingsDashboard.tsx"
         ],
         "tests": [
@@ -1601,10 +1602,10 @@
           "backend/migrations/install_group_treasury_disbursements.sql"
         ],
         "api": [
+          "backend/src/controllers/accountingController.ts",
           "backend/src/controllers/authController.ts",
           "backend/src/controllers/bookingSupplierPayoutController.ts",
-          "backend/src/controllers/groupAdminController.ts",
-          "backend/src/controllers/groupTreasuryController.ts"
+          "backend/src/controllers/groupAdminController.ts"
         ],
         "client": [
           "frontend/src/pages/GroupAdminDashboard.tsx"
@@ -1650,20 +1651,21 @@
           "backend/migrations/create_financial_statements.sql"
         ],
         "api": [
+          "backend/src/controllers/accountingController.ts",
           "backend/src/controllers/groupTreasuryStatementController.ts",
           "backend/src/controllers/savingsController.ts",
-          "backend/src/controllers/savingsProviderCertificationController.ts",
-          "backend/src/controllers/walletController.ts"
+          "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/SuspendedAccountRecovery.test.tsx",
           "frontend/src/pages/SuspendedAccountRecovery.tsx"
         ],
         "tests": [
+          "backend/src/tests/accountingIncomeStatementApi.test.ts",
           "backend/src/tests/booking-api-integration.test.ts",
           "backend/src/tests/financialStatementService.test.ts",
-          "backend/src/tests/groupTreasuryStatementContract.test.ts",
-          "backend/src/tests/payment-recovery.test.ts"
+          "backend/src/tests/groupTreasuryStatementContract.test.ts"
         ],
         "operations": [
           "docs/runbooks/SAVINGS_PROVIDER_CERTIFICATION.md"
@@ -1703,13 +1705,13 @@
           "backend/src/controllers/walletController.ts",
           "backend/src/controllers/groupTreasuryStatementController.ts",
           "backend/src/routes/wallet.ts",
-          "backend/src/controllers/groupAdminController.ts"
+          "backend/src/controllers/accountingController.ts"
         ],
         "client": [
           "frontend/src/api/wallet.ts",
+          "frontend/src/App.tsx",
           "frontend/src/pages/Profile.tsx",
-          "frontend/src/pages/Wallet.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/pages/Wallet.tsx"
         ],
         "tests": [
           "backend/src/tests/financialStatementService.test.ts",
@@ -2042,11 +2044,13 @@
         ],
         "api": [
           "backend/src/routes/savings.ts",
+          "backend/src/controllers/accountingController.ts",
           "backend/src/controllers/groupTreasuryStatementController.ts",
-          "backend/src/controllers/savingsController.ts",
-          "backend/src/controllers/walletController.ts"
+          "backend/src/controllers/savingsController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/IncomeStatement.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-savings-statements-reconciliation.sql",
           "backend/src/tests/groupTreasuryStatementContract.test.ts",
@@ -2141,6 +2145,7 @@
           "backend/src/controllers/walletController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/ContributionDashboard.tsx",
           "frontend/src/pages/Wallet.tsx"
         ],
@@ -4277,9 +4282,9 @@
         ],
         "api": [
           "backend/src/controllers/bookingSettlementController.ts",
+          "backend/src/controllers/accountingController.ts",
           "backend/src/controllers/bookingDisputeResolutionController.ts",
-          "backend/src/controllers/bookingRecoveryController.ts",
-          "backend/src/controllers/bookingSupplierPayoutController.ts"
+          "backend/src/controllers/bookingRecoveryController.ts"
         ],
         "client": [],
         "tests": [
@@ -4994,12 +4999,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-07A journal-derived group treasury statements with cutoff reservations and aggregate ownership classification.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -5019,15 +5024,17 @@
         "api": [
           "backend/src/controllers/groupTreasuryStatementController.ts",
           "backend/src/routes/groupAdmin.ts",
-          "backend/src/controllers/groupTreasuryController.ts",
-          "backend/src/controllers/walletController.ts"
+          "backend/src/controllers/accountingController.ts",
+          "backend/src/controllers/groupTreasuryController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/IncomeStatement.tsx"
+        ],
         "tests": [
           "backend/src/tests/groupTreasuryStatementContract.test.ts",
           "backend/tests/schema/test-savings-statements-reconciliation.sql",
           "backend/tests/schema/test-group-treasury-statements.sql",
-          "backend/src/tests/financialStatementService.test.ts"
+          "backend/src/tests/accountingIncomeStatementApi.test.ts"
         ],
         "operations": [
           "docs/runbooks/GROUP_TREASURY_DISBURSEMENTS.md"
@@ -5963,6 +5970,7 @@
           "backend/src/controllers/groupContributionController.ts"
         ],
         "client": [
+          "frontend/src/pages/IncomeStatement.tsx",
           "frontend/src/pages/SavingsDashboard.tsx"
         ],
         "tests": [
@@ -6224,7 +6232,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "missing"
       },
@@ -6242,15 +6250,19 @@
           "backend/migrations/install_accounting_balance_sheet.sql"
         ],
         "api": [
+          "backend/src/controllers/accountingController.ts",
           "backend/src/controllers/groupTreasuryStatementController.ts",
           "backend/src/controllers/walletController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/IncomeStatement.tsx",
+          "frontend/src/pages/IncomeStatement.test.tsx",
+          "frontend/src/services/accountingAPI.ts"
+        ],
         "tests": [
           "backend/tests/schema/test-savings-statements-reconciliation.sql",
           "backend/tests/schema/test-accounting-income-statement.sql",
-          "backend/src/tests/financialStatementService.test.ts",
-          "backend/src/tests/groupTreasuryStatementContract.test.ts"
+          "frontend/src/pages/IncomeStatement.test.tsx"
         ],
         "operations": []
       }
@@ -6415,21 +6427,21 @@
         ],
         "api": [
           "backend/src/controllers/walletController.ts",
+          "backend/src/controllers/accountingController.ts",
           "backend/src/controllers/groupAdminController.ts",
-          "backend/src/controllers/groupTreasuryController.ts",
-          "backend/src/controllers/groupTreasuryStatementController.ts"
+          "backend/src/controllers/groupTreasuryController.ts"
         ],
         "client": [
-          "frontend/src/api/wallet.ts",
           "frontend/src/App.tsx",
-          "frontend/src/components/trust/SuspensionBanner.tsx",
-          "frontend/src/pages/GroupAdminDashboard.tsx"
+          "frontend/src/pages/IncomeStatement.tsx",
+          "frontend/src/api/wallet.ts",
+          "frontend/src/components/trust/SuspensionBanner.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-savings-statements-reconciliation.sql",
           "backend/tests/schema/test-financial-statements.sql",
           "backend/src/tests/financialStatementService.test.ts",
-          "backend/src/tests/groupTreasuryStatementContract.test.ts"
+          "backend/src/tests/accountingIncomeStatementApi.test.ts"
         ],
         "operations": [
           "docs/runbooks/SAVINGS_STATEMENTS_RECONCILIATION.md",
@@ -6651,6 +6663,8 @@
         ],
         "api": [],
         "client": [
+          "frontend/src/App.tsx",
+          "frontend/src/pages/IncomeStatement.tsx",
           "frontend/src/pages/Wallet.tsx"
         ],
         "tests": [

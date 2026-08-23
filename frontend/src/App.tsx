@@ -54,6 +54,7 @@ import AdminLegalHolds from './pages/AdminLegalHolds';
 import AdminRetentionDryRuns from './pages/AdminRetentionDryRuns';
 import SuspendedAccountRecovery from './pages/SuspendedAccountRecovery';
 import SavingsDashboard from './pages/SavingsDashboard';
+import IncomeStatement from './pages/IncomeStatement';
 
 function App() {
   return (
@@ -98,6 +99,7 @@ function App() {
         <Route path="/referrals" element={<ProtectedRoute><ReferralDashboard /></ProtectedRoute>} />
         <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
         <Route path="/savings" element={<ProtectedRoute><SavingsDashboard /></ProtectedRoute>} />
+        <Route path="/accounting/income-statement" element={<ProtectedRoute><IncomeStatement /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/verify-nin" element={<ProtectedRoute><VerifyNIN /></ProtectedRoute>} />
         <Route path="/become-a-member" element={<ProtectedRoute><BecomeAMember /></ProtectedRoute>} />
