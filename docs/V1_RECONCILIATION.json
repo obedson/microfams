@@ -1652,6 +1652,7 @@
           "backend/src/controllers/walletController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/SuspendedAccountRecovery.test.tsx",
           "frontend/src/pages/SuspendedAccountRecovery.tsx"
         ],
@@ -1703,9 +1704,9 @@
         ],
         "client": [
           "frontend/src/api/wallet.ts",
+          "frontend/src/App.tsx",
           "frontend/src/pages/Profile.tsx",
-          "frontend/src/pages/Wallet.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/pages/Wallet.tsx"
         ],
         "tests": [
           "backend/src/tests/financialStatementService.test.ts",
@@ -2133,6 +2134,7 @@
           "backend/src/controllers/walletController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/ContributionDashboard.tsx",
           "frontend/src/pages/Wallet.tsx"
         ],
@@ -6397,8 +6399,8 @@
           "backend/src/controllers/groupTreasuryStatementController.ts"
         ],
         "client": [
-          "frontend/src/api/wallet.ts",
           "frontend/src/App.tsx",
+          "frontend/src/api/wallet.ts",
           "frontend/src/components/trust/SuspensionBanner.tsx",
           "frontend/src/pages/GroupAdminDashboard.tsx"
         ],
@@ -6628,6 +6630,7 @@
         ],
         "api": [],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/Wallet.tsx"
         ],
         "tests": [
