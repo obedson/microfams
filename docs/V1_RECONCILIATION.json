@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 49,
-    "checkedWithEvidenceGaps": 64,
+    "candidateComplete": 50,
+    "checkedWithEvidenceGaps": 63,
     "partial": 38,
     "notStarted": 3
   },
@@ -1186,10 +1186,10 @@
           "backend/src/routes/wallet.ts"
         ],
         "client": [
+          "frontend/src/pages/BalanceSheet.tsx",
           "frontend/src/pages/CashFlow.tsx",
           "frontend/src/pages/CreditProducts.tsx",
-          "frontend/src/pages/IncomeStatement.tsx",
-          "frontend/src/pages/SavingsDashboard.tsx"
+          "frontend/src/pages/IncomeStatement.tsx"
         ],
         "tests": [
           "backend/src/tests/financialLedgerService.test.ts",
@@ -1604,10 +1604,10 @@
           "backend/migrations/install_group_treasury_disbursements.sql"
         ],
         "api": [
+          "backend/src/controllers/accountingBalanceSheetController.ts",
           "backend/src/controllers/accountingCashFlowController.ts",
           "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/authController.ts",
-          "backend/src/controllers/bookingSupplierPayoutController.ts"
+          "backend/src/controllers/authController.ts"
         ],
         "client": [
           "frontend/src/pages/GroupAdminDashboard.tsx"
@@ -1653,10 +1653,10 @@
           "backend/migrations/create_financial_statements.sql"
         ],
         "api": [
+          "backend/src/controllers/accountingBalanceSheetController.ts",
           "backend/src/controllers/accountingCashFlowController.ts",
           "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/groupTreasuryStatementController.ts",
-          "backend/src/controllers/savingsController.ts"
+          "backend/src/controllers/groupTreasuryStatementController.ts"
         ],
         "client": [
           "frontend/src/App.tsx",
@@ -1707,7 +1707,7 @@
           "backend/src/controllers/walletController.ts",
           "backend/src/controllers/groupTreasuryStatementController.ts",
           "backend/src/routes/wallet.ts",
-          "backend/src/controllers/accountingCashFlowController.ts"
+          "backend/src/controllers/accountingBalanceSheetController.ts"
         ],
         "client": [
           "frontend/src/api/wallet.ts",
@@ -2046,9 +2046,9 @@
         ],
         "api": [
           "backend/src/routes/savings.ts",
+          "backend/src/controllers/accountingBalanceSheetController.ts",
           "backend/src/controllers/accountingCashFlowController.ts",
-          "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/groupTreasuryStatementController.ts"
+          "backend/src/controllers/accountingController.ts"
         ],
         "client": [
           "frontend/src/pages/IncomeStatement.tsx"
@@ -3457,7 +3457,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "missing",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -3475,7 +3475,9 @@
           "backend/migrations/activate_wallet_ledger_cutover.sql"
         ],
         "api": [],
-        "client": [],
+        "client": [
+          "frontend/src/services/accountingBalanceAPI.ts"
+        ],
         "tests": [
           "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql",
           "backend/tests/schema/test-investment-refund-obligations.sql",
@@ -4292,9 +4294,9 @@
         ],
         "api": [
           "backend/src/controllers/bookingSettlementController.ts",
+          "backend/src/controllers/accountingBalanceSheetController.ts",
           "backend/src/controllers/accountingCashFlowController.ts",
-          "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/bookingDisputeResolutionController.ts"
+          "backend/src/controllers/accountingController.ts"
         ],
         "client": [],
         "tests": [
@@ -5034,8 +5036,8 @@
         "api": [
           "backend/src/controllers/groupTreasuryStatementController.ts",
           "backend/src/routes/groupAdmin.ts",
-          "backend/src/controllers/accountingCashFlowController.ts",
-          "backend/src/controllers/accountingController.ts"
+          "backend/src/controllers/accountingBalanceSheetController.ts",
+          "backend/src/controllers/accountingCashFlowController.ts"
         ],
         "client": [
           "frontend/src/pages/IncomeStatement.tsx"
@@ -5981,10 +5983,10 @@
           "backend/src/controllers/groupContributionController.ts"
         ],
         "client": [
+          "frontend/src/pages/BalanceSheet.tsx",
+          "frontend/src/pages/BalanceSheet.test.tsx",
           "frontend/src/pages/CashFlow.tsx",
-          "frontend/src/pages/IncomeStatement.tsx",
-          "frontend/src/pages/SavingsDashboard.tsx",
-          "frontend/src/services/accountingCashFlowAPI.ts"
+          "frontend/src/pages/IncomeStatement.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-group-asset-accounting-mappings.sql",
@@ -6171,12 +6173,15 @@
         ],
         "api": [
           "backend/src/routes/groupAdmin.ts",
+          "backend/src/controllers/accountingBalanceSheetController.ts",
           "backend/src/controllers/groupAdminController.ts",
           "backend/src/controllers/savingsController.ts"
         ],
         "client": [
           "frontend/src/pages/Wallet.tsx",
-          "frontend/src/pages/Wallet.test.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/pages/BalanceSheet.test.tsx",
+          "frontend/src/pages/BalanceSheet.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-dividend-payment-servicing.sql",
@@ -6218,8 +6223,12 @@
           "backend/migrations/install_accounting_balance_sheet.sql",
           "backend/migrations/install_group_treasury_disbursements.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/controllers/accountingBalanceSheetController.ts"
+        ],
         "client": [
+          "frontend/src/App.tsx",
+          "frontend/src/pages/BalanceSheet.tsx",
           "frontend/src/pages/CreditProducts.test.tsx",
           "frontend/src/pages/Wallet.test.tsx"
         ],
@@ -6264,10 +6273,10 @@
           "backend/migrations/install_accounting_balance_sheet.sql"
         ],
         "api": [
+          "backend/src/controllers/accountingBalanceSheetController.ts",
           "backend/src/controllers/accountingCashFlowController.ts",
           "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/groupTreasuryStatementController.ts",
-          "backend/src/controllers/walletController.ts"
+          "backend/src/controllers/groupTreasuryStatementController.ts"
         ],
         "client": [
           "frontend/src/pages/IncomeStatement.tsx",
@@ -6289,12 +6298,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add AC-03 permission-checked, cutoff-reproducible, journal-derived balance sheets with current-period earnings and accounting-equation validation.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -6312,15 +6321,19 @@
           "backend/migrations/install_accounting_trial_balance.sql"
         ],
         "api": [
+          "backend/src/controllers/accountingBalanceSheetController.ts",
           "backend/src/controllers/loanProductController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/BalanceSheet.tsx"
+        ],
         "tests": [
           "backend/src/tests/financialLedgerService.test.ts",
           "backend/src/tests/financialStatementService.test.ts",
           "backend/tests/schema/test-savings-statements-reconciliation.sql"
         ],
         "operations": [
+          "docs/runbooks/ACCOUNTING_BALANCE_SHEET.md",
           "docs/runbooks/INBOUND_PAYMENTS.md"
         ]
       }
@@ -6445,9 +6458,9 @@
         ],
         "api": [
           "backend/src/controllers/walletController.ts",
+          "backend/src/controllers/accountingBalanceSheetController.ts",
           "backend/src/controllers/accountingCashFlowController.ts",
-          "backend/src/controllers/accountingController.ts",
-          "backend/src/controllers/groupAdminController.ts"
+          "backend/src/controllers/accountingController.ts"
         ],
         "client": [
           "frontend/src/App.tsx",
@@ -6684,7 +6697,7 @@
           "frontend/src/pages/CashFlow.tsx",
           "frontend/src/services/accountingCashFlowAPI.ts",
           "frontend/src/App.tsx",
-          "frontend/src/pages/IncomeStatement.tsx"
+          "frontend/src/pages/BalanceSheet.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-accounting-audit-export.sql",

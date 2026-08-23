@@ -56,6 +56,7 @@ import SuspendedAccountRecovery from './pages/SuspendedAccountRecovery';
 import SavingsDashboard from './pages/SavingsDashboard';
 import IncomeStatement from './pages/IncomeStatement';
 import CashFlow from './pages/CashFlow';
+import BalanceSheet from './pages/BalanceSheet';
 import CreditProducts from './pages/CreditProducts';
 
 function App() {
@@ -103,6 +104,7 @@ function App() {
         <Route path="/savings" element={<ProtectedRoute><SavingsDashboard /></ProtectedRoute>} />
         <Route path="/accounting/income-statement" element={<ProtectedRoute><IncomeStatement /></ProtectedRoute>} />
         <Route path="/accounting/cash-flow" element={<ProtectedRoute><CashFlow /></ProtectedRoute>} />
+        <Route path="/accounting/balance-sheet" element={<ProtectedRoute><BalanceSheet /></ProtectedRoute>} />
         <Route path="/credit/products" element={<ProtectedRoute><CreditProducts /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/verify-nin" element={<ProtectedRoute><VerifyNIN /></ProtectedRoute>} />
