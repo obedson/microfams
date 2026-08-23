@@ -6169,10 +6169,12 @@
         "api": [
           "backend/src/routes/groupAdmin.ts",
           "backend/src/controllers/groupAdminController.ts",
-          "backend/src/controllers/savingsController.ts"
+          "backend/src/controllers/savingsController.ts",
+          "backend/src/routes/accounting.ts"
         ],
         "client": [
           "frontend/src/pages/Wallet.tsx",
+          "frontend/src/App.tsx",
           "frontend/src/pages/Wallet.test.tsx"
         ],
         "tests": [
@@ -6217,6 +6219,7 @@
         ],
         "api": [],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/CreditProducts.test.tsx",
           "frontend/src/pages/Wallet.test.tsx"
         ],
