@@ -58,6 +58,7 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('financial.dividends.service_existing', 'dividends', 'Pay, reconcile, and correct approved distributions.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
   flag('financial.accounting.post', 'accounting', 'Post operational events to the tenant general ledger.', { risk: 'regulated' }),
   flag('financial.accounting.read', 'accounting', 'Read journals, statements, reconciliations, and reports.', { defaultEnabled: true, failureMode: 'open', risk: 'regulated' }),
+  flag('financial.rules.approve', 'accounting', 'Approve regulated financial rules and maker-checker transitions.', { risk: 'regulated' }),
   flag('integration.paystack.live', 'payments', 'Route Paystack operations to live mode.', { risk: 'provider' }),
   flag('integration.interswitch.live', 'payments', 'Route Interswitch operations to live mode.', { risk: 'provider' }),
   flag('integration.organization_verification', 'identity', 'Submit organization registration evidence to an approved verification provider.', { risk: 'provider' }),
