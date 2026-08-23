@@ -1665,9 +1665,9 @@
         ],
         "tests": [
           "backend/src/tests/accountingIncomeStatementApi.test.ts",
+          "backend/src/tests/accountingMemberStatementApi.test.ts",
           "backend/src/tests/booking-api-integration.test.ts",
-          "backend/src/tests/financialStatementService.test.ts",
-          "backend/src/tests/groupTreasuryStatementContract.test.ts"
+          "backend/src/tests/financialStatementService.test.ts"
         ],
         "operations": [
           "docs/runbooks/SAVINGS_PROVIDER_CERTIFICATION.md"
@@ -1712,8 +1712,8 @@
         "client": [
           "frontend/src/api/wallet.ts",
           "frontend/src/App.tsx",
-          "frontend/src/pages/Profile.tsx",
-          "frontend/src/pages/Wallet.tsx"
+          "frontend/src/pages/MemberStatement.tsx",
+          "frontend/src/pages/Profile.tsx"
         ],
         "tests": [
           "backend/src/tests/financialStatementService.test.ts",
@@ -2051,7 +2051,8 @@
           "backend/src/controllers/accountingCashFlowController.ts"
         ],
         "client": [
-          "frontend/src/pages/IncomeStatement.tsx"
+          "frontend/src/pages/IncomeStatement.tsx",
+          "frontend/src/pages/MemberStatement.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-savings-statements-reconciliation.sql",
@@ -5040,7 +5041,8 @@
           "backend/src/controllers/accountingBudgetController.ts"
         ],
         "client": [
-          "frontend/src/pages/IncomeStatement.tsx"
+          "frontend/src/pages/IncomeStatement.tsx",
+          "frontend/src/pages/MemberStatement.tsx"
         ],
         "tests": [
           "backend/src/tests/groupTreasuryStatementContract.test.ts",
@@ -6286,7 +6288,8 @@
         "client": [
           "frontend/src/pages/IncomeStatement.tsx",
           "frontend/src/pages/IncomeStatement.test.tsx",
-          "frontend/src/services/accountingAPI.ts"
+          "frontend/src/services/accountingAPI.ts",
+          "frontend/src/pages/MemberStatement.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-savings-statements-reconciliation.sql",
@@ -6330,7 +6333,8 @@
           "backend/src/controllers/loanProductController.ts"
         ],
         "client": [
-          "frontend/src/pages/BalanceSheet.tsx"
+          "frontend/src/pages/BalanceSheet.tsx",
+          "frontend/src/pages/MemberStatement.tsx"
         ],
         "tests": [
           "backend/src/tests/financialLedgerService.test.ts",
@@ -6465,25 +6469,26 @@
           "backend/migrations/create_financial_statements.sql"
         ],
         "api": [
+          "backend/src/controllers/accountingMemberStatementController.ts",
           "backend/src/controllers/walletController.ts",
           "backend/src/controllers/accountingBalanceSheetController.ts",
-          "backend/src/controllers/accountingBudgetController.ts",
-          "backend/src/controllers/accountingCashFlowController.ts"
+          "backend/src/controllers/accountingBudgetController.ts"
         ],
         "client": [
+          "frontend/src/pages/MemberStatement.tsx",
           "frontend/src/App.tsx",
           "frontend/src/pages/IncomeStatement.tsx",
-          "frontend/src/api/wallet.ts",
-          "frontend/src/components/trust/SuspensionBanner.tsx"
+          "frontend/src/pages/MemberStatement.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-savings-statements-reconciliation.sql",
           "backend/tests/schema/test-financial-statements.sql",
-          "backend/src/tests/financialStatementService.test.ts",
-          "backend/src/tests/accountingIncomeStatementApi.test.ts"
+          "backend/src/tests/accountingMemberStatementApi.test.ts",
+          "backend/src/tests/financialStatementService.test.ts"
         ],
         "operations": [
           "docs/runbooks/SAVINGS_STATEMENTS_RECONCILIATION.md",
+          "docs/runbooks/ACCOUNTING_MEMBER_STATEMENTS.md",
           "docs/runbooks/FINANCIAL_STATEMENTS.md"
         ]
       }
@@ -6704,8 +6709,8 @@
         "client": [
           "frontend/src/pages/CashFlow.tsx",
           "frontend/src/services/accountingCashFlowAPI.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/BalanceSheet.tsx"
+          "frontend/src/services/accountingMemberStatementAPI.ts",
+          "frontend/src/App.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-accounting-audit-export.sql",
