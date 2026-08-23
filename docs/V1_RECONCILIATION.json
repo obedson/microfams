@@ -3666,9 +3666,9 @@
         ],
         "client": [
           "frontend/src/App.tsx",
+          "frontend/src/pages/DividendEntitlements.test.tsx",
           "frontend/src/pages/DividendEntitlements.tsx",
-          "frontend/src/pages/CreateGroup.tsx",
-          "frontend/src/pages/MakeContribution.tsx"
+          "frontend/src/pages/CreateGroup.tsx"
         ],
         "tests": [
           "backend/src/tests/groupContributionRules.test.ts",
@@ -6530,12 +6530,13 @@
         "client": [
           "frontend/src/pages/DividendEntitlements.tsx",
           "frontend/src/App.tsx",
+          "frontend/src/pages/DividendEntitlements.test.tsx",
           "frontend/src/services/dividendEntitlementAPI.ts"
         ],
         "tests": [
           "backend/tests/schema/test-dividend-entitlement-snapshots.sql",
           "backend/tests/schema/test-dividend-review-approval.sql",
-          "backend/tests/schema/test-booking-reservations.sql"
+          "backend/src/tests/dividendEntitlementApi.test.ts"
         ],
         "operations": [
           "docs/runbooks/DIVIDEND_ENTITLEMENTS.md"
