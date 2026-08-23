@@ -1814,16 +1814,15 @@
           "backend/src/controllers/loanProductController.ts"
         ],
         "client": [
-          "frontend/src/pages/SavingsDashboard.test.tsx",
           "frontend/src/App.tsx",
+          "frontend/src/pages/SavingsDashboard.test.tsx",
           "frontend/src/pages/SavingsDashboard.tsx",
           "frontend/src/services/savingsAPI.ts"
         ],
         "tests": [
           "backend/src/tests/savingsProductService.test.ts",
           "backend/src/tests/savingsApiContract.test.ts",
-          "backend/tests/schema/test-savings-withdrawals.sql",
-          "frontend/src/pages/SavingsDashboard.test.tsx"
+          "backend/tests/schema/test-savings-withdrawals.sql"
         ],
         "operations": [
           "docs/runbooks/SAVINGS_STATEMENTS_RECONCILIATION.md"
