@@ -1,8 +1,10 @@
 import { Router } from 'express';
 import { accountingController } from '../controllers/accountingController.js';
+import { accountingBalanceSheetController } from '../controllers/accountingBalanceSheetController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/requireFeature.js';
 import { requireTenantPermission, resolveTenant } from '../middleware/tenant.js';
 const router=Router(); router.use(authenticateToken as any); router.use(resolveTenant);
 router.get('/income-statement', requireFeature('financial.accounting.read'), requireTenantPermission('financial.accounting.read'), accountingController.incomeStatement);
+router.get('/balance-sheet', requireFeature('financial.accounting.read'), requireTenantPermission('financial.accounting.read'), accountingBalanceSheetController.balanceSheet);
 export default router;
