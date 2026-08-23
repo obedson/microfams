@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { accountingController } from '../controllers/accountingController.js';
 import { dividendEntitlementController } from '../controllers/dividendEntitlementController.js';
+import { accountingMemberStatementController } from '../controllers/accountingMemberStatementController.js';
 import { accountingBudgetController } from '../controllers/accountingBudgetController.js';
 import { accountingCashFlowController } from '../controllers/accountingCashFlowController.js';
 import { accountingBalanceSheetController } from '../controllers/accountingBalanceSheetController.js';
@@ -9,6 +10,7 @@ import { requireFeature } from '../middleware/requireFeature.js';
 import { requireTenantPermission, resolveTenant } from '../middleware/tenant.js';
 const router=Router(); router.use(authenticateToken as any); router.use(resolveTenant);
 router.get('/income-statement', requireFeature('financial.accounting.read'), requireTenantPermission('financial.accounting.read'), accountingController.incomeStatement);
+router.get('/member-statement', requireFeature('financial.accounting.read'), accountingMemberStatementController.statement);
 router.get('/budget-vs-actual', requireFeature('financial.accounting.read'), requireTenantPermission('financial.accounting.read'), accountingBudgetController.budgetVsActual);
 router.get('/cash-flow', requireFeature('financial.accounting.read'), requireTenantPermission('financial.accounting.read'), accountingCashFlowController.cashFlow);
 router.get('/balance-sheet', requireFeature('financial.accounting.read'), requireTenantPermission('financial.accounting.read'), accountingBalanceSheetController.balanceSheet);
