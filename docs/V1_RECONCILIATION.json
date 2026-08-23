@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 42,
-    "checkedWithEvidenceGaps": 71,
+    "candidateComplete": 46,
+    "checkedWithEvidenceGaps": 67,
     "partial": 38,
     "notStarted": 3
   },
@@ -751,10 +751,10 @@
           "backend/src/routes/groupAdmin.ts"
         ],
         "client": [
+          "frontend/src/pages/SavingsDashboard.tsx",
           "frontend/src/pages/AdminDashboard.tsx",
           "frontend/src/pages/BecomeAMember.tsx",
-          "frontend/src/pages/CreateGroup.tsx",
-          "frontend/src/pages/Dashboard.tsx"
+          "frontend/src/pages/CreateGroup.tsx"
         ],
         "tests": [
           "backend/src/tests/groupDocumentVersioningContract.test.ts",
@@ -1158,12 +1158,12 @@
       "depth": 0,
       "workPlanChecked": true,
       "item": "Approve accounting and money specifications.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -1185,7 +1185,9 @@
           "backend/src/routes/groupAdmin.ts",
           "backend/src/routes/wallet.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/SavingsDashboard.tsx"
+        ],
         "tests": [
           "backend/src/tests/financialLedgerService.test.ts",
           "backend/tests/schema/test-group-contribution-cycles.sql",
@@ -1555,8 +1557,10 @@
           "backend/src/controllers/loanApplicationController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/Dashboard.tsx",
-          "frontend/src/pages/GroupMemberDashboard.tsx"
+          "frontend/src/pages/GroupMemberDashboard.tsx",
+          "frontend/src/pages/SavingsDashboard.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql",
@@ -1804,16 +1808,16 @@
           "backend/src/controllers/loanProductController.ts"
         ],
         "client": [
-          "frontend/src/api/marketplace.ts",
+          "frontend/src/pages/SavingsDashboard.test.tsx",
           "frontend/src/App.tsx",
-          "frontend/src/pages/Dashboard.tsx",
-          "frontend/src/pages/MyOrders.tsx"
+          "frontend/src/pages/SavingsDashboard.tsx",
+          "frontend/src/services/savingsAPI.ts"
         ],
         "tests": [
           "backend/src/tests/savingsProductService.test.ts",
           "backend/src/tests/savingsApiContract.test.ts",
           "backend/tests/schema/test-savings-withdrawals.sql",
-          "backend/tests/schema/test-group-contributions.sql"
+          "frontend/src/pages/SavingsDashboard.test.tsx"
         ],
         "operations": [
           "docs/runbooks/SAVINGS_STATEMENTS_RECONCILIATION.md"
@@ -1832,7 +1836,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "missing"
       },
@@ -1855,7 +1859,11 @@
           "backend/src/controllers/groupGovernanceController.ts",
           "backend/src/controllers/groupTreasuryController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/SavingsDashboard.test.tsx",
+          "frontend/src/pages/SavingsDashboard.tsx",
+          "frontend/src/services/savingsAPI.ts"
+        ],
         "tests": [
           "backend/src/tests/savingsProviderCertificationService.test.ts",
           "backend/tests/schema/test-financial-rules.sql",
@@ -2184,7 +2192,9 @@
           "backend/src/controllers/savingsController.ts"
         ],
         "client": [
-          "frontend/src/pages/CreateGroup.tsx"
+          "frontend/src/pages/CreateGroup.tsx",
+          "frontend/src/pages/SavingsDashboard.test.tsx",
+          "frontend/src/services/savingsAPI.ts"
         ],
         "tests": [
           "backend/tests/schema/test-loan-writeoff.sql",
@@ -2249,12 +2259,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-02 tenant-scoped applications, pinned product/disclosure facts, deterministic eligibility and affordability decisions, explainable adverse notices, and independent human review.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -2277,7 +2287,10 @@
           "backend/src/controllers/loanProductController.ts",
           "backend/src/controllers/savingsController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/SavingsDashboard.test.tsx",
+          "frontend/src/services/savingsAPI.ts"
+        ],
         "tests": [
           "backend/tests/schema/test-loan-application-underwriting.sql",
           "backend/tests/schema/test-loan-writeoff.sql",
@@ -2324,7 +2337,8 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
-          "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx"
+          "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx",
+          "frontend/src/pages/SavingsDashboard.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-loan-review-offers.sql",
@@ -2515,6 +2529,7 @@
           "backend/src/routes/credit.ts"
         ],
         "client": [
+          "frontend/src/pages/SavingsDashboard.tsx",
           "mobile/src/store/__tests__/cartStore.test.ts"
         ],
         "tests": [
@@ -2746,7 +2761,8 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
-          "frontend/src/pages/Dashboard.tsx"
+          "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/pages/SavingsDashboard.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-investment-product-foundation.sql",
@@ -4407,7 +4423,8 @@
         "client": [
           "frontend/src/pages/Payment.tsx",
           "frontend/src/components/bookings/BookingCard.tsx",
-          "frontend/src/pages/GroupDetail.tsx"
+          "frontend/src/pages/GroupDetail.tsx",
+          "frontend/src/pages/SavingsDashboard.tsx"
         ],
         "tests": [
           "backend/src/tests/groupDocumentVersioningContract.test.ts",
@@ -4793,12 +4810,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-05A dated contribution cycles pinned to one immutable rule version, per-member obligations generated from the opening eligibility snapshot, evidenced adjustments that preserve the original amount, excess parked for explicit disposition, journal-derived dashboards, and accounting-period-gated immutable close.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -4819,7 +4836,10 @@
           "backend/src/routes/groupAdmin.ts",
           "backend/src/controllers/savingsController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/SavingsDashboard.test.tsx",
+          "frontend/src/services/savingsAPI.ts"
+        ],
         "tests": [
           "backend/tests/schema/test-group-contribution-cycles.sql",
           "backend/src/tests/groupContributionCycleRules.test.ts",
@@ -5051,7 +5071,8 @@
         ],
         "client": [
           "frontend/src/components/groups/GroupDisciplineCaseForm.tsx",
-          "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx"
+          "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx",
+          "frontend/src/pages/SavingsDashboard.tsx"
         ],
         "tests": [
           "backend/src/tests/groupProjectContract.test.ts",
@@ -5916,12 +5937,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10M immutable, period-validated disposal accounting facts bound to approved ledger accounts and journal mappings, without execution.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -5941,7 +5962,9 @@
         "api": [
           "backend/src/controllers/groupContributionController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/SavingsDashboard.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-group-asset-accounting-mappings.sql",
           "backend/tests/schema/test-group-asset-disposal-accounting-facts.sql",
