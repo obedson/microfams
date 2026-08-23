@@ -1555,6 +1555,7 @@
           "backend/src/controllers/loanApplicationController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/Dashboard.tsx",
           "frontend/src/pages/GroupMemberDashboard.tsx"
         ],
@@ -1804,8 +1805,8 @@
           "backend/src/controllers/loanProductController.ts"
         ],
         "client": [
-          "frontend/src/api/marketplace.ts",
           "frontend/src/App.tsx",
+          "frontend/src/api/marketplace.ts",
           "frontend/src/pages/Dashboard.tsx",
           "frontend/src/pages/MyOrders.tsx"
         ],
