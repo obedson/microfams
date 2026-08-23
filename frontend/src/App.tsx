@@ -56,6 +56,7 @@ import SuspendedAccountRecovery from './pages/SuspendedAccountRecovery';
 import SavingsDashboard from './pages/SavingsDashboard';
 import IncomeStatement from './pages/IncomeStatement';
 import DividendEntitlements from './pages/DividendEntitlements';
+import DividendPayment from './pages/DividendPayment';
 import MemberStatement from './pages/MemberStatement';
 import BudgetVsActual from './pages/BudgetVsActual';
 import CashFlow from './pages/CashFlow';
@@ -107,6 +108,7 @@ function App() {
         <Route path="/savings" element={<ProtectedRoute><SavingsDashboard /></ProtectedRoute>} />
         <Route path="/accounting/income-statement" element={<ProtectedRoute><IncomeStatement /></ProtectedRoute>} />
         <Route path="/accounting/dividends/entitlements" element={<ProtectedRoute><DividendEntitlements /></ProtectedRoute>} />
+        <Route path="/accounting/dividends/pay" element={<ProtectedRoute><DividendPayment /></ProtectedRoute>} />
         <Route path="/accounting/member-statement" element={<ProtectedRoute><MemberStatement /></ProtectedRoute>} />
         <Route path="/accounting/budget-vs-actual" element={<ProtectedRoute><BudgetVsActual /></ProtectedRoute>} />
         <Route path="/accounting/cash-flow" element={<ProtectedRoute><CashFlow /></ProtectedRoute>} />
