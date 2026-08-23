@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 54,
-    "checkedWithEvidenceGaps": 59,
+    "candidateComplete": 53,
+    "checkedWithEvidenceGaps": 60,
     "partial": 38,
     "notStarted": 3
   },
@@ -748,6 +748,7 @@
         "api": [
           "backend/src/controllers/investmentProductController.ts",
           "backend/src/controllers/paymentOrchestrationController.ts",
+          "backend/src/routes/accounting.ts",
           "backend/src/routes/groupAdmin.ts"
         ],
         "client": [
@@ -1182,6 +1183,7 @@
         ],
         "api": [
           "backend/src/controllers/groupTreasuryController.ts",
+          "backend/src/routes/accounting.ts",
           "backend/src/routes/groupAdmin.ts",
           "backend/src/routes/wallet.ts"
         ],
@@ -1864,7 +1866,6 @@
           "backend/src/controllers/groupTreasuryController.ts"
         ],
         "client": [
-          "frontend/src/pages/DividendEntitlements.tsx",
           "frontend/src/pages/SavingsDashboard.test.tsx",
           "frontend/src/pages/SavingsDashboard.tsx",
           "frontend/src/services/savingsAPI.ts"
@@ -2229,7 +2230,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "evidence_found",
+        "client": "missing",
         "tests": "evidence_found",
         "operations": "missing"
       },
@@ -2252,9 +2253,7 @@
           "backend/src/controllers/groupGovernanceController.ts",
           "backend/src/controllers/groupTreasuryController.ts"
         ],
-        "client": [
-          "frontend/src/pages/DividendEntitlements.tsx"
-        ],
+        "client": [],
         "tests": [
           "backend/tests/schema/test-financial-rules.sql",
           "backend/tests/schema/test-loan-product-foundation.sql",
@@ -5517,8 +5516,7 @@
           "backend/src/controllers/groupContributionController.ts"
         ],
         "client": [
-          "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx",
-          "frontend/src/pages/DividendEntitlements.tsx"
+          "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-group-shared-assets.sql",
@@ -5705,7 +5703,6 @@
         ],
         "client": [
           "frontend/src/components/BookingForm.tsx",
-          "frontend/src/pages/DividendEntitlements.tsx",
           "frontend/src/pages/MyBookings.tsx"
         ],
         "tests": [
@@ -6533,15 +6530,16 @@
           "backend/src/routes/accounting.ts"
         ],
         "client": [
-          "frontend/src/pages/DividendEntitlements.tsx",
           "frontend/src/App.tsx",
           "frontend/src/pages/DividendEntitlements.test.tsx",
+          "frontend/src/pages/DividendEntitlements.tsx",
           "frontend/src/services/dividendEntitlementAPI.ts"
         ],
         "tests": [
           "backend/tests/schema/test-dividend-entitlement-snapshots.sql",
           "backend/tests/schema/test-dividend-review-approval.sql",
-          "backend/src/tests/dividendEntitlementApi.test.ts"
+          "backend/src/tests/dividendEntitlementApi.test.ts",
+          "backend/tests/schema/test-booking-reservations.sql"
         ],
         "operations": [
           "docs/runbooks/DIVIDEND_ENTITLEMENTS.md"
@@ -6605,12 +6603,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add DIV-03 exactly-once approved-dividend payable recognition against retained surplus with disclosed residual preservation; payment remains separate.",
-      "status": "candidate_complete",
+      "status": "claimed_complete_evidence_gap",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "evidence_found",
+        "client": "missing",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -6628,9 +6626,7 @@
           "backend/migrations/install_group_contribution_cycles.sql"
         ],
         "api": [],
-        "client": [
-          "frontend/src/pages/DividendEntitlements.tsx"
-        ],
+        "client": [],
         "tests": [
           "backend/tests/schema/test-dividend-payable-recognition.sql",
           "backend/tests/schema/test-investment-refund-provider-submission.sql",
@@ -6678,9 +6674,9 @@
         ],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/pages/DividendEntitlements.tsx",
           "frontend/src/pages/Payment.tsx",
-          "frontend/src/pages/TrustReviewQueue.tsx"
+          "frontend/src/pages/TrustReviewQueue.tsx",
+          "frontend/src/services/dividendEntitlementAPI.ts"
         ],
         "tests": [
           "backend/src/tests/groupTreasuryDisbursementRules.test.ts",
