@@ -53,6 +53,7 @@ import TrustReviewQueue from './pages/TrustReviewQueue';
 import AdminLegalHolds from './pages/AdminLegalHolds';
 import AdminRetentionDryRuns from './pages/AdminRetentionDryRuns';
 import SuspendedAccountRecovery from './pages/SuspendedAccountRecovery';
+import SavingsDashboard from './pages/SavingsDashboard';
 import IncomeStatement from './pages/IncomeStatement';
 
 function App() {
@@ -97,6 +98,7 @@ function App() {
         <Route path="/farm-records" element={<ProtectedRoute><FarmRecords /></ProtectedRoute>} />
         <Route path="/referrals" element={<ProtectedRoute><ReferralDashboard /></ProtectedRoute>} />
         <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
+        <Route path="/savings" element={<ProtectedRoute><SavingsDashboard /></ProtectedRoute>} />
         <Route path="/accounting/income-statement" element={<ProtectedRoute><IncomeStatement /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/verify-nin" element={<ProtectedRoute><VerifyNIN /></ProtectedRoute>} />
