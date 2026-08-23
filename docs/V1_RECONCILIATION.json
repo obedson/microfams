@@ -6533,7 +6533,7 @@
           "frontend/src/App.tsx",
           "frontend/src/pages/DividendEntitlements.test.tsx",
           "frontend/src/pages/DividendEntitlements.tsx",
-          "frontend/src/services/dividendEntitlementAPI.ts"
+          "frontend/src/pages/DividendPayment.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-dividend-entitlement-snapshots.sql",
@@ -6674,10 +6674,10 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
+          "frontend/src/pages/DividendPayment.tsx",
           "frontend/src/App.tsx",
           "frontend/src/pages/Payment.tsx",
-          "frontend/src/pages/TrustReviewQueue.tsx",
-          "frontend/src/services/dividendEntitlementAPI.ts"
+          "frontend/src/pages/TrustReviewQueue.tsx"
         ],
         "tests": [
           "backend/src/tests/groupTreasuryDisbursementRules.test.ts",
