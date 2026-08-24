@@ -65,6 +65,7 @@ import BudgetVsActual from './pages/BudgetVsActual';
 import CashFlow from './pages/CashFlow';
 import BalanceSheet from './pages/BalanceSheet';
 import CreditProducts from './pages/CreditProducts';
+import GroupInvitations from "./pages/GroupInvitations";
 import BookingDisputeResolution from "./pages/BookingDisputeResolution";
 import BookingDispute from "./pages/BookingDispute";
 import BookingRecovery from "./pages/BookingRecovery";
@@ -125,6 +126,7 @@ function App() {
         <Route path="/accounting/cash-flow" element={<ProtectedRoute><CashFlow /></ProtectedRoute>} />
         <Route path="/accounting/balance-sheet" element={<ProtectedRoute><BalanceSheet /></ProtectedRoute>} />
         <Route path="/credit/products" element={<ProtectedRoute><CreditProducts /></ProtectedRoute>} />
+        <Route path="/groups/invitations" element={<ProtectedRoute><GroupInvitations /></ProtectedRoute>} />
         <Route path="/bookings/disputes/resolution" element={<ProtectedRoute><BookingDisputeResolution /></ProtectedRoute>} />
         <Route path="/bookings/disputes" element={<ProtectedRoute><BookingDispute /></ProtectedRoute>} />
         <Route path="/bookings/recovery" element={<ProtectedRoute><BookingRecovery /></ProtectedRoute>} />
