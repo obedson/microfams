@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 64,
-    "checkedWithEvidenceGaps": 49,
+    "candidateComplete": 65,
+    "checkedWithEvidenceGaps": 48,
     "partial": 38,
     "notStarted": 3
   },
@@ -324,8 +324,8 @@
         "client": [
           "frontend/src/pages/AdminRetentionDryRuns.tsx",
           "frontend/src/pages/BecomeAMember.tsx",
-          "frontend/src/pages/BookingRecovery.tsx",
-          "frontend/src/pages/CreditRepaymentReversals.test.tsx"
+          "frontend/src/pages/BookingDisputeResolution.tsx",
+          "frontend/src/pages/BookingRecovery.tsx"
         ],
         "tests": [
           "backend/src/tests/savingsProviderCertificationApi.test.ts",
@@ -956,6 +956,7 @@
         ],
         "client": [
           "frontend/src/services/trustAPI.ts",
+          "frontend/src/pages/BookingDisputeResolution.tsx",
           "frontend/src/pages/SuspendedAccountRecovery.tsx",
           "frontend/src/pages/TrustStatus.tsx"
         ],
@@ -3636,6 +3637,7 @@
         ],
         "client": [
           "frontend/src/pages/BookingDispute.tsx",
+          "frontend/src/pages/BookingDisputeResolution.tsx",
           "frontend/src/pages/BookingRecovery.tsx"
         ],
         "tests": [
@@ -3784,8 +3786,8 @@
         "client": [
           "frontend/src/components/bookings/__tests__/ReservationConfirmation.test.tsx",
           "frontend/src/components/bookings/ReservationConfirmation.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/components/analytics/__tests__/PendingPayments.properties.test.tsx"
+          "frontend/src/services/bookingDisputeResolutionAPI.ts",
+          "frontend/src/App.tsx"
         ],
         "tests": [
           "backend/src/tests/bookingReservationService.test.ts",
@@ -3878,9 +3880,9 @@
         ],
         "client": [
           "frontend/src/App.tsx",
+          "frontend/src/pages/BookingDisputeResolution.tsx",
           "frontend/src/pages/BookingDispute.tsx",
-          "frontend/src/pages/BookingRecovery.tsx",
-          "frontend/src/.backup/OwnerBookings_OLD.tsx"
+          "frontend/src/pages/BookingDisputeResolution.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-supplier-payout.sql",
@@ -3990,12 +3992,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-06 customer/support dispute opening, atomic contested-amount freezes, append-only malware-aware evidence, and tenant-safe timelines.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -4016,7 +4018,10 @@
           "backend/src/controllers/bookingDisputeResolutionController.ts",
           "backend/src/controllers/bookingSettlementController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/BookingDisputeResolution.test.tsx",
+          "frontend/src/pages/BookingDisputeResolution.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-booking-dispute-opening.sql",
           "backend/src/tests/bookingDisputeResolutionApi.test.ts",
@@ -4102,7 +4107,8 @@
           "backend/src/routes/groupAdmin.ts"
         ],
         "client": [
-          "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx"
+          "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx",
+          "frontend/src/pages/BookingDisputeResolution.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-supplier-payout.sql",
@@ -4289,6 +4295,7 @@
         "client": [
           "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx",
           "frontend/src/pages/AuditLogs.tsx",
+          "frontend/src/pages/BookingDisputeResolution.tsx",
           "frontend/src/services/adminAPI.ts"
         ],
         "tests": [
@@ -4382,6 +4389,8 @@
         ],
         "client": [
           "frontend/src/pages/BookingDispute.tsx",
+          "frontend/src/pages/BookingDisputeResolution.test.tsx",
+          "frontend/src/pages/BookingDisputeResolution.tsx",
           "frontend/src/pages/SavingsProviderCertification.tsx"
         ],
         "tests": [
