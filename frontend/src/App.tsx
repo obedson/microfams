@@ -56,6 +56,7 @@ import SuspendedAccountRecovery from './pages/SuspendedAccountRecovery';
 import SavingsDashboard from './pages/SavingsDashboard';
 import SavingsAccruals from './pages/SavingsAccruals';
 import SavingsWithdrawals from './pages/SavingsWithdrawals';
+import SavingsProviderCertification from './pages/SavingsProviderCertification';
 import IncomeStatement from './pages/IncomeStatement';
 import DividendEntitlements from './pages/DividendEntitlements';
 import DividendPayment from './pages/DividendPayment';
@@ -110,6 +111,7 @@ function App() {
         <Route path="/savings" element={<ProtectedRoute><SavingsDashboard /></ProtectedRoute>} />
         <Route path="/savings/accruals" element={<ProtectedRoute><SavingsAccruals /></ProtectedRoute>} />
         <Route path="/savings/withdrawals" element={<ProtectedRoute><SavingsWithdrawals /></ProtectedRoute>} />
+        <Route path="/savings/provider-certification" element={<ProtectedRoute><SavingsProviderCertification /></ProtectedRoute>} />
         <Route path="/accounting/income-statement" element={<ProtectedRoute><IncomeStatement /></ProtectedRoute>} />
         <Route path="/accounting/dividends/entitlements" element={<ProtectedRoute><DividendEntitlements /></ProtectedRoute>} />
         <Route path="/accounting/dividends/pay" element={<ProtectedRoute><DividendPayment /></ProtectedRoute>} />
