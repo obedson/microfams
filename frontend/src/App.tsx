@@ -65,6 +65,7 @@ import BudgetVsActual from './pages/BudgetVsActual';
 import CashFlow from './pages/CashFlow';
 import BalanceSheet from './pages/BalanceSheet';
 import CreditProducts from './pages/CreditProducts';
+import BookingRecovery from "./pages/BookingRecovery";
 import InvestmentRefundRecognition from "./pages/InvestmentRefundRecognition";
 import CreditRepaymentReversals from "./pages/CreditRepaymentReversals";
 
@@ -122,6 +123,7 @@ function App() {
         <Route path="/accounting/cash-flow" element={<ProtectedRoute><CashFlow /></ProtectedRoute>} />
         <Route path="/accounting/balance-sheet" element={<ProtectedRoute><BalanceSheet /></ProtectedRoute>} />
         <Route path="/credit/products" element={<ProtectedRoute><CreditProducts /></ProtectedRoute>} />
+        <Route path="/bookings/recovery" element={<ProtectedRoute><BookingRecovery /></ProtectedRoute>} />
         <Route path="/investments/refund-obligations" element={<ProtectedRoute><InvestmentRefundRecognition /></ProtectedRoute>} />
         <Route path="/credit/repayment-reversals" element={<ProtectedRoute><CreditRepaymentReversals /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
