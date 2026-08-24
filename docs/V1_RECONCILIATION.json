@@ -1337,7 +1337,8 @@
         "client": [
           "frontend/src/pages/SavingsProviderCertification.tsx",
           "frontend/src/App.tsx",
-          "frontend/src/pages/CreditRepaymentReversals.tsx"
+          "frontend/src/pages/CreditRepaymentReversals.tsx",
+          "frontend/src/pages/InvestmentRefundRecognition.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-investment-refund-provider-submission.sql",
@@ -1577,7 +1578,7 @@
           "frontend/src/App.tsx",
           "frontend/src/pages/Dashboard.tsx",
           "frontend/src/pages/GroupMemberDashboard.tsx",
-          "frontend/src/pages/SavingsDashboard.tsx"
+          "frontend/src/pages/InvestmentRefundRecognition.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql",
@@ -2761,7 +2762,9 @@
           "backend/src/routes/investments.ts"
         ],
         "client": [
-          "frontend/src/pages/GroupMemberDashboard.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/pages/GroupMemberDashboard.tsx",
+          "frontend/src/services/investmentAllocationPlanAPI.ts"
         ],
         "tests": [
           "backend/src/tests/investmentSubscriptionService.test.ts",
@@ -3064,6 +3067,7 @@
         ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx",
+          "frontend/src/pages/InvestmentRefundRecognition.tsx",
           "frontend/src/pages/SavingsAccruals.tsx"
         ],
         "tests": [
@@ -3089,7 +3093,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "missing"
       },
@@ -3109,12 +3113,15 @@
         "api": [
           "backend/src/routes/investments.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/InvestmentRefundRecognition.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/pages/InvestmentRefundRecognition.test.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql",
           "backend/tests/schema/test-investment-refund-obligations.sql",
-          "backend/src/tests/investmentAllocationPlanService.test.ts",
-          "backend/tests/schema/test-investment-refund-provider-submission.sql"
+          "backend/src/tests/investmentAllocationPlanService.test.ts"
         ],
         "operations": []
       }
@@ -3155,14 +3162,15 @@
           "backend/src/controllers/investmentRefundSubmissionController.ts"
         ],
         "client": [
+          "frontend/src/pages/InvestmentRefundRecognition.tsx",
+          "frontend/src/App.tsx",
           "frontend/src/pages/CreditProductGovernance.tsx",
-          "frontend/src/pages/TrustReviewQueue.tsx"
+          "frontend/src/pages/InvestmentRefundRecognition.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql",
           "backend/tests/schema/test-investment-refund-provider-submission.sql",
-          "backend/tests/schema/test-investment-refund-obligations.sql",
-          "backend/src/tests/investmentAllocationPlanService.test.ts"
+          "backend/tests/schema/test-investment-refund-obligations.sql"
         ],
         "operations": [
           "docs/runbooks/INVESTMENT_PRODUCTS.md",
@@ -3866,8 +3874,8 @@
           "backend/src/controllers/investmentAllocationPlanController.ts"
         ],
         "client": [
-          "frontend/src/.backup/OwnerBookings_OLD.tsx",
           "frontend/src/App.tsx",
+          "frontend/src/.backup/OwnerBookings_OLD.tsx",
           "frontend/src/components/bookings/__tests__/BookingLifecycleActions.test.tsx",
           "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx"
         ],
@@ -4229,6 +4237,7 @@
           "backend/src/controllers/paymentOrchestrationController.ts"
         ],
         "client": [
+          "frontend/src/pages/InvestmentRefundRecognition.tsx",
           "frontend/src/store/organizationStore.ts"
         ],
         "tests": [
@@ -4927,6 +4936,7 @@
           "backend/src/controllers/savingsController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/SavingsDashboard.test.tsx",
           "frontend/src/services/savingsAPI.ts"
         ],
@@ -6129,8 +6139,8 @@
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/CreditRepaymentReversals.tsx",
-          "frontend/src/pages/SavingsAccruals.tsx",
-          "frontend/src/pages/Wallet.tsx"
+          "frontend/src/pages/InvestmentRefundRecognition.tsx",
+          "frontend/src/pages/SavingsAccruals.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-group-asset-disposal-accounting-facts.sql",
@@ -6229,8 +6239,8 @@
         "client": [
           "frontend/src/pages/Wallet.tsx",
           "frontend/src/pages/CreditRepaymentReversals.tsx",
-          "frontend/src/pages/Payment.tsx",
-          "frontend/src/pages/SavingsAccruals.tsx"
+          "frontend/src/pages/InvestmentRefundRecognition.tsx",
+          "frontend/src/pages/Payment.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-group-asset-transfer-accounting-facts.sql",
@@ -6672,10 +6682,10 @@
           "backend/src/controllers/groupContributionController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/DividendEntitlements.tsx",
-          "frontend/src/.backup/OwnerBookings_OLD.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/.backup/OwnerBookings_OLD.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-settlement-eligibility-fees.sql",
