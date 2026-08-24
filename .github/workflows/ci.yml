@@ -125,6 +125,29 @@ jobs:
       - run: npm run test:ci
       - run: npm run audit:production
 
+  dependency-audit:
+    name: Repository dependency audit
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: mcp-servers
+            path: mcp-servers
+            lockfile: mcp-servers/package-lock.json
+    defaults:
+      run:
+        working-directory: ${{ matrix.path }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ${{ matrix.lockfile }}
+      - run: npm ci
+      - run: npm audit --omit=dev --audit-level=high
+
   repository-security:
     name: Repository security
     runs-on: ubuntu-latest
