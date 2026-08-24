@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 58,
-    "checkedWithEvidenceGaps": 55,
+    "candidateComplete": 62,
+    "checkedWithEvidenceGaps": 51,
     "partial": 38,
     "notStarted": 3
   },
@@ -324,8 +324,8 @@
         "client": [
           "frontend/src/pages/AdminRetentionDryRuns.tsx",
           "frontend/src/pages/BecomeAMember.tsx",
-          "frontend/src/pages/CreditRepaymentReversals.test.tsx",
-          "frontend/src/pages/CreditRepaymentReversals.tsx"
+          "frontend/src/pages/Dashboard.tsx",
+          "frontend/src/pages/TrustAppeal.tsx"
         ],
         "tests": [
           "backend/src/tests/savingsProviderCertificationApi.test.ts",
@@ -567,6 +567,7 @@
           "backend/src/controllers/groupAdminController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/store/organizationStore.ts"
         ],
         "tests": [
@@ -1266,7 +1267,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "missing",
-        "client": "evidence_found",
+        "client": "missing",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -1284,9 +1285,7 @@
           "backend/migrations/install_group_treasury_disbursements.sql"
         ],
         "api": [],
-        "client": [
-          "frontend/src/App.tsx"
-        ],
+        "client": [],
         "tests": [
           "backend/tests/schema/test-group-admission-payments.sql",
           "backend/tests/schema/test-group-asset-condition-events.sql",
@@ -1334,9 +1333,7 @@
           "backend/src/controllers/investmentRefundReconciliationController.ts"
         ],
         "client": [
-          "frontend/src/pages/SavingsProviderCertification.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/CreditRepaymentReversals.tsx"
+          "frontend/src/pages/SavingsProviderCertification.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-investment-refund-provider-submission.sql",
@@ -1383,10 +1380,10 @@
           "backend/src/controllers/loanRepaymentController.ts"
         ],
         "client": [
-          "frontend/src/pages/CreditRepaymentReversals.tsx",
-          "frontend/src/pages/CreditRepaymentReversals.test.tsx",
           "frontend/src/pages/MyBookings.tsx",
-          "frontend/src/services/creditRepaymentReversalAPI.ts"
+          "frontend/src/.backup/OwnerBookings_OLD.tsx",
+          "frontend/src/components/BookingForm.tsx",
+          "frontend/src/components/bookings/BookingCard.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-reversal-recovery.sql",
@@ -1505,7 +1502,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "missing",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -1523,7 +1520,9 @@
           "backend/migrations/create_financial_rules.sql"
         ],
         "api": [],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx"
+        ],
         "tests": [
           "backend/src/tests/savingsProviderCertificationService.test.ts",
           "backend/tests/schema/test-booking-recovery-servicing.sql",
@@ -1773,10 +1772,10 @@
           "backend/src/controllers/bookingDisputeResolutionController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/.backup/OwnerBookings_OLD.tsx",
           "frontend/src/App.tsx",
-          "frontend/src/components/bookings/__tests__/BookingLifecycleActions.test.tsx",
-          "frontend/src/components/bookings/BookingCard.tsx"
+          "frontend/src/components/bookings/__tests__/BookingLifecycleActions.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-group-contributions.sql",
@@ -1874,10 +1873,10 @@
           "backend/src/controllers/groupTreasuryController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/SavingsDashboard.test.tsx",
           "frontend/src/pages/SavingsDashboard.tsx",
-          "frontend/src/pages/SavingsWithdrawals.tsx",
-          "frontend/src/services/savingsAPI.ts"
+          "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
           "backend/src/tests/savingsProviderCertificationService.test.ts",
@@ -1971,6 +1970,7 @@
         ],
         "client": [
           "frontend/src/pages/SavingsAccruals.tsx",
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
@@ -2216,10 +2216,10 @@
           "backend/src/controllers/savingsController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/App.tsx",
           "frontend/src/pages/CreateGroup.tsx",
-          "frontend/src/pages/CreditProducts.test.tsx",
-          "frontend/src/pages/CreditProducts.tsx"
+          "frontend/src/pages/CreditProductGovernance.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-loan-writeoff.sql",
@@ -2244,7 +2244,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "missing"
       },
@@ -2267,7 +2267,9 @@
           "backend/src/controllers/groupGovernanceController.ts",
           "backend/src/controllers/groupTreasuryController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-financial-rules.sql",
           "backend/tests/schema/test-loan-product-foundation.sql",
@@ -2313,10 +2315,10 @@
           "backend/src/controllers/savingsController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
+          "frontend/src/pages/CreditProductGovernance.test.tsx",
           "frontend/src/pages/CreditProducts.test.tsx",
-          "frontend/src/pages/CreditProducts.tsx",
-          "frontend/src/pages/SavingsAccruals.tsx",
-          "frontend/src/pages/SavingsDashboard.test.tsx"
+          "frontend/src/pages/CreditProducts.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-loan-application-underwriting.sql",
@@ -2364,10 +2366,10 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/SavingsWithdrawals.tsx",
           "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx",
-          "frontend/src/pages/CreditProducts.tsx",
-          "frontend/src/pages/SavingsDashboard.test.tsx"
+          "frontend/src/pages/CreditProducts.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-loan-review-offers.sql",
@@ -2417,6 +2419,7 @@
           "backend/src/controllers/loanScheduleController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/CreditProducts.tsx"
         ],
         "tests": [
@@ -2484,12 +2487,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-06 governed repayment allocation, balanced posting, payoff transitions, and fail-closed fee-bearing servicing.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -2512,7 +2515,9 @@
           "backend/src/controllers/bookingDisputeResolutionController.ts",
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-loan-repayment-servicing.sql",
           "backend/tests/schema/test-loan-delinquency-servicing.sql",
@@ -2560,10 +2565,10 @@
           "backend/src/routes/credit.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/CreditProducts.tsx",
           "frontend/src/pages/SavingsDashboard.tsx",
-          "frontend/src/pages/SavingsWithdrawals.tsx",
-          "mobile/src/store/__tests__/cartStore.test.ts"
+          "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-loan-delinquency-servicing.sql",
@@ -2584,12 +2589,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-08 maker-checker reversal of settled zero-interest repayments with linked compensating journals.",
-      "status": "candidate_complete",
+      "status": "claimed_complete_evidence_gap",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "evidence_found",
+        "client": "missing",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -2609,9 +2614,7 @@
         "api": [
           "backend/src/routes/credit.ts"
         ],
-        "client": [
-          "frontend/src/services/creditRepaymentReversalAPI.ts"
-        ],
+        "client": [],
         "tests": [
           "backend/tests/schema/test-loan-repayment-reversal.sql",
           "backend/tests/schema/test-booking-settlement-eligibility-fees.sql",
@@ -2631,12 +2634,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-09 maker-checker zero-interest restructuring with immutable prior schedules and principal-conserving replacement installments.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -2656,7 +2659,9 @@
         "api": [
           "backend/src/routes/credit.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-loan-disbursement-orchestration.sql",
           "backend/tests/schema/test-loan-repayment-schedules.sql",
@@ -2676,12 +2681,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-10 maker-checker principal write-off for defaulted zero-interest loans with balanced credit-loss accounting.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -2701,7 +2706,9 @@
         "api": [
           "backend/src/controllers/loanProductController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-loan-repayment-reversal.sql",
           "backend/tests/schema/test-loan-writeoff.sql",
@@ -2797,10 +2804,10 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
+          "frontend/src/pages/CreditProductGovernance.test.tsx",
           "frontend/src/pages/SavingsProviderCertification.tsx",
-          "frontend/src/pages/SavingsWithdrawals.tsx",
-          "frontend/src/pages/CreditProducts.tsx",
-          "frontend/src/pages/Dashboard.tsx"
+          "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-investment-product-foundation.sql",
@@ -2849,6 +2856,7 @@
         ],
         "client": [
           "frontend/src/pages/BecomeAMember.tsx",
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/MyBookings.tsx",
           "frontend/src/pages/SavingsProviderCertification.test.tsx"
         ],
@@ -2954,7 +2962,7 @@
           "frontend/src/pages/Wallet.tsx",
           "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx",
           "frontend/src/pages/BecomeAMember.tsx",
-          "frontend/src/pages/CreditRepaymentReversals.tsx"
+          "frontend/src/pages/CreditProductGovernance.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-supplier-payout.sql",
@@ -3002,6 +3010,7 @@
           "backend/src/controllers/loanProductController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
@@ -3048,6 +3057,7 @@
           "backend/src/routes/groupAdmin.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/SavingsAccruals.tsx"
         ],
         "tests": [
@@ -3139,6 +3149,7 @@
           "backend/src/controllers/investmentRefundSubmissionController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/TrustReviewQueue.tsx"
         ],
         "tests": [
@@ -3165,7 +3176,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "missing",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -3183,7 +3194,9 @@
           "backend/migrations/install_investment_refund_callbacks.sql"
         ],
         "api": [],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-investment-refund-provider-submission.sql",
           "backend/src/tests/investmentRefundSubmissionService.test.ts",
@@ -3231,8 +3244,6 @@
           "backend/src/routes/investments.ts"
         ],
         "client": [
-          "frontend/src/App.tsx",
-          "frontend/src/pages/CreditRepaymentReversals.tsx",
           "frontend/src/pages/SavingsProviderCertification.tsx",
           "frontend/src/pages/SuspendedAccountRecovery.tsx"
         ],
@@ -3283,7 +3294,6 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
-          "frontend/src/App.tsx",
           "frontend/src/components/bookings/__tests__/BookingCalendar.properties.test.tsx",
           "frontend/src/pages/SavingsProviderCertification.tsx"
         ],
@@ -3381,10 +3391,9 @@
           "backend/src/routes/investments.ts"
         ],
         "client": [
-          "frontend/src/pages/CreditRepaymentReversals.tsx",
-          "frontend/src/App.tsx",
           "frontend/src/pages/Payment.tsx",
-          "frontend/src/pages/SavingsProviderCertification.tsx"
+          "frontend/src/pages/SavingsProviderCertification.tsx",
+          "frontend/src/pages/Wallet.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-investment-refund-provider-submission.sql",
@@ -3453,7 +3462,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "missing",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -3471,7 +3480,9 @@
           "backend/migrations/create_financial_rules.sql"
         ],
         "api": [],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-loan-disbursement-orchestration.sql",
           "backend/tests/schema/test-financial-rules.sql",
@@ -3895,9 +3906,7 @@
           "backend/src/routes/credit.ts"
         ],
         "client": [
-          "frontend/src/pages/CreditRepaymentReversals.tsx",
-          "frontend/src/pages/SavingsProviderCertification.tsx",
-          "frontend/src/services/creditRepaymentReversalAPI.ts"
+          "frontend/src/pages/SavingsProviderCertification.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-settlement-foundation.sql",
@@ -4094,7 +4103,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "missing",
-        "client": "evidence_found",
+        "client": "missing",
         "tests": "evidence_found",
         "operations": "missing"
       },
@@ -4112,9 +4121,7 @@
           "backend/migrations/create_financial_ledger.sql"
         ],
         "api": [],
-        "client": [
-          "frontend/src/App.tsx"
-        ],
+        "client": [],
         "tests": [
           "backend/tests/schema/test-booking-refund-orchestration.sql",
           "backend/tests/schema/test-booking-reversal-recovery.sql",
@@ -4157,7 +4164,8 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
-          "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx"
+          "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx",
+          "frontend/src/pages/CreditProductGovernance.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-recovery-servicing.sql",
@@ -4486,10 +4494,10 @@
           "backend/src/controllers/investmentProductController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.test.tsx",
           "frontend/src/pages/Payment.tsx",
-          "frontend/src/components/bookings/BookingCard.tsx",
-          "frontend/src/pages/BudgetVsActual.test.tsx",
-          "frontend/src/pages/CreditProducts.test.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/components/bookings/BookingCard.tsx"
         ],
         "tests": [
           "backend/src/tests/groupDocumentVersioningContract.test.ts",
@@ -4554,12 +4562,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-02A immutable initial constitutions, effective-dated required offices, legacy governance review, and constitution-gated group activation.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -4581,7 +4589,9 @@
           "backend/src/routes/groupAdmin.ts",
           "backend/src/controllers/groupContributionController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-group-constitution-offices.sql",
           "backend/src/tests/groupGovernanceApi.test.ts",
@@ -4767,8 +4777,8 @@
         "client": [
           "frontend/src/pages/GroupAdminDashboard.tsx",
           "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx",
-          "frontend/src/pages/SavingsWithdrawals.tsx",
-          "frontend/src/pages/SuspendedAccountRecovery.tsx"
+          "frontend/src/pages/CreditProductGovernance.tsx",
+          "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
           "backend/src/tests/groupDisciplineApi.test.ts",
@@ -5141,10 +5151,10 @@
           "backend/src/routes/credit.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/SavingsWithdrawals.tsx",
           "frontend/src/components/groups/GroupDisciplineCaseForm.tsx",
-          "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx",
-          "frontend/src/pages/CreditProducts.tsx"
+          "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx"
         ],
         "tests": [
           "backend/src/tests/groupProjectContract.test.ts",
@@ -5196,6 +5206,7 @@
         "client": [
           "frontend/src/App.tsx",
           "frontend/src/pages/BudgetVsActual.tsx",
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
@@ -5465,7 +5476,8 @@
         "client": [
           "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx",
           "frontend/src/pages/AdminRetentionDryRuns.test.tsx",
-          "frontend/src/pages/SavingsWithdrawals.tsx"
+          "frontend/src/pages/CreditProductGovernance.test.tsx",
+          "frontend/src/pages/CreditProductGovernance.tsx"
         ],
         "tests": [
           "backend/src/tests/groupDocumentVersioningContract.test.ts",
@@ -5565,7 +5577,9 @@
           "backend/src/controllers/groupContributionController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx",
+          "frontend/src/pages/CreditProductGovernance.test.tsx",
           "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
@@ -5702,6 +5716,7 @@
           "backend/src/routes/groupAdmin.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/CreateGroup.tsx",
           "frontend/src/pages/MyBookings.tsx"
         ],
@@ -5753,6 +5768,7 @@
         ],
         "client": [
           "frontend/src/components/BookingForm.tsx",
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/MyBookings.tsx"
         ],
         "tests": [
@@ -5903,6 +5919,7 @@
           "backend/src/controllers/groupGovernanceController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/components/BookingForm.tsx"
         ],
         "tests": [
@@ -5924,12 +5941,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10K governed shared-asset transfer proposals with destination evidence, conflict guards, maker-checker approval, and execution disabled pending journal mappings.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -5952,7 +5969,9 @@
           "backend/src/controllers/contributionController.ts",
           "backend/src/controllers/groupCommitteeController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-group-asset-transfer-accounting-facts.sql",
           "backend/tests/schema/test-group-asset-transfer-execution.sql",
@@ -5997,6 +6016,7 @@
           "backend/src/controllers/contributionController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/Wallet.tsx"
         ],
         "tests": [
@@ -6093,7 +6113,7 @@
           "backend/src/controllers/groupCommitteeController.ts"
         ],
         "client": [
-          "frontend/src/pages/CreditRepaymentReversals.tsx",
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/SavingsAccruals.tsx",
           "frontend/src/pages/Wallet.tsx"
         ],
@@ -6193,7 +6213,6 @@
         ],
         "client": [
           "frontend/src/pages/Wallet.tsx",
-          "frontend/src/pages/CreditRepaymentReversals.tsx",
           "frontend/src/pages/Payment.tsx",
           "frontend/src/pages/SavingsAccruals.tsx"
         ],
@@ -6293,8 +6312,8 @@
         "client": [
           "frontend/src/App.tsx",
           "frontend/src/pages/BalanceSheet.tsx",
-          "frontend/src/pages/CreditProducts.test.tsx",
-          "frontend/src/pages/Wallet.test.tsx"
+          "frontend/src/pages/CreditProductGovernance.tsx",
+          "frontend/src/pages/CreditProducts.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-savings-statements-reconciliation.sql",
@@ -6482,7 +6501,8 @@
           "backend/src/controllers/groupTreasuryController.ts"
         ],
         "client": [
-          "frontend/src/pages/BudgetVsActual.tsx"
+          "frontend/src/pages/BudgetVsActual.tsx",
+          "frontend/src/pages/CreditProductGovernance.tsx"
         ],
         "tests": [
           "backend/src/tests/groupProjectContract.test.ts",
@@ -6636,10 +6656,10 @@
           "backend/src/controllers/groupContributionController.ts"
         ],
         "client": [
+          "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/pages/DividendEntitlements.tsx",
           "frontend/src/.backup/OwnerBookings_OLD.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/components/admin/ReportingDashboard.tsx"
+          "frontend/src/App.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-settlement-eligibility-fees.sql",
