@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 55,
-    "checkedWithEvidenceGaps": 58,
+    "candidateComplete": 56,
+    "checkedWithEvidenceGaps": 57,
     "partial": 38,
     "notStarted": 3
   },
@@ -1867,6 +1867,7 @@
         "client": [
           "frontend/src/pages/SavingsDashboard.test.tsx",
           "frontend/src/pages/SavingsDashboard.tsx",
+          "frontend/src/pages/SavingsWithdrawals.tsx",
           "frontend/src/services/savingsAPI.ts"
         ],
         "tests": [
@@ -1960,7 +1961,8 @@
           "backend/src/controllers/savingsController.ts"
         ],
         "client": [
-          "frontend/src/pages/SavingsAccruals.tsx"
+          "frontend/src/pages/SavingsAccruals.tsx",
+          "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-savings-accrual-posting.sql",
@@ -2350,6 +2352,7 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
+          "frontend/src/pages/SavingsWithdrawals.tsx",
           "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx",
           "frontend/src/pages/CreditProducts.tsx",
           "frontend/src/pages/SavingsDashboard.test.tsx"
@@ -2547,6 +2550,7 @@
         "client": [
           "frontend/src/pages/CreditProducts.tsx",
           "frontend/src/pages/SavingsDashboard.tsx",
+          "frontend/src/pages/SavingsWithdrawals.tsx",
           "mobile/src/store/__tests__/cartStore.test.ts"
         ],
         "tests": [
@@ -2601,7 +2605,8 @@
           "backend/tests/schema/test-booking-reversal-recovery.sql"
         ],
         "operations": [
-          "docs/runbooks/LOAN_REPAYMENT_REVERSALS.md"
+          "docs/runbooks/LOAN_REPAYMENT_REVERSALS.md",
+          "docs/runbooks/SAVINGS_WITHDRAWALS.md"
         ]
       }
     },
@@ -2778,6 +2783,7 @@
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
+          "frontend/src/pages/SavingsWithdrawals.tsx",
           "frontend/src/pages/CreditProducts.tsx",
           "frontend/src/pages/Dashboard.tsx",
           "frontend/src/pages/SavingsDashboard.tsx"
@@ -2952,12 +2958,12 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-05 immutable fixed-price unit allocation after non-oversubscribed offers close; defer governed oversubscription, valuation, and redemption.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -2979,7 +2985,9 @@
           "backend/src/controllers/investmentProductController.ts",
           "backend/src/controllers/loanProductController.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/pages/SavingsWithdrawals.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-investment-fixed-unit-allocation.sql",
           "backend/src/tests/investmentProductService.test.ts",
@@ -4725,6 +4733,7 @@
         "client": [
           "frontend/src/pages/GroupAdminDashboard.tsx",
           "frontend/src/components/bookings/__tests__/CancellationPolicyNotice.test.tsx",
+          "frontend/src/pages/SavingsWithdrawals.tsx",
           "frontend/src/pages/SuspendedAccountRecovery.tsx"
         ],
         "tests": [
@@ -5096,10 +5105,10 @@
           "backend/src/routes/credit.ts"
         ],
         "client": [
+          "frontend/src/pages/SavingsWithdrawals.tsx",
           "frontend/src/components/groups/GroupDisciplineCaseForm.tsx",
           "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx",
-          "frontend/src/pages/CreditProducts.tsx",
-          "frontend/src/pages/SavingsDashboard.tsx"
+          "frontend/src/pages/CreditProducts.tsx"
         ],
         "tests": [
           "backend/src/tests/groupProjectContract.test.ts",
@@ -5150,7 +5159,8 @@
         ],
         "client": [
           "frontend/src/App.tsx",
-          "frontend/src/pages/BudgetVsActual.tsx"
+          "frontend/src/pages/BudgetVsActual.tsx",
+          "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
           "backend/src/tests/groupProjectBudgetContract.test.ts",
@@ -5418,7 +5428,8 @@
         "api": [],
         "client": [
           "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx",
-          "frontend/src/pages/AdminRetentionDryRuns.test.tsx"
+          "frontend/src/pages/AdminRetentionDryRuns.test.tsx",
+          "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
           "backend/src/tests/groupDocumentVersioningContract.test.ts",
@@ -5518,7 +5529,8 @@
           "backend/src/controllers/groupContributionController.ts"
         ],
         "client": [
-          "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx"
+          "frontend/src/pages/__tests__/GroupAdmissionPayment.test.tsx",
+          "frontend/src/pages/SavingsWithdrawals.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-group-shared-assets.sql",
