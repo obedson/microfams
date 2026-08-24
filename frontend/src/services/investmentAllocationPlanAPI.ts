@@ -1,0 +1,1 @@
+import{apiClient}from'../api/client';export const investmentAllocationPlanAPI={recognize:async(planId:string,body:Record<string,unknown>)=>(await apiClient.post('/investments/allocation-plans/'+planId+'/refund-obligations',body)).data};
