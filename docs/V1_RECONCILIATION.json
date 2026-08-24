@@ -3635,6 +3635,7 @@
           "backend/src/routes/groupAdmin.ts"
         ],
         "client": [
+          "frontend/src/pages/BookingDispute.tsx",
           "frontend/src/pages/BookingRecovery.tsx"
         ],
         "tests": [
@@ -3783,8 +3784,8 @@
         "client": [
           "frontend/src/components/bookings/__tests__/ReservationConfirmation.test.tsx",
           "frontend/src/components/bookings/ReservationConfirmation.tsx",
-          "frontend/src/components/analytics/__tests__/PendingPayments.properties.test.tsx",
-          "frontend/src/components/BookingForm.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/components/analytics/__tests__/PendingPayments.properties.test.tsx"
         ],
         "tests": [
           "backend/src/tests/bookingReservationService.test.ts",
@@ -3877,9 +3878,9 @@
         ],
         "client": [
           "frontend/src/App.tsx",
+          "frontend/src/pages/BookingDispute.tsx",
           "frontend/src/pages/BookingRecovery.tsx",
-          "frontend/src/.backup/OwnerBookings_OLD.tsx",
-          "frontend/src/components/bookings/__tests__/BookingLifecycleActions.test.tsx"
+          "frontend/src/.backup/OwnerBookings_OLD.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-supplier-payout.sql",
@@ -4380,6 +4381,7 @@
           "backend/src/controllers/accountingCashFlowController.ts"
         ],
         "client": [
+          "frontend/src/pages/BookingDispute.tsx",
           "frontend/src/pages/SavingsProviderCertification.tsx"
         ],
         "tests": [
@@ -6959,10 +6961,10 @@
           "backend/src/controllers/bookingSettlementController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/components/marketplace/ProductRecommendations.tsx",
           "frontend/src/pages/MyOrders.tsx",
-          "frontend/src/pages/MySales.tsx",
-          "frontend/src/pages/ProductDetail.tsx"
+          "frontend/src/pages/MySales.tsx"
         ],
         "tests": [
           "backend/src/tests/bookingDisputeApi.test.ts",
