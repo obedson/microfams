@@ -6895,6 +6895,7 @@
         ],
         "implementation": [
           "backend/migrations/create_farm_records.sql",
+          "backend/src/services/agronomicRecommendationService.ts",
           "backend/src/services/farmRecordService.ts",
           "backend/src/services/reportingPolicy.ts"
         ],
@@ -7099,8 +7100,8 @@
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "missing",
-        "tests": "missing",
-        "operations": "missing"
+        "tests": "evidence_found",
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -7109,14 +7110,19 @@
           ".kiro/specs/farmle-platform-enhancement/tasks.md"
         ],
         "implementation": [
+          "backend/src/services/agronomicRecommendationService.ts",
           "backend/src/services/farmRecordService.ts"
         ],
         "api": [
           "backend/src/routes/farmRecords.ts"
         ],
         "client": [],
-        "tests": [],
-        "operations": []
+        "tests": [
+          "backend/src/tests/agronomicRecommendationService.test.ts"
+        ],
+        "operations": [
+          "docs/runbooks/AGRONOMIC_RECOMMENDATIONS.md"
+        ]
       }
     },
     {
