@@ -68,7 +68,7 @@
         "api": "not_required",
         "client": "not_required",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -100,7 +100,9 @@
           "backend/src/tests/committeeRules.test.ts",
           "backend/src/tests/cors.test.ts"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
+        ]
       }
     },
     {
@@ -184,7 +186,8 @@
         ],
         "tests": [],
         "operations": [
-          "docs/runbooks/BACKEND_DEPENDENCY_AUDIT.md"
+          "docs/runbooks/BACKEND_DEPENDENCY_AUDIT.md",
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
         ]
       }
     },
@@ -381,6 +384,7 @@
         ],
         "operations": [
           "docs/CREDENTIALS_SETUP.md",
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
           "docs/runbooks/DEPLOYMENT_CONFIGURATION.md"
         ]
       }
@@ -7316,8 +7320,8 @@
         ],
         "operations": [
           "docs/runbooks/PAYOUT_ORCHESTRATION.md",
-          "docs/runbooks/INBOUND_PAYMENTS.md",
-          "docs/runbooks/PLATFORM_ADMINISTRATION.md"
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
+          "docs/runbooks/INBOUND_PAYMENTS.md"
         ]
       }
     },
@@ -7352,6 +7356,7 @@
         "client": [],
         "tests": [],
         "operations": [
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
           "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
         ]
       }
