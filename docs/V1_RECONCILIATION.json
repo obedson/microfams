@@ -276,7 +276,7 @@
           "frontend/src/pages/SavingsProviderCertification.test.tsx",
           "frontend/src/services/farmRecordAPI.ts",
           "frontend/src/App.tsx",
-          "frontend/src/components/farm-records/FarmRecommendations.tsx"
+          "frontend/src/components/farm-records/FarmRecommendations.test.tsx"
         ],
         "tests": [
           "backend/src/tests/featureFlagService.test.ts",
@@ -325,10 +325,10 @@
           "backend/src/controllers/bookingRecoveryController.ts"
         ],
         "client": [
+          "frontend/src/components/farm-records/FarmRecommendations.test.tsx",
           "frontend/src/components/farm-records/FarmRecommendations.tsx",
           "frontend/src/pages/AdminRetentionDryRuns.tsx",
-          "frontend/src/pages/BecomeAMember.tsx",
-          "frontend/src/pages/BookingDisputeResolution.tsx"
+          "frontend/src/pages/BecomeAMember.tsx"
         ],
         "tests": [
           "backend/src/tests/savingsProviderCertificationApi.test.ts",
@@ -7118,11 +7118,13 @@
           "backend/src/routes/farmRecords.ts"
         ],
         "client": [
+          "frontend/src/components/farm-records/FarmRecommendations.test.tsx",
           "frontend/src/components/farm-records/FarmRecommendations.tsx",
           "frontend/src/services/farmRecordAPI.ts"
         ],
         "tests": [
-          "backend/src/tests/agronomicRecommendationService.test.ts"
+          "backend/src/tests/agronomicRecommendationService.test.ts",
+          "frontend/src/components/farm-records/FarmRecommendations.test.tsx"
         ],
         "operations": [
           "docs/runbooks/AGRONOMIC_RECOMMENDATIONS.md"
