@@ -7197,7 +7197,7 @@
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
-        "api": "missing",
+        "api": "evidence_found",
         "client": "missing",
         "tests": "missing",
         "operations": "evidence_found"
@@ -7210,12 +7210,16 @@
           ".kiro/specs/farmle-platform-enhancement/tasks.md"
         ],
         "implementation": [
+          "backend/migrations/install_institutional_programme_foundation.sql",
           "backend/migrations/create_feature_flags.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/routes/programmes.ts"
+        ],
         "client": [],
         "tests": [],
         "operations": [
+          "docs/runbooks/INSTITUTIONAL_PROGRAMMES.md",
           "docs/CREDENTIALS_SETUP.md"
         ]
       }
