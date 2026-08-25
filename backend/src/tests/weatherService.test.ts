@@ -1,0 +1,3 @@
+import { DeterministicWeatherAdapter, WeatherService } from '../domains/intelligence/weatherService.js';
+test('returns provider-neutral deterministic weather evidence', async()=>{const r=await new WeatherService(new DeterministicWeatherAdapter()).forecast({latitude:6.52,longitude:3.37,at:'2026-08-25T00:00:00.000Z'});expect(r).toMatchObject({provider:'deterministic-test',condition:'clear',observedAt:'2026-08-25T00:00:00.000Z',location:{latitude:6.52,longitude:3.37}});});
+test('rejects invalid coordinates', async()=>{await expect(new WeatherService().forecast({latitude:91,longitude:0})).rejects.toThrow('WEATHER_LOCATION_INVALID');});
