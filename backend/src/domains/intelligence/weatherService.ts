@@ -1,0 +1,6 @@
+export type WeatherQuery = { latitude: number; longitude: number; at?: string };
+export type WeatherResult = { provider: string; observedAt: string; location: { latitude: number; longitude: number }; temperatureC: number; rainfallMm: number; condition: string; confidence: number };
+export interface WeatherAdapter { forecast(query: WeatherQuery): Promise<WeatherResult>; }
+export class DeterministicWeatherAdapter implements WeatherAdapter { async forecast(query: WeatherQuery): Promise<WeatherResult> { return { provider: 'deterministic-test', observedAt: query.at ?? new Date().toISOString(), location: { latitude: query.latitude, longitude: query.longitude }, temperatureC: 27, rainfallMm: 0, condition: 'clear', confidence: 0.5 }; } }
+export class WeatherService { constructor(private readonly adapter: WeatherAdapter = new DeterministicWeatherAdapter()) {} forecast(query: WeatherQuery) { if (!Number.isFinite(query.latitude) || query.latitude < -90 || query.latitude > 90 || !Number.isFinite(query.longitude) || query.longitude < -180 || query.longitude > 180) throw new Error('WEATHER_LOCATION_INVALID'); return this.adapter.forecast(query); } }
+export const weatherService = new WeatherService();
