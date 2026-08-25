@@ -71,6 +71,7 @@ import BookingDispute from "./pages/BookingDispute";
 import BookingRecovery from "./pages/BookingRecovery";
 import InvestmentRefundRecognition from "./pages/InvestmentRefundRecognition";
 import CreditRepaymentReversals from "./pages/CreditRepaymentReversals";
+import EscrowContracts from './pages/EscrowContracts';
 
 function App() {
   return (
@@ -132,6 +133,7 @@ function App() {
         <Route path="/bookings/recovery" element={<ProtectedRoute><BookingRecovery /></ProtectedRoute>} />
         <Route path="/investments/refund-obligations" element={<ProtectedRoute><InvestmentRefundRecognition /></ProtectedRoute>} />
         <Route path="/credit/repayment-reversals" element={<ProtectedRoute><CreditRepaymentReversals /></ProtectedRoute>} />
+        <Route path="/escrow/contracts" element={<ProtectedRoute><EscrowContracts /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
         <Route path="/verify-nin" element={<ProtectedRoute><VerifyNIN /></ProtectedRoute>} />
         <Route path="/become-a-member" element={<ProtectedRoute><BecomeAMember /></ProtectedRoute>} />

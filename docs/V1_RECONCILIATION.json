@@ -807,6 +807,7 @@
           "backend/src/controllers/profileController.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/BecomeAMember.tsx",
           "frontend/src/pages/VerifyNIN.tsx",
           "frontend/src/services/profileAPI.ts"
@@ -1391,9 +1392,9 @@
         ],
         "client": [
           "frontend/src/pages/CreditRepaymentReversals.tsx",
+          "frontend/src/App.tsx",
           "frontend/src/pages/BookingRecovery.tsx",
-          "frontend/src/pages/CreditRepaymentReversals.test.tsx",
-          "frontend/src/pages/MyBookings.tsx"
+          "frontend/src/pages/CreditRepaymentReversals.test.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-reversal-recovery.sql",
@@ -3441,7 +3442,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "missing"
       },
@@ -3463,7 +3464,9 @@
           "backend/src/routes/admin.ts",
           "backend/src/routes/bookings.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/App.tsx"
+        ],
         "tests": [
           "backend/tests/schema/test-escrow-partial-release.sql",
           "backend/tests/schema/test-booking-dispute-resolution.sql",
@@ -3933,10 +3936,10 @@
           "backend/src/routes/credit.ts"
         ],
         "client": [
+          "frontend/src/App.tsx",
           "frontend/src/pages/BookingRecovery.tsx",
           "frontend/src/pages/CreditRepaymentReversals.tsx",
-          "frontend/src/pages/SavingsProviderCertification.tsx",
-          "frontend/src/services/creditRepaymentReversalAPI.ts"
+          "frontend/src/pages/SavingsProviderCertification.tsx"
         ],
         "tests": [
           "backend/tests/schema/test-booking-settlement-foundation.sql",
