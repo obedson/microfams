@@ -7081,7 +7081,8 @@
         "api": [],
         "client": [],
         "tests": [
-          "backend/src/tests/paymentOrchestration.test.ts"
+          "backend/src/tests/paymentOrchestration.test.ts",
+          "backend/src/tests/weatherService.test.ts"
         ],
         "operations": [
           "docs/CREDENTIALS_SETUP.md"
