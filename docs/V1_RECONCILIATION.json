@@ -276,7 +276,7 @@
           "frontend/src/pages/SavingsProviderCertification.test.tsx",
           "frontend/src/services/farmRecordAPI.ts",
           "frontend/src/App.tsx",
-          "frontend/src/components/groups/GroupDisciplineCaseForm.tsx"
+          "frontend/src/components/farm-records/FarmRecommendations.test.tsx"
         ],
         "tests": [
           "backend/src/tests/featureFlagService.test.ts",
@@ -325,10 +325,10 @@
           "backend/src/controllers/bookingRecoveryController.ts"
         ],
         "client": [
+          "frontend/src/components/farm-records/FarmRecommendations.test.tsx",
+          "frontend/src/components/farm-records/FarmRecommendations.tsx",
           "frontend/src/pages/AdminRetentionDryRuns.tsx",
-          "frontend/src/pages/BecomeAMember.tsx",
-          "frontend/src/pages/BookingDisputeResolution.tsx",
-          "frontend/src/pages/BookingRecovery.tsx"
+          "frontend/src/pages/BecomeAMember.tsx"
         ],
         "tests": [
           "backend/src/tests/savingsProviderCertificationApi.test.ts",
@@ -1445,7 +1445,8 @@
           "backend/src/controllers/savingsController.ts"
         ],
         "client": [
-          "frontend/src/pages/SavingsProviderCertification.tsx"
+          "frontend/src/pages/SavingsProviderCertification.tsx",
+          "frontend/src/services/farmRecordAPI.ts"
         ],
         "tests": [
           "backend/tests/schema/test-payment-reconciliation.sql",
@@ -7099,7 +7100,7 @@
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
-        "client": "missing",
+        "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
       },
@@ -7116,9 +7117,14 @@
         "api": [
           "backend/src/routes/farmRecords.ts"
         ],
-        "client": [],
+        "client": [
+          "frontend/src/components/farm-records/FarmRecommendations.test.tsx",
+          "frontend/src/components/farm-records/FarmRecommendations.tsx",
+          "frontend/src/services/farmRecordAPI.ts"
+        ],
         "tests": [
-          "backend/src/tests/agronomicRecommendationService.test.ts"
+          "backend/src/tests/agronomicRecommendationService.test.ts",
+          "frontend/src/components/farm-records/FarmRecommendations.test.tsx"
         ],
         "operations": [
           "docs/runbooks/AGRONOMIC_RECOMMENDATIONS.md"

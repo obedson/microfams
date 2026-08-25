@@ -6,6 +6,9 @@ interface FarmRecommendation {
   type: 'warning' | 'info' | 'onboarding';
   title: string;
   message: string;
+  ruleId: string;
+  confidence: number;
+  provenance: { source: 'farm_records'; recordIds: string[]; generatedAt: string };
 }
 
 interface ProductivityReport {
