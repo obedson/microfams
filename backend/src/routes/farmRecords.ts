@@ -11,6 +11,7 @@ import {
 } from '../controllers/farmRecordController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { resolveTenant } from '../middleware/tenant.js';
+import { requireFeature } from '../middleware/requireFeature.js';
 
 const router = Router();
 
@@ -19,7 +20,7 @@ router.get('/', getMyRecords);
 router.post('/', createRecord);
 router.get('/my-records', getMyRecords);
 router.get('/analytics', getAnalytics);
-router.get('/recommendations', getFarmerRecommendations);
+router.get('/recommendations', requireFeature('intelligence.agronomic_recommendations'), getFarmerRecommendations);
 router.put('/:id', updateRecord);
 router.delete('/:id', deleteRecord);
 router.patch('/:id/link-booking', linkToBooking);

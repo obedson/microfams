@@ -77,6 +77,7 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('institutional.government_dashboard', 'institutional', 'Expose programme dashboards to authorized government tenants.'),
   flag('institutional.ngo_dashboard', 'institutional', 'Expose programme dashboards to authorized NGO tenants.'),
   flag('farm_erp.operations', 'farm_erp', 'Enable full farm planning, inventory, labour, production, and cost workflows.'),
+  flag('intelligence.agronomic_recommendations', 'intelligence', 'Generate tenant-scoped agronomic recommendations with provenance and confidence.', { risk: 'standard' }),
 ] as const;
 
 export const FEATURE_FLAGS = new Map(FEATURE_FLAG_CATALOG.map((definition) => [definition.key, definition]));

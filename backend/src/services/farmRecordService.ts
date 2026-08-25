@@ -1,3 +1,4 @@
+import { buildAgronomicRecommendations } from './agronomicRecommendationService.js';
 import { supabase } from '../utils/supabase.js';
 import { logger } from '../utils/logger.js';
 
@@ -109,51 +110,9 @@ export class FarmRecordService {
    */
   static async getRecommendations(farmerId: string, organizationId: string) {
     try {
-      const { data: records, error } = await supabase
-        .from('farm_records')
-        .select('*')
-        .eq('farmer_id', farmerId)
-        .eq('organization_id', organizationId)
-        .order('record_date', { ascending: false })
-        .limit(20);
-
+      const { data: records, error } = await supabase.from('farm_records').select('id,record_date,livestock_count,mortality_count,expenses').eq('farmer_id', farmerId).eq('organization_id', organizationId).order('record_date', { ascending: false }).limit(20);
       if (error) throw error;
-
-      const recommendations = [];
-
-      if (!records || records.length === 0) {
-        recommendations.push({
-          type: 'onboarding',
-          title: 'Start Tracking',
-          message: 'Begin logging your livestock activities to receive data-driven insights.'
-        });
-        return recommendations;
-      }
-
-      // Check mortality rates
-      const totalLivestock = records.reduce((sum, r) => sum + (r.livestock_count || 0), 0);
-      const totalMortality = records.reduce((sum, r) => sum + (r.mortality_count || 0), 0);
-      const mortalityRate = totalLivestock > 0 ? (totalMortality / totalLivestock) * 100 : 0;
-
-      if (mortalityRate > 5) {
-        recommendations.push({
-          type: 'warning',
-          title: 'High Mortality Rate Detected',
-          message: `Your current mortality rate is ${mortalityRate.toFixed(1)}%. We recommend checking your health protocols or consulting a specialist.`
-        });
-      }
-
-      // Check expenses
-      const totalExpenses = records.reduce((sum, r) => sum + (r.expenses || 0), 0);
-      if (totalExpenses > 100000) { // Arbitrary threshold
-        recommendations.push({
-          type: 'info',
-          title: 'Expense Optimization',
-          message: 'Your farm expenses are growing. Check the marketplace for bulk feed discounts to reduce costs.'
-        });
-      }
-
-      return recommendations;
+      return buildAgronomicRecommendations(records ?? []);
     } catch (error) {
       logger.error('Error getting farm recommendations:', error);
       return [];

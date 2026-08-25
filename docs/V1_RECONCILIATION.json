@@ -6,8 +6,8 @@
     "checked": 113,
     "candidateComplete": 66,
     "checkedWithEvidenceGaps": 47,
-    "partial": 38,
-    "notStarted": 3
+    "partial": 39,
+    "notStarted": 2
   },
   "items": [
     {
@@ -6895,6 +6895,7 @@
         ],
         "implementation": [
           "backend/migrations/create_farm_records.sql",
+          "backend/src/services/agronomicRecommendationService.ts",
           "backend/src/services/farmRecordService.ts",
           "backend/src/services/reportingPolicy.ts"
         ],
@@ -7093,14 +7094,14 @@
       "depth": 0,
       "workPlanChecked": false,
       "item": "Agronomic recommendations with provenance and confidence.",
-      "status": "not_started",
+      "status": "partial",
       "layers": {
         "specification": "evidence_found",
-        "implementation": "missing",
-        "api": "missing",
+        "implementation": "evidence_found",
+        "api": "evidence_found",
         "client": "missing",
-        "tests": "missing",
-        "operations": "missing"
+        "tests": "evidence_found",
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -7108,11 +7109,20 @@
           ".kiro/specs/farmle-platform-enhancement/requirements.md",
           ".kiro/specs/farmle-platform-enhancement/tasks.md"
         ],
-        "implementation": [],
-        "api": [],
+        "implementation": [
+          "backend/src/services/agronomicRecommendationService.ts",
+          "backend/src/services/farmRecordService.ts"
+        ],
+        "api": [
+          "backend/src/routes/farmRecords.ts"
+        ],
         "client": [],
-        "tests": [],
-        "operations": []
+        "tests": [
+          "backend/src/tests/agronomicRecommendationService.test.ts"
+        ],
+        "operations": [
+          "docs/runbooks/AGRONOMIC_RECOMMENDATIONS.md"
+        ]
       }
     },
     {
