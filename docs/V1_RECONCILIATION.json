@@ -504,7 +504,7 @@
         "api": "evidence_found",
         "client": "not_required",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -532,7 +532,9 @@
           "backend/src/tests/loanProductApiContract.test.ts",
           "backend/src/tests/loanRepaymentApiContract.test.ts"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/TENANT_ISOLATION.md"
+        ]
       }
     },
     {
@@ -718,7 +720,7 @@
           "backend/src/tests/loanRepaymentReversalService.test.ts"
         ],
         "operations": [
-          "docs/CREDENTIALS_SETUP.md"
+          "docs/runbooks/TENANT_ISOLATION.md"
         ]
       }
     },
