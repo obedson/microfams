@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS inventory_items (
   unit TEXT NOT NULL CHECK (length(trim(unit)) > 0),
   quantity_minor BIGINT NOT NULL DEFAULT 0 CHECK (quantity_minor >= 0),
   reorder_level_minor BIGINT NOT NULL DEFAULT 0 CHECK (reorder_level_minor >= 0),
-  metadata JSONB NOT NULL DEFAULT ''{}''::jsonb,
+  metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE (organization_id, sku)
