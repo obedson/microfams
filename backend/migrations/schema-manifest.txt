@@ -160,3 +160,5 @@ install_escrow_dispute_resolution.sql
 install_tenant_scoped_booking_analytics.sql
 
 install_inventory_foundation.sql
+
+install_institutional_programme_foundation.sql

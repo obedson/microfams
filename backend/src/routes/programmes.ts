@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { authenticateToken } from '../middleware/auth.js';
+import { resolveTenant, requireTenantRole } from '../middleware/tenant.js';
+import { requireFeature } from '../middleware/requireFeature.js';
+import { programmeController } from '../controllers/programmeController.js';
+const router = Router();
+router.use(authenticateToken, resolveTenant, requireFeature('institutional.government_dashboard'));
+router.get('/', programmeController.list);
+router.post('/', requireTenantRole(['owner', 'admin', 'program_manager']), programmeController.create);
+export default router;
