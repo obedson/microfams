@@ -6927,7 +6927,7 @@
         "api": "missing",
         "client": "missing",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -6950,7 +6950,9 @@
           "backend/tests/schema/test-loan-delinquency-servicing.sql",
           "backend/tests/schema/test-loan-disbursement-orchestration.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/INVENTORY_FOUNDATION.md"
+        ]
       }
     },
     {
