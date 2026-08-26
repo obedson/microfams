@@ -6885,7 +6885,7 @@
         "api": "evidence_found",
         "client": "not_required",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -6912,7 +6912,9 @@
         "tests": [
           "frontend/e2e/farm-records.spec.ts"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/FARM_RECORDS_OPERATIONS.md"
+        ]
       }
     },
     {
@@ -7363,7 +7365,7 @@
         "operations": [
           "docs/runbooks/PAYOUT_ORCHESTRATION.md",
           "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
-          "docs/runbooks/INBOUND_PAYMENTS.md"
+          "docs/runbooks/FARM_RECORDS_OPERATIONS.md"
         ]
       }
     },
