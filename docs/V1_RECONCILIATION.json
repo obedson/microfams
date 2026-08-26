@@ -337,6 +337,7 @@
           "backend/src/tests/bookingSettlementApi.test.ts"
         ],
         "operations": [
+          "docs/runbooks/INTELLIGENCE_ADAPTER_OPERATIONS.md",
           "docs/runbooks/SUSPENDED_ACCOUNT_RECOVERY.md"
         ]
       }
@@ -7071,7 +7072,7 @@
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
-        "api": "missing",
+        "api": "evidence_found",
         "client": "not_required",
         "tests": "evidence_found",
         "operations": "evidence_found"
@@ -7085,16 +7086,22 @@
         ],
         "implementation": [
           "backend/migrations/create_feature_flags.sql",
+          "backend/src/domains/intelligence/satelliteService.ts",
           "backend/src/services/bookingSupplierPayoutService.ts"
         ],
-        "api": [],
+        "api": [
+          "backend/src/controllers/intelligenceController.ts",
+          "backend/src/routes/intelligence.ts"
+        ],
         "client": [],
         "tests": [
+          "backend/src/tests/intelligenceAdapter.test.ts",
           "backend/src/tests/paymentOrchestration.test.ts",
           "backend/src/tests/v1PerformanceSmoke.test.ts",
           "backend/src/tests/weatherService.test.ts"
         ],
         "operations": [
+          "docs/runbooks/INTELLIGENCE_ADAPTER_OPERATIONS.md",
           "docs/CREDENTIALS_SETUP.md"
         ]
       }
@@ -7123,6 +7130,8 @@
         ],
         "implementation": [
           "backend/src/services/agronomicRecommendationService.ts",
+          "backend/src/domains/intelligence/mappingService.ts",
+          "backend/src/domains/intelligence/satelliteService.ts",
           "backend/src/services/farmRecordService.ts"
         ],
         "api": [
