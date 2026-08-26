@@ -7026,7 +7026,7 @@
         "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -7055,7 +7055,9 @@
         "tests": [
           "backend/tests/schema/test-education-tenancy.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/EDUCATION_OPERATIONS.md"
+        ]
       }
     },
     {
