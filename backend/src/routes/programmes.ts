@@ -7,4 +7,6 @@ const router = Router();
 router.use(authenticateToken, resolveTenant, requireFeature('institutional.government_dashboard'));
 router.get('/', programmeController.list);
 router.post('/', requireTenantRole(['owner', 'admin', 'program_manager']), programmeController.create);
+router.post('/:id/cohorts', requireTenantRole(['owner', 'admin', 'program_manager']), programmeController.createCohort);
+router.post('/:id/benefits', requireTenantRole(['owner', 'admin', 'program_manager']), programmeController.createBenefit);
 export default router;
