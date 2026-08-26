@@ -279,10 +279,10 @@
           "frontend/src/components/farm-records/FarmRecommendations.test.tsx"
         ],
         "tests": [
+          "backend/src/tests/featureFlagMatrix.test.ts",
           "backend/src/tests/featureFlagService.test.ts",
           "backend/src/tests/savingsProviderCertificationApi.test.ts",
-          "backend/tests/schema/test-booking-settlement-foundation.sql",
-          "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql"
+          "backend/tests/schema/test-booking-settlement-foundation.sql"
         ],
         "operations": [
           "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
@@ -7284,7 +7284,7 @@
         "api": "not_required",
         "client": "not_required",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -7309,10 +7309,12 @@
           "frontend/src/components/ui/MFASetup.tsx"
         ],
         "tests": [
-          "backend/src/tests/featureFlagService.test.ts",
-          "backend/src/tests/financialLedgerService.test.ts"
+          "backend/src/tests/featureFlagMatrix.test.ts",
+          "backend/src/tests/featureFlagService.test.ts"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/FEATURE_FLAG_MATRIX.md"
+        ]
       }
     },
     {
