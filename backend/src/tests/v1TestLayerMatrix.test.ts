@@ -1,0 +1,2 @@
+import matrix from '../../../docs/V1_TEST_LAYER_MATRIX.json';
+describe('V1 test-layer evidence',()=>{it('tracks required layers and missing evidence',()=>{const required=['unit','integration','api','component','e2e','security','performance','accessibility','recovery','reconciliation'];expect(matrix.layers.map(layer=>layer.layer).sort()).toEqual(required.sort());for(const layer of matrix.layers){if(layer.status==='present')expect(layer.evidence).toEqual(expect.any(String));else expect(layer.evidence).toBeNull();}expect(matrix.decision).toBe('partial');});});
