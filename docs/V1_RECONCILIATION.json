@@ -7224,7 +7224,8 @@
           "backend/migrations/create_feature_flags.sql"
         ],
         "api": [
-          "backend/src/routes/programmes.ts"
+          "backend/src/routes/programmes.ts",
+          "backend/src/controllers/programmeController.ts"
         ],
         "client": [],
         "tests": [],
