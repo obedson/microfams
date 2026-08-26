@@ -19,6 +19,7 @@ import MySales from './pages/MySales';
 import MyMarketplaceProducts from './pages/MyMarketplaceProducts';
 import OwnerBookings from './pages/OwnerBookings';
 import FarmRecords from './pages/FarmRecords';
+import Inventory from './pages/Inventory';
 import Courses from './pages/Courses';
 import CourseDetail from './pages/CourseDetail';
 import AddCourse from './pages/AddCourse';
@@ -113,6 +114,7 @@ function App() {
         <Route path="/my-marketplace-products" element={<ProtectedRoute><MyMarketplaceProducts /></ProtectedRoute>} />
         <Route path="/owner/bookings" element={<ProtectedRoute><OwnerBookings /></ProtectedRoute>} />
         <Route path="/farm-records" element={<ProtectedRoute><FarmRecords /></ProtectedRoute>} />
+        <Route path="/inventory" element={<ProtectedRoute><Inventory /></ProtectedRoute>} />
         <Route path="/referrals" element={<ProtectedRoute><ReferralDashboard /></ProtectedRoute>} />
         <Route path="/wallet" element={<ProtectedRoute><Wallet /></ProtectedRoute>} />
         <Route path="/savings" element={<ProtectedRoute><SavingsDashboard /></ProtectedRoute>} />
