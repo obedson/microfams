@@ -1566,7 +1566,7 @@
         "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -1594,12 +1594,14 @@
           "frontend/src/pages/InvestmentRefundRecognition.test.tsx"
         ],
         "tests": [
+          "backend/src/tests/financialAccountPurposeContract.test.ts",
           "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql",
           "backend/tests/schema/test-investment-refund-obligations.sql",
-          "backend/tests/schema/test-investment-refund-provider-submission.sql",
-          "backend/tests/schema/test-booking-settlement-foundation.sql"
+          "backend/tests/schema/test-investment-refund-provider-submission.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/FINANCIAL_ACCOUNT_PROVISIONING.md"
+        ]
       }
     },
     {
@@ -1643,8 +1645,8 @@
         "tests": [
           "backend/tests/schema/test-financial-account-provisioning.sql",
           "backend/tests/schema/test-savings-product-foundation.sql",
-          "backend/src/tests/financialAccountService.test.ts",
-          "backend/tests/schema/test-loan-delinquency-servicing.sql"
+          "backend/src/tests/financialAccountPurposeContract.test.ts",
+          "backend/src/tests/financialAccountService.test.ts"
         ],
         "operations": [
           "docs/runbooks/FINANCIAL_ACCOUNT_PROVISIONING.md"
