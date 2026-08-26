@@ -7084,6 +7084,7 @@
         "client": [],
         "tests": [
           "backend/src/tests/paymentOrchestration.test.ts",
+          "backend/src/tests/v1PerformanceSmoke.test.ts",
           "backend/src/tests/weatherService.test.ts"
         ],
         "operations": [
@@ -7178,8 +7179,8 @@
         "tests": [
           "backend/src/tests/assistantService.test.ts",
           "backend/src/tests/groupTenantApi.test.ts",
-          "backend/src/tests/wallet-integration.test.ts",
-          "backend/tests/schema/test-booking-recovery-servicing.sql"
+          "backend/src/tests/v1PerformanceSmoke.test.ts",
+          "backend/src/tests/wallet-integration.test.ts"
         ],
         "operations": [
           "docs/runbooks/AI_ASSISTANT.md",
