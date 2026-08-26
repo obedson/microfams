@@ -22,3 +22,23 @@ Never reopen a resolved exception or alter an original posted journal. Correctio
 ## Evidence and monitoring
 
 Attach the reconciliation run ID, exception ID, source evidence reference, investigation reason, resolution request ID, approval decision, and compensating journal ID where applicable. Alert on repeated investigation failures, idempotency conflicts, cross-tenant denials, invalid journal references, rejected approvals, and exceptions that remain investigating beyond the support target.
+## Verification commands
+
+Run from the Codespace before enabling manual investigation or resolution commands:
+
+```bash
+npm --prefix backend run test:schema
+npm --prefix backend test -- --runInBand src/tests/reconciliationService.test.ts
+node scripts/reconcile-v1.mjs --check
+```
+
+Record the tested commit, CI run, tenant/environment, open/investigating/resolved counts, and any unexplained variance.
+
+## Disable and incident recovery checklist
+
+1. Disable new manual reconciliation investigation/resolution commands through the applicable backend feature flag or deployment route control.
+2. Keep read access, provider imports, immutable source evidence, journals, and existing exception history available.
+3. Preserve the first investigation actor/reason and every pending approval; never reset state or delete a failed request.
+4. Correct the service or database function through a reviewed forward change. Use a compensating journal for financial correction.
+5. Re-run schema, idempotency, tenant-isolation, maker-checker, and reconciliation tests.
+6. Reconcile to zero unexplained variance or retain documented open exceptions before re-enabling commands.
