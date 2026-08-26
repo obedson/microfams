@@ -72,6 +72,7 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('trust.retention.execute', 'trust', 'Reserved destructive retention switch; no execution workflow is available.', { risk: 'regulated' }),
   flag('integration.sms', 'communications', 'Send messages through the configured SMS provider.', { risk: 'provider' }),
   flag('integration.weather', 'intelligence', 'Retrieve provider weather observations and forecasts.', { risk: 'provider' }),
+  flag('integration.mapping', 'intelligence', 'Retrieve provider-neutral map and geocoding data.', { risk: 'provider' }),
   flag('integration.satellite', 'intelligence', 'Retrieve and process satellite imagery.', { risk: 'provider' }),
   flag('integration.ai_assistant', 'intelligence', 'Use the configured AI provider for assisted workflows.', { risk: 'provider' }),
   flag('institutional.government_dashboard', 'institutional', 'Expose programme dashboards to authorized government tenants.'),
