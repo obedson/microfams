@@ -96,9 +96,9 @@
           "frontend/src/components/ui/MFASetup.tsx"
         ],
         "tests": [
+          "backend/src/tests/v1TestLayerMatrix.test.ts",
           "backend/src/tests/booking-api-integration.test.ts",
-          "backend/src/tests/committeeRules.test.ts",
-          "backend/src/tests/cors.test.ts"
+          "backend/src/tests/committeeRules.test.ts"
         ],
         "operations": [
           "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
@@ -7262,10 +7262,10 @@
           "frontend/src/components/communication/__tests__/MessageButton.properties.test.tsx"
         ],
         "tests": [
+          "backend/src/tests/v1TestLayerMatrix.test.ts",
           "backend/src/tests/booking-api-integration.test.ts",
           "backend/src/tests/savingsProductService.test.ts",
-          "backend/tests/schema/test-booking-recovery-servicing.sql",
-          "backend/tests/schema/test-investment-refund-provider-submission.sql"
+          "backend/tests/schema/test-booking-recovery-servicing.sql"
         ],
         "operations": []
       }
