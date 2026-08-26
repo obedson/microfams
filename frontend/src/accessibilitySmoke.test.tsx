@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { MemoryRouter } from 'react-router-dom';
-import Login from '../pages/Login';
+import Login from './pages/Login';
 
 describe('V1 accessibility smoke', () => {
   it('exposes labelled authentication controls and a submit action', () => {
