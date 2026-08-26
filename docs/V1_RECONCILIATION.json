@@ -7208,7 +7208,7 @@
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "missing",
-        "tests": "missing",
+        "tests": "evidence_found",
         "operations": "evidence_found"
       },
       "evidence": {
@@ -7228,7 +7228,9 @@
           "backend/src/controllers/programmeController.ts"
         ],
         "client": [],
-        "tests": [],
+        "tests": [
+          "backend/src/tests/programmeApiContract.test.ts"
+        ],
         "operations": [
           "docs/runbooks/INSTITUTIONAL_PROGRAMMES.md",
           "docs/CREDENTIALS_SETUP.md"
