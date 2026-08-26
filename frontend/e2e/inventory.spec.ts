@@ -11,8 +11,9 @@ test('inventory workflow creates an item and records a stock movement', async ({
   });
   await page.route('**/api/inventory/item-1/movements', async route => {
     const body = route.request().postDataJSON();
-    items[0] = { ...items[0], quantityMinor: items[0].quantityMinor + body.quantityMinor };
-    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: items[0] }) });
+    const index = items.findIndex(item => item.id === 'item-1');
+    items[index] = { ...items[index], quantityMinor: items[index].quantityMinor + body.quantityMinor };
+    await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ success: true, data: items[index] }) });
   });
 
   await page.goto('/login');
