@@ -1,0 +1,2 @@
+import { AssistantService } from '../domains/intelligence/assistantService.js';
+describe('AssistantService', () => { it('requires a question and returns citations with confirmation', async () => { await expect(new AssistantService().answer({ question: '' })).rejects.toThrow('ASSISTANT_QUESTION_REQUIRED'); const result = await new AssistantService().answer({ question: 'What is my farm status?', citations: ['farm_records:1'] }); expect(result).toMatchObject({ citations: ['farm_records:1'], requiresConfirmation: true, provider: 'deterministic-test' }); }); });
