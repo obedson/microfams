@@ -281,8 +281,8 @@
         "tests": [
           "backend/src/tests/featureFlagMatrix.test.ts",
           "backend/src/tests/featureFlagService.test.ts",
-          "backend/src/tests/savingsProviderCertificationApi.test.ts",
-          "backend/tests/schema/test-booking-settlement-foundation.sql"
+          "backend/src/tests/releaseRecoverySmoke.test.ts",
+          "backend/src/tests/savingsProviderCertificationApi.test.ts"
         ],
         "operations": [
           "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
@@ -3224,7 +3224,7 @@
           "backend/tests/schema/test-investment-refund-provider-submission.sql",
           "backend/src/tests/investmentRefundSubmissionService.test.ts",
           "backend/src/tests/bookingNotificationOutboxService.test.ts",
-          "backend/tests/schema/test-loan-writeoff.sql"
+          "backend/src/tests/releaseRecoverySmoke.test.ts"
         ],
         "operations": [
           "docs/runbooks/IDENTITY_VERIFICATION.md",
