@@ -7159,15 +7159,15 @@
         ],
         "implementation": [
           "backend/migrations/install_group_contribution_cycles.sql",
+          "backend/src/domains/intelligence/assistantService.ts",
           "backend/migrations/create_feature_flags.sql",
-          "backend/migrations/install_booking_recovery_servicing.sql",
-          "backend/migrations/install_escrow_contract_foundation.sql"
+          "backend/migrations/install_booking_recovery_servicing.sql"
         ],
         "api": [
           "backend/src/controllers/groupDisciplineController.ts",
           "backend/src/routes/bookings.ts",
-          "backend/src/controllers/groupAdminController.ts",
-          "backend/src/controllers/groupAdmissionController.ts"
+          "backend/src/controllers/assistantController.ts",
+          "backend/src/controllers/groupAdminController.ts"
         ],
         "client": [
           "frontend/src/components/admin/ReportingDashboard.tsx",
@@ -7176,12 +7176,13 @@
           "frontend/src/pages/AdminDashboard.tsx"
         ],
         "tests": [
+          "backend/src/tests/assistantService.test.ts",
           "backend/src/tests/groupTenantApi.test.ts",
           "backend/src/tests/wallet-integration.test.ts",
-          "backend/tests/schema/test-booking-recovery-servicing.sql",
-          "backend/tests/schema/test-loan-disbursement-orchestration.sql"
+          "backend/tests/schema/test-booking-recovery-servicing.sql"
         ],
         "operations": [
+          "docs/runbooks/AI_ASSISTANT.md",
           "docs/runbooks/WALLET_LEDGER_CUTOVER.md"
         ]
       }
