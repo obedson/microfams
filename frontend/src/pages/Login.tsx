@@ -65,12 +65,13 @@ const Login: React.FC = () => {
           {/* Form */}
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
                 Email Address
               </label>
               <div className="relative">
                 <Mail size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                 <input
+                  id="email"
                   {...register('email', { 
                     required: 'Email is required',
                     pattern: {
@@ -92,7 +93,7 @@ const Login: React.FC = () => {
 
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="block text-sm font-medium text-gray-700">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700">
                   Password
                 </label>
                 <Link 
@@ -103,6 +104,7 @@ const Login: React.FC = () => {
                 </Link>
               </div>
               <PasswordInput
+                id="password"
                 {...register('password', { 
                   required: 'Password is required',
                   minLength: {

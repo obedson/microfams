@@ -6,6 +6,7 @@ interface PasswordInputProps {
   className?: string;
   error?: boolean;
   name?: string;
+  id?: string;
   required?: boolean;
 }
 

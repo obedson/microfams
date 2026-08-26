@@ -5581,10 +5581,10 @@
           "backend/src/controllers/receiptController.ts"
         ],
         "client": [
+          "frontend/src/accessibilitySmoke.test.tsx",
           "frontend/src/components/admin/ReportingDashboard.tsx",
           "frontend/src/components/bookings/BookingCard.tsx",
-          "frontend/src/components/FarmAnalytics.tsx",
-          "mobile/src/screens/BookingDetailScreen.tsx"
+          "frontend/src/components/FarmAnalytics.tsx"
         ],
         "tests": [
           "backend/src/tests/groupDocumentAccessContract.test.ts",
