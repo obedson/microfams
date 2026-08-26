@@ -673,9 +673,9 @@
           "backend/tests/schema/test-loan-disbursement-orchestration.sql"
         ],
         "operations": [
+          "docs/runbooks/DURABLE_OUTBOX_JOB_OPERATIONS.md",
           "docs/runbooks/BOOKING_NOTIFICATION_OUTBOX.md",
-          "docs/runbooks/INBOUND_PAYMENTS.md",
-          "docs/runbooks/PAYOUT_ORCHESTRATION.md"
+          "docs/runbooks/INBOUND_PAYMENTS.md"
         ]
       }
     },
