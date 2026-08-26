@@ -7220,6 +7220,7 @@
         ],
         "implementation": [
           "backend/migrations/install_institutional_programme_foundation.sql",
+          "backend/src/domains/institutional/programmeService.ts",
           "backend/migrations/create_feature_flags.sql"
         ],
         "api": [
