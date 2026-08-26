@@ -6884,7 +6884,7 @@
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "not_required",
-        "tests": "missing",
+        "tests": "evidence_found",
         "operations": "missing"
       },
       "evidence": {
@@ -6909,7 +6909,9 @@
           "frontend/src/components/FarmRecordForm.tsx",
           "frontend/src/pages/FarmRecords.tsx"
         ],
-        "tests": [],
+        "tests": [
+          "frontend/e2e/farm-records.spec.ts"
+        ],
         "operations": []
       }
     },
