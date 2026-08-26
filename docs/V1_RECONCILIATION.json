@@ -7217,7 +7217,7 @@
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "missing",
-        "tests": "missing",
+        "tests": "evidence_found",
         "operations": "evidence_found"
       },
       "evidence": {
@@ -7229,13 +7229,17 @@
         ],
         "implementation": [
           "backend/migrations/install_institutional_programme_foundation.sql",
+          "backend/src/domains/institutional/programmeService.ts",
           "backend/migrations/create_feature_flags.sql"
         ],
         "api": [
-          "backend/src/routes/programmes.ts"
+          "backend/src/routes/programmes.ts",
+          "backend/src/controllers/programmeController.ts"
         ],
         "client": [],
-        "tests": [],
+        "tests": [
+          "backend/src/tests/programmeApiContract.test.ts"
+        ],
         "operations": [
           "docs/runbooks/INSTITUTIONAL_PROGRAMMES.md",
           "docs/CREDENTIALS_SETUP.md"
