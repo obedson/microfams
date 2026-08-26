@@ -30,8 +30,9 @@ test('inventory workflow creates an item and records a stock movement', async ({
   await page.getByRole('button', { name: 'Add item' }).click();
   await expect(page.getByText('Medicine')).toBeVisible();
 
-  await page.getByLabel('Quantity for Feed').fill('25');
-  await page.getByLabel('Reason for Feed').fill('Weekly delivery');
-  await page.getByRole('button', { name: 'Record movement' }).first().click();
-  await expect(page.getByText(/125 kg in stock/)).toBeVisible();
+  const feed = page.getByRole('article').filter({ hasText: 'Feed' });
+  await feed.getByLabel('Quantity for Feed').fill('25');
+  await feed.getByLabel('Reason for Feed').fill('Weekly delivery');
+  await feed.getByRole('button', { name: 'Record movement' }).click();
+  await expect(feed.getByText(/125 kg in stock/)).toBeVisible();
 });
