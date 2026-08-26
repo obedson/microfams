@@ -7396,8 +7396,8 @@
         "client": [],
         "tests": [],
         "operations": [
-          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
-          "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
+          "docs/runbooks/V1_RELEASE_CANDIDATE_REVIEW.md",
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
         ]
       }
     }
