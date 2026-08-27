@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 71,
-    "checkedWithEvidenceGaps": 42,
+    "candidateComplete": 72,
+    "checkedWithEvidenceGaps": 41,
     "partial": 39,
     "notStarted": 2
   },
@@ -1769,14 +1769,14 @@
       "depth": 0,
       "workPlanChecked": true,
       "item": "Approve the cross-product rules in [`docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md`](specs/FINANCIAL_MODULES_APPROVAL_SPEC.md). Approved by the product owner on 2026-08-09.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -1809,7 +1809,9 @@
           "backend/tests/schema/test-investment-offer-opening.sql",
           "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/FINANCIAL_MODULES_APPROVAL_OPERATIONS.md"
+        ]
       }
     },
     {
@@ -2100,7 +2102,8 @@
           "backend/src/tests/investmentRefundReconciliationApiContract.test.ts"
         ],
         "operations": [
-          "docs/runbooks/SAVINGS_STATEMENTS_RECONCILIATION.md"
+          "docs/runbooks/SAVINGS_STATEMENTS_RECONCILIATION.md",
+          "docs/runbooks/FINANCIAL_MODULES_APPROVAL_OPERATIONS.md"
         ]
       }
     },
@@ -6204,7 +6207,7 @@
         ],
         "operations": [
           "docs/runbooks/ACCOUNTING_AUDIT_EXPORT.md",
-          "docs/runbooks/GROUP_ADMISSION_PAYMENTS.md"
+          "docs/runbooks/FINANCIAL_MODULES_APPROVAL_OPERATIONS.md"
         ]
       }
     },
@@ -6841,7 +6844,7 @@
         ],
         "operations": [
           "docs/runbooks/DIVIDEND_PAYMENT_SERVICING.md",
-          "docs/runbooks/INBOUND_PAYMENTS.md"
+          "docs/runbooks/FINANCIAL_MODULES_APPROVAL_OPERATIONS.md"
         ]
       }
     },
