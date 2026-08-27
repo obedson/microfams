@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 71,
-    "checkedWithEvidenceGaps": 42,
+    "candidateComplete": 74,
+    "checkedWithEvidenceGaps": 39,
     "partial": 39,
     "notStarted": 2
   },
@@ -2606,6 +2606,7 @@
         ],
         "operations": [
           "docs/runbooks/LOAN_DELINQUENCY_SERVICING.md",
+          "docs/runbooks/INVESTMENT_PRODUCTS.md",
           "docs/runbooks/LOAN_DISBURSEMENT_ORCHESTRATION.md"
         ]
       }
@@ -3111,14 +3112,14 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-07 settlement-linked refund-obligation recognition with balanced liability reclassification; provider submission and oversubscribed unit execution remain disabled.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -3146,7 +3147,9 @@
           "backend/tests/schema/test-investment-refund-obligations.sql",
           "backend/src/tests/investmentAllocationPlanService.test.ts"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/INVESTMENT_PRODUCTS.md"
+        ]
       }
     },
     {
@@ -5999,8 +6002,8 @@
           "backend/tests/schema/test-group-asset-transfer-accounting-facts.sql"
         ],
         "operations": [
-          "docs/runbooks/GROUP_ADMISSION_PAYMENTS.md",
-          "docs/runbooks/GROUP_LIFECYCLE_FOUNDATION.md"
+          "docs/runbooks/INVESTMENT_PRODUCTS.md",
+          "docs/runbooks/GROUP_ADMISSION_PAYMENTS.md"
         ]
       }
     },
@@ -6049,6 +6052,7 @@
           "backend/src/tests/groupProposalApi.test.ts"
         ],
         "operations": [
+          "docs/runbooks/INVESTMENT_PRODUCTS.md",
           "docs/runbooks/LOAN_DISBURSEMENT_ORCHESTRATION.md"
         ]
       }
@@ -6060,14 +6064,14 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10L approved disposal and book-value transfer journal mapping contracts with fixed-asset account purposes and execution disabled.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
         "client": "not_required",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -6096,7 +6100,9 @@
           "backend/tests/schema/test-escrow-release-execution.sql",
           "backend/tests/schema/test-group-asset-disposal-accounting-facts.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/INVESTMENT_PRODUCTS.md"
+        ]
       }
     },
     {
@@ -6144,7 +6150,7 @@
           "backend/tests/schema/test-group-asset-transfer-accounting-facts.sql"
         ],
         "operations": [
-          "docs/runbooks/SAVINGS_STATEMENTS_RECONCILIATION.md"
+          "docs/runbooks/INVESTMENT_PRODUCTS.md"
         ]
       }
     },
@@ -6255,14 +6261,14 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10P atomic approved book-value transfer execution with balanced journal posting, destination custody, idempotency, and reconciliation evidence.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
         "client": "not_required",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -6295,7 +6301,9 @@
           "backend/tests/schema/test-group-asset-accounting-mappings.sql",
           "backend/tests/schema/test-group-treasury-external-disbursements.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/INVESTMENT_PRODUCTS.md"
+        ]
       }
     },
     {

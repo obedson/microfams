@@ -18,6 +18,11 @@ INV-05 allocates immutable units only after the approved offer window closes, th
 
 INV-06 creates deterministic, immutable oversubscription plans after settlement intake is finalized. Pro-rata plans use largest remainder with settlement-time and UUID tie-breaks; first-settled plans allocate in settlement order. Unallocated cash is recorded as a refund liability. Independent approval does not issue units, post journals, or execute refunds.
 
+
+## Settlement-linked refund obligations (INV-07)
+
+When an oversubscribed or otherwise refundable settlement is recognized, record one immutable refund obligation linked to the exact tenant, settlement, currency, and minor-unit amount. The recognition command must create a balanced liability reclassification journal, retain the source settlement reference, and be idempotent for the tenant and obligation key. Provider submission, oversubscribed-unit execution, broad reconciliation, and reversals remain disabled until their separate release gates are approved. A mismatch or duplicate is quarantined for investigation; never edit the posted journal or delete the obligation.
+
 ## Refund recovery
 
 Use the recovery command only for existing submitted, processing, or unknown refund obligations. It queries the original provider route with the durable attempt reference. Exact verified success posts one balanced journal from investment refunds payable to provider clearing; missing, ambiguous, failed, or mismatched evidence preserves the liability.
