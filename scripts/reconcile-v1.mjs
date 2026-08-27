@@ -76,7 +76,7 @@ for (const [index, line] of read(workPlanPath).split(/\r?\n/).entries()) {
   const opsEvidence = evidence(text, ['docs/runbooks/', 'docs/'], 2).filter(path => /runbook|rollback|recovery|deployment|credentials|readiness/i.test(path));
   const isFoundation = ['0','1','8'].includes(phaseNumber);
   const clientRequired = !isFoundation && !/migration|schema|account purpose|audit export|reconciliation|worker|adapter|foundation/i.test(text);
-  const apiRequired = !/specification|approve|migration|schema|runbook|ci|test|secret|architecture decision/i.test(text);
+  const apiRequired = !/specification|approve|migration|cutover|schema|runbook|ci|test|secret|architecture decision/i.test(text);
   const layers = {
     specification: specEvidence.length ? 'evidence_found' : 'missing',
     implementation: implementationEvidence.length ? 'evidence_found' : 'missing',
