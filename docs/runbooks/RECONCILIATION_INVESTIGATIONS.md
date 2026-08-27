@@ -1,5 +1,7 @@
 # Reconciliation Exception Investigation and Resolution
 
+This operational procedure is the evidence for authorized, auditable, idempotent reconciliation exception investigation transitions and their rollback/recovery controls.
+
 This runbook covers the authorized lifecycle for payment and payout reconciliation exceptions. It applies to tenant-scoped exceptions produced by a persisted reconciliation run.
 
 ## Investigate
