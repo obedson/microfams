@@ -2,7 +2,7 @@
 
 ## Scope
 
-This runbook covers FC-08 wallet opening balances and the journal-backed posting engine. Migrations install the capability but never activate an organization automatically. Non-cutover organizations continue to use the legacy wallet RPC behavior.
+This runbook covers FC-08 wallet opening balances and the replacement of legacy wallet transactions with first-class ledger accounts and balanced postings. It provides the activation, verification, rollback, and incident-recovery evidence for `WP-P3-002`. Migrations install the capability but never activate an organization automatically. Non-cutover organizations continue to use the legacy wallet RPC behavior.
 
 ## Before activation
 
@@ -13,6 +13,18 @@ This runbook covers FC-08 wallet opening balances and the journal-backed posting
 5. Reconcile every migrated wallet and group cache to its liability account before enabling transaction routes.
 
 Activation posts balanced opening journals and makes `user_wallets.balance` and `groups.group_fund_balance` read-only outside the posting engine.
+
+## Verification evidence
+
+Before and after activation, run the clean-schema wallet contract and the focused application tests:
+
+```bash
+cd backend
+bash scripts/verify-clean-schema.sh
+npm test -- --runInBand src/tests/walletApiContract.test.ts
+```
+
+Confirm the schema contract proves balanced debits and credits, tenant-scoped idempotency, protected derived caches, concurrent reservation safety, compensating reversal journals, and the rollback boundary. Retain the CI run URL and the tenant cutover audit identifier with the activation approval record.
 
 ## Supported post-cutover movements
 
