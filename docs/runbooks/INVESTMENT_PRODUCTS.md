@@ -33,6 +33,10 @@ Signed refund callbacks are accepted at `/api/webhooks/paystack/investment-refun
 
 After callback evidence exists, rollback must preserve the event and any success journal; disable provider delivery and use a forward corrective migration. Broad reconciliation, post-success reversals, and live-provider activation remain separate release work.
 
+## Signed provider refund callbacks (INV-11)
+
+Operate INV-11 callbacks as signed, replay-safe provider refund callbacks. Verify the raw payload signature and provider identity before mutation; bind each callback to its durable refund attempt and exact obligation amount. Persist duplicate and changed-byte evidence, quarantine mismatched money or status, and permit a late verified success to create exactly one success journal without reopening a terminal obligation. Preserve callback events and journals during rollback; disable provider delivery and reconcile forward.
+
 ## Refund reconciliation
 
 INV-12 accepts an authoritative provider evidence batch and records an append-only comparison against local refund attempts. It classifies exact matches, duplicate provider evidence, missing local or provider evidence, late success after timeout or failure, and amount, currency, or status mismatches. Every non-match creates a durable open exception and preserves the refund liability.
