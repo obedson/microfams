@@ -4,7 +4,12 @@ import {
   reconcilePayoutCandidates,
 } from '../domains/financial/reconciliationService.js';
 
-jest.mock('../utils/supabase.js', () => ({ supabase: { rpc: jest.fn() } }));
+jest.mock('../utils/supabase.js', () => {
+  const query: any = {};
+  query.select = jest.fn(() => query); query.eq = jest.fn(() => query);
+  query.maybeSingle = jest.fn().mockResolvedValue({ data: { id: 'tenant-record' }, error: null });
+  return { supabase: { rpc: jest.fn(), from: jest.fn(() => query) } };
+});
 const rpcMock = supabase.rpc as jest.Mock;
 
 const internal = [{
@@ -75,11 +80,23 @@ describe('atomic reconciliation persistence', () => {
     }));
   });
 
+  it('rejects a reconciliation record outside the active tenant before mutation', async () => {
+    const query = (supabase.from as jest.Mock)('reconciliation_exceptions');
+    query.maybeSingle.mockResolvedValueOnce({ data: null, error: null });
+    const service = new ReconciliationService();
+    await expect(service.startExceptionInvestigation({
+      organizationId: 'organization-1', exceptionId: 'other-tenant-exception', actorId: 'actor-1',
+      reason: 'Investigate duplicate provider evidence before close',
+    })).rejects.toThrow('active organization');
+    expect(rpcMock).not.toHaveBeenCalled();
+  });
+
   it('starts exception investigation through the authorized atomic command', async () => {
     rpcMock.mockResolvedValue({ data: { id: 'exception-1', state: 'investigating' }, error: null });
     const service = new ReconciliationService();
 
     await expect(service.startExceptionInvestigation({
+      organizationId: 'organization-1',
       exceptionId: 'exception-1',
       actorId: 'actor-1',
       reason: 'Investigate duplicate provider evidence before close',
@@ -97,7 +114,7 @@ describe('atomic reconciliation persistence', () => {
     rpcMock.mockResolvedValue({ data: { id: 'resolution-1', state: 'pending' }, error: null });
     const service = new ReconciliationService();
     await expect(service.requestExceptionResolution({
-      exceptionId: 'exception-1', actorId: 'maker-1', resolutionType: 'writeoff',
+      organizationId: 'organization-1', exceptionId: 'exception-1', actorId: 'maker-1', resolutionType: 'writeoff',
       resolutionReason: 'Write off verified provider variance', evidenceReference: 'evidence://reconciliation/001',
       compensatingJournalEntryId: 'journal-1', idempotencyKey: 'resolution-key-001',
     })).resolves.toEqual({ id: 'resolution-1', state: 'pending' });
@@ -112,7 +129,7 @@ describe('atomic reconciliation persistence', () => {
     rpcMock.mockResolvedValue({ data: { id: 'resolution-1', state: 'approved' }, error: null });
     const service = new ReconciliationService();
     await expect(service.decideExceptionResolution({
-      resolutionRequestId: 'resolution-1', actorId: 'checker-1', approve: true,
+      organizationId: 'organization-1', resolutionRequestId: 'resolution-1', actorId: 'checker-1', approve: true,
       decisionReason: 'Independent checker verified evidence',
     })).resolves.toEqual({ id: 'resolution-1', state: 'approved' });
     expect(rpcMock).toHaveBeenCalledWith('decide_reconciliation_exception_resolution', {

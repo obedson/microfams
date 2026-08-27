@@ -4,8 +4,8 @@
     "workPlanSha256": "da132cdfaefd7901be25cfc073e3182d7338a1cc7797bb7b1a0eeb0766bfbbea",
     "total": 154,
     "checked": 113,
-    "candidateComplete": 69,
-    "checkedWithEvidenceGaps": 44,
+    "candidateComplete": 71,
+    "checkedWithEvidenceGaps": 42,
     "partial": 39,
     "notStarted": 2
   },
@@ -319,10 +319,10 @@
           "backend/src/domains/trust/suspendedAccountRecoveryService.ts"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/savingsProviderCertificationController.ts",
           "backend/src/controllers/analyticsController.ts",
-          "backend/src/controllers/bookingDisputeResolutionController.ts",
-          "backend/src/controllers/bookingRecoveryController.ts"
+          "backend/src/controllers/bookingDisputeResolutionController.ts"
         ],
         "client": [
           "frontend/src/components/farm-records/FarmRecommendations.test.tsx",
@@ -758,8 +758,8 @@
         "api": [
           "backend/src/controllers/investmentProductController.ts",
           "backend/src/controllers/paymentOrchestrationController.ts",
-          "backend/src/routes/accounting.ts",
-          "backend/src/routes/groupAdmin.ts"
+          "backend/src/controllers/reconciliationController.ts",
+          "backend/src/routes/accounting.ts"
         ],
         "client": [
           "frontend/src/pages/SavingsDashboard.tsx",
@@ -1197,7 +1197,7 @@
           "backend/src/controllers/groupTreasuryController.ts",
           "backend/src/routes/accounting.ts",
           "backend/src/routes/groupAdmin.ts",
-          "backend/src/routes/wallet.ts"
+          "backend/src/routes/reconciliation.ts"
         ],
         "client": [
           "frontend/src/pages/BudgetVsActual.tsx",
@@ -1495,10 +1495,10 @@
           "backend/migrations/install_booking_operational_statements.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
+          "backend/src/routes/reconciliation.ts",
           "backend/src/controllers/groupContributionCycleController.ts",
-          "backend/src/controllers/savingsController.ts",
-          "backend/src/controllers/savingsProviderCertificationController.ts",
-          "backend/src/routes/savings.ts"
+          "backend/src/controllers/savingsController.ts"
         ],
         "client": [],
         "tests": [
@@ -1519,11 +1519,11 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add maker-checker resolution and write-off with immutable evidence and compensating-journal validation.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
-        "api": "missing",
+        "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
@@ -1541,15 +1541,17 @@
           "backend/migrations/install_reconciliation_resolution.sql",
           "backend/migrations/create_financial_rules.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/controllers/reconciliationController.ts"
+        ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx"
         ],
         "tests": [
+          "backend/src/tests/reconciliationApiContract.test.ts",
+          "backend/src/tests/reconciliationController.test.ts",
           "backend/src/tests/savingsProviderCertificationService.test.ts",
-          "backend/tests/schema/test-booking-recovery-servicing.sql",
-          "backend/tests/schema/test-financial-rules.sql",
-          "backend/tests/schema/test-group-committees-meetings.sql"
+          "backend/tests/schema/test-booking-recovery-servicing.sql"
         ],
         "operations": [
           "docs/runbooks/INBOUND_PAYMENTS.md"
@@ -1891,10 +1893,10 @@
           "backend/migrations/activate_wallet_ledger_cutover.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/groupContributionController.ts",
           "backend/src/controllers/groupContributionCycleController.ts",
-          "backend/src/controllers/groupGovernanceController.ts",
-          "backend/src/controllers/groupTreasuryController.ts"
+          "backend/src/controllers/groupGovernanceController.ts"
         ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx",
@@ -2133,6 +2135,7 @@
         ],
         "api": [
           "backend/src/controllers/savingsProviderCertificationController.ts",
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/routes/groupAdmin.ts",
           "backend/src/routes/savings.ts"
         ],
@@ -2286,10 +2289,10 @@
           "backend/migrations/activate_wallet_ledger_cutover.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/groupContributionController.ts",
           "backend/src/controllers/groupContributionCycleController.ts",
-          "backend/src/controllers/groupGovernanceController.ts",
-          "backend/src/controllers/groupTreasuryController.ts"
+          "backend/src/controllers/groupGovernanceController.ts"
         ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx"
@@ -2636,6 +2639,7 @@
           "backend/migrations/install_booking_settlement_eligibility_fees.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/routes/credit.ts"
         ],
         "client": [
@@ -2683,6 +2687,7 @@
           "backend/migrations/install_loan_repayment_schedules.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/routes/credit.ts"
         ],
         "client": [
@@ -2730,7 +2735,8 @@
           "backend/migrations/install_booking_dispute_resolution.sql"
         ],
         "api": [
-          "backend/src/controllers/loanProductController.ts"
+          "backend/src/controllers/loanProductController.ts",
+          "backend/src/controllers/reconciliationController.ts"
         ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx"
@@ -3326,7 +3332,7 @@
           "backend/src/routes/investments.ts",
           "backend/src/controllers/investmentRefundReconciliationController.ts",
           "backend/src/controllers/investmentRefundReversalController.ts",
-          "backend/src/controllers/savingsProviderCertificationController.ts"
+          "backend/src/controllers/reconciliationController.ts"
         ],
         "client": [
           "frontend/src/App.tsx",
@@ -3367,22 +3373,22 @@
         ],
         "implementation": [
           "backend/migrations/install_investment_refund_reconciliation.sql",
+          "backend/src/domains/financial/reconciliationService.ts",
           "backend/migrations/install_booking_recovery_servicing.sql",
-          "backend/migrations/install_group_contribution_cycles.sql",
-          "backend/migrations/install_group_treasury_external_disbursements.sql"
+          "backend/migrations/install_group_contribution_cycles.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/groupContributionCycleController.ts",
           "backend/src/controllers/investmentRefundReconciliationController.ts",
-          "backend/src/controllers/savingsProviderCertificationController.ts",
-          "backend/src/routes/investments.ts"
+          "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
           "frontend/src/pages/SavingsProviderCertification.tsx"
         ],
         "tests": [
-          "backend/tests/schema/test-investment-refund-provider-submission.sql",
           "backend/src/tests/reconciliationService.test.ts",
+          "backend/tests/schema/test-investment-refund-provider-submission.sql",
           "backend/tests/schema/test-loan-repayment-reversal.sql",
           "backend/tests/schema/test-reconciliation-resolution.sql"
         ],
@@ -3421,10 +3427,10 @@
           "backend/migrations/create_payout_orchestration.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/groupTreasuryController.ts",
           "backend/src/controllers/investmentRefundReversalController.ts",
-          "backend/src/routes/groupAdmin.ts",
-          "backend/src/routes/investments.ts"
+          "backend/src/routes/groupAdmin.ts"
         ],
         "client": [
           "frontend/src/pages/CreditRepaymentReversals.tsx",
@@ -3498,11 +3504,11 @@
       "depth": 0,
       "workPlanChecked": true,
       "item": "Add ESC-01 immutable tenant-scoped escrow contract terms with idempotent maker-checker activation before funding.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
-        "api": "missing",
+        "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
@@ -3520,7 +3526,9 @@
           "backend/migrations/install_savings_product_foundation.sql",
           "backend/migrations/create_financial_rules.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/controllers/reconciliationController.ts"
+        ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx"
         ],
@@ -4090,7 +4098,8 @@
           "backend/src/domains/booking/disputeResolutionRules.test.ts"
         ],
         "api": [
-          "backend/src/controllers/bookingDisputeResolutionController.ts"
+          "backend/src/controllers/bookingDisputeResolutionController.ts",
+          "backend/src/controllers/reconciliationController.ts"
         ],
         "client": [],
         "tests": [
@@ -4221,6 +4230,7 @@
           "backend/migrations/create_financial_rules.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
@@ -4230,8 +4240,8 @@
         "tests": [
           "backend/tests/schema/test-booking-recovery-servicing.sql",
           "backend/src/tests/bookingRecoveryApi.test.ts",
-          "backend/tests/schema/test-loan-disbursement-orchestration.sql",
-          "backend/tests/schema/test-loan-repayment-reversal.sql"
+          "backend/src/tests/reconciliationApiContract.test.ts",
+          "backend/tests/schema/test-loan-disbursement-orchestration.sql"
         ],
         "operations": [
           "docs/runbooks/LOAN_DISBURSEMENT_ORCHESTRATION.md",
@@ -6125,7 +6135,8 @@
           "backend/migrations/install_group_asset_accounting_mappings.sql"
         ],
         "api": [
-          "backend/src/controllers/groupContributionController.ts"
+          "backend/src/controllers/groupContributionController.ts",
+          "backend/src/controllers/reconciliationController.ts"
         ],
         "client": [
           "frontend/src/pages/BalanceSheet.tsx",
@@ -6175,9 +6186,9 @@
         ],
         "api": [
           "backend/src/controllers/groupGovernanceController.ts",
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/savingsController.ts",
-          "backend/src/controllers/bookingController.ts",
-          "backend/src/controllers/groupCommitteeController.ts"
+          "backend/src/controllers/bookingController.ts"
         ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx",
@@ -6274,10 +6285,10 @@
           "backend/migrations/install_group_treasury_external_disbursements.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/contributionController.ts",
           "backend/src/controllers/groupCommitteeController.ts",
-          "backend/src/controllers/groupContributionController.ts",
-          "backend/src/controllers/groupGovernanceController.ts"
+          "backend/src/controllers/groupContributionController.ts"
         ],
         "client": [
           "frontend/src/pages/Wallet.tsx",
@@ -6814,7 +6825,7 @@
           "backend/src/controllers/groupTreasuryController.ts",
           "backend/src/routes/groupAdmin.ts",
           "backend/src/controllers/investmentRefundReconciliationController.ts",
-          "backend/src/controllers/savingsProviderCertificationController.ts"
+          "backend/src/controllers/reconciliationController.ts"
         ],
         "client": [
           "frontend/src/App.tsx",
@@ -6863,7 +6874,9 @@
           "backend/migrations/activate_wallet_ledger_cutover.sql",
           "backend/migrations/install_booking_dispute_resolution.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/controllers/reconciliationController.ts"
+        ],
         "client": [
           "frontend/src/pages/CashFlow.tsx",
           "frontend/src/services/accountingCashFlowAPI.ts",
