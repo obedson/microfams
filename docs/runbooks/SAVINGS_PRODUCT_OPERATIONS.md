@@ -6,6 +6,8 @@ This runbook covers SAV-01 product versioning, disclosure-bound enrolment, and c
 
 ## Product lifecycle
 
+This runbook is the operational evidence for SAV-01 versioned products, immutable disclosures, maker-checker activation, tenant-isolated enrolment, idempotency, and canonical savings accounts. Retain product, enrolment, account-provisioning, and audit evidence per organisation for every activation.
+
 1. A configured operator creates a draft product with integer minor-unit limits, eligibility rules, a disclosure version, and its SHA-256 content hash.
 2. A different configured operator submits the draft and approves it. The database rejects self-approval and requires an immutable active version.
 3. The client enrolment flow reads only active products, displays the exact disclosure version/hash, and sends both values with an idempotency key.
