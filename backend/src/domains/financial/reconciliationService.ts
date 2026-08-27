@@ -88,10 +88,12 @@ export class ReconciliationService {
     return data;
   }
   async startExceptionInvestigation(input: {
+    organizationId: string;
     exceptionId: string;
     actorId: string;
     reason: string;
   }) {
+    await this.assertTenantRecord('reconciliation_exceptions', input.exceptionId, input.organizationId);
     const { data, error } = await supabase.rpc('start_reconciliation_exception_investigation', {
       p_exception_id: input.exceptionId,
       p_actor_id: input.actorId,
@@ -103,6 +105,7 @@ export class ReconciliationService {
     return data;
   }
   async requestExceptionResolution(input: {
+    organizationId: string;
     exceptionId: string;
     actorId: string;
     resolutionType: 'matched_evidence' | 'provider_correction' | 'compensating_adjustment' | 'writeoff';
@@ -111,6 +114,7 @@ export class ReconciliationService {
     compensatingJournalEntryId?: string;
     idempotencyKey: string;
   }) {
+    await this.assertTenantRecord('reconciliation_exceptions', input.exceptionId, input.organizationId);
     const { data, error } = await supabase.rpc('request_reconciliation_exception_resolution', {
       p_exception: input.exceptionId,
       p_actor: input.actorId,
@@ -124,11 +128,13 @@ export class ReconciliationService {
     return data;
   }
   async decideExceptionResolution(input: {
+    organizationId: string;
     resolutionRequestId: string;
     actorId: string;
     approve: boolean;
     decisionReason: string;
   }) {
+    await this.assertTenantRecord('reconciliation_resolution_requests', input.resolutionRequestId, input.organizationId);
     const { data, error } = await supabase.rpc('decide_reconciliation_exception_resolution', {
       p_request: input.resolutionRequestId,
       p_actor: input.actorId,
@@ -137,6 +143,11 @@ export class ReconciliationService {
     });
     if (error || !data) throw error ?? new Error('Reconciliation resolution could not be decided');
     return data;
+  }
+  private async assertTenantRecord(table: 'reconciliation_exceptions' | 'reconciliation_resolution_requests', id: string, organizationId: string) {
+    const { data, error } = await supabase.from(table).select('id').eq('id', id)
+      .eq('organization_id', organizationId).maybeSingle();
+    if (error || !data) throw error ?? new Error('Reconciliation record was not found for the active organization');
   }
 }
 
