@@ -29,4 +29,19 @@ export const escrowController = {
     try { return res.json(await escrowContractService.activate({ p_organization: req.tenant!.id, p_actor: actor(req), p_contract: req.params.contractId, p_idempotency_key: req.headers['idempotency-key'] })); }
     catch (error) { return res.status(400).json({ success: false, error: error instanceof Error ? error.message : 'ESCROW_COMMAND_FAILED' }); }
   },
+  // ESC-02 internal-wallet funding API delegates hold-aware balance checks and balanced canonical escrow journals to the domain command.
+  async fund(req: TenantRequest, res: Response) {
+    try {
+      const data = await escrowContractService.fund({
+        p_organization: req.tenant!.id,
+        p_actor: actor(req),
+        p_contract: req.params.contractId,
+        p_idempotency_key: req.headers['idempotency-key'],
+        p_correlation_id: req.correlationId,
+      });
+      return res.status(201).json({ success: true, data, correlation_id: req.correlationId });
+    } catch (error) {
+      return res.status(409).json({ success: false, error: error instanceof Error ? error.message : 'ESCROW_FUNDING_REJECTED', correlation_id: req.correlationId });
+    }
+  },
 };

@@ -8,4 +8,5 @@ const router = Router();
 router.use(authenticateToken, resolveTenant, requireTenantRole(['owner', 'admin']));
 router.post('/contracts', requireFeature('financial.escrow.create'), escrowController.create);
 router.post('/contracts/:contractId/activate', requireFeature('financial.escrow.create'), escrowController.activate);
+router.post('/contracts/:contractId/fund', requireFeature('financial.escrow.create'), escrowController.fund);
 export default router;
