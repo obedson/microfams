@@ -9,6 +9,11 @@ it does not mean a lender/provider or live money rail is certified.
 
 ## Controls
 
+This runbook is the operational evidence for the CRD-01 controls: versioned loan products,
+complete rule snapshots, immutable disclosures, revision history, tenant isolation, idempotency,
+and maker-checker activation. Operators must retain the command and audit evidence described below
+for each product version and organisation.
+
 - `financial.loans.read` is servicing-safe and exposes only active products to active tenant members.
 - `financial.loans.configure` fails closed and protects product administration at the API and worker boundary.
 - `financial.loans.originate` remains separately disabled until compliance and provider readiness are recorded.
