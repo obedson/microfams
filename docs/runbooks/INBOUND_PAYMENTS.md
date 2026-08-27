@@ -2,6 +2,8 @@
 
 ## Scope
 
+This operational procedure is the recovery and rollback evidence for idempotent payment orchestration, provider adapters, webhooks, settlement, fees, refunds, reversals, and reconciliation.
+
 This runbook covers the FC-05 and FC-06 provider-neutral inbound-payment engine. The engine records tenant-owned payment intents before external calls, verifies raw webhook bytes, posts balanced journals only after a matching provider confirmation, and services refunds, provider reversals, fees, settlement, recovery, and reconciliation independently from new-payment acquisition.
 
 ## Feature gates
