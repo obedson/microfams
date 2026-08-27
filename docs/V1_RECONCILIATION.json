@@ -1909,6 +1909,7 @@
           "backend/src/tests/savingsProviderCertificationApi.test.ts"
         ],
         "operations": [
+          "docs/runbooks/SAVINGS_PRODUCT_OPERATIONS.md",
           "docs/runbooks/LOAN_PRODUCT_GOVERNANCE.md"
         ]
       }
