@@ -9,6 +9,7 @@ describe('escrow contract API contract', () => {
     expect(routes).toContain("requireFeature('financial.escrow.create')");
     expect(routes).toContain("router.post('/contracts'");
     expect(routes).toContain("router.post('/contracts/:contractId/activate'");
+    expect(routes).toContain("router.post('/contracts/:contractId/fund'");
   });
 
   it('uses the approved RPCs and idempotency header', () => {
@@ -16,6 +17,8 @@ describe('escrow contract API contract', () => {
     const controller = read('src/controllers/escrowController.ts');
     expect(service).toContain("create_escrow_contract_draft");
     expect(service).toContain("activate_escrow_contract");
+    expect(service).toContain("fund_escrow_contract_from_wallet");
     expect(controller).toContain("req.headers['idempotency-key']");
+    expect(controller).toContain('p_correlation_id: req.correlationId');
   });
 });
