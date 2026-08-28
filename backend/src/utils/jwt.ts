@@ -1,10 +1,9 @@
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
+import { backendConfiguration } from '../config/environment.js';
 
 export const generateToken = (payload: object): string => {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '15m' });
+  return jwt.sign(payload, backendConfiguration.jwt.secret, { expiresIn: '15m' });
 };
 
 export const generateRefreshToken = (): string => {
@@ -12,5 +11,5 @@ export const generateRefreshToken = (): string => {
 };
 
 export const verifyToken = (token: string): any => {
-  return jwt.verify(token, JWT_SECRET);
+  return jwt.verify(token, backendConfiguration.jwt.secret);
 };

@@ -52,7 +52,7 @@ Confirmed blockers include:
 - [ ] Establish CI for backend, frontend, mobile, migrations, security, and E2E.
 - [x] Create hermetic test configuration and seeded test tenants.
 - [x] Resolve critical dependency and webhook-security findings.
-- [ ] Implement typed configuration validation and secret inventory.
+- [x] Implement typed configuration validation and secret inventory.
 - [ ] Implement backend feature-flag service with tenant/environment overrides and audit records.
 - [ ] Add architecture decision records and API/error conventions.
 - [x] Normalize browser API deployment URLs and restrict production/preview CORS origins.

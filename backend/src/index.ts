@@ -16,6 +16,7 @@ import express from 'express';
 import cors from 'cors';
 import helmet from 'helmet';
 import { isCorsOriginAllowed } from './config/cors.js';
+import { backendConfiguration } from './config/environment.js';
 import authRoutes from './routes/auth.js';
 import propertyRoutes from './routes/properties.js';
 import bookingRoutes from './routes/bookings.js';
@@ -61,7 +62,7 @@ import PaymentTimeoutJob from './jobs/paymentTimeoutJob.js';
 
 const app = express();
 app.use(requestContext);
-const PORT = process.env.PORT || 3000;
+const PORT = backendConfiguration.port;
 
 // Security middleware
 app.use(helmet({
@@ -135,14 +136,14 @@ app.use(errorHandler);
 
 import { logger } from './utils/logger.js';
 
-if (process.env.NODE_ENV !== 'test') {
+if (backendConfiguration.nodeEnv !== 'test') {
   app.listen(PORT, () => {
     logger.info(`Server running on port ${PORT}`);
-    logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    logger.info(`Environment: ${backendConfiguration.nodeEnv}`);
   });
 
   // Only run cron jobs if not in test environment
-  if (process.env.NODE_ENV === 'production') {
+  if (backendConfiguration.nodeEnv === 'production') {
     startCronJobs();
     startBookingJobs();
     startWalletJobs();

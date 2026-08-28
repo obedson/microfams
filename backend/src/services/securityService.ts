@@ -2,10 +2,11 @@ import crypto from 'crypto';
 import { supabase } from '../utils/supabase.js';
 import { logger } from '../utils/logger.js';
 import QRCode from 'qrcode';
+import { backendConfiguration } from '../config/environment.js';
 
 export class SecurityService {
   private static readonly ENCRYPTION_ALGORITHM = 'aes-256-cbc';
-  private static readonly KEY = crypto.scryptSync(process.env.JWT_SECRET || 'fallback-secret', 'salt', 32);
+  private static readonly KEY = crypto.scryptSync(backendConfiguration.jwt.secret, 'salt', 32);
 
   private static encodeBase32(value: Buffer): string {
     const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
