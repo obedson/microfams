@@ -18,18 +18,20 @@ A high or critical finding blocks release. Remediate through a reviewed lockfile
 The mobile dependency tree pins Metro to patched release `0.84.5`; its high and critical
 audit findings are clear, and its production audit is clean. The remaining moderate UUID
 advisory is confined to Expo configuration tooling and requires a future Expo-compatible
-upgrade. Frontend development-tool findings remain release work and are tracked separately.
+upgrade. Frontend overrides clear all high and critical findings; two moderate
+`webpack-dev-server` advisories remain confined to local development tooling. These
+results were revalidated across all four package trees on 2026-08-28.
 
 ## Webhook controls
 
 Provider adapters verify raw request bytes with constant-time comparison before parsing or mutating state. Payment, payout, refund, and investment-refund paths reject tampered signatures and carry idempotency/replay evidence.
 
-- [ ] Preserve the raw body before JSON parsing.
-- [ ] Verify the provider signature with constant-time comparison.
-- [ ] Enforce timestamp/replay protection where supported.
-- [ ] Check idempotency before mutation.
-- [ ] Keep duplicate, delayed, invalid, and out-of-order callbacks recoverable and auditable.
-- [ ] Never log secrets or full payloads.
+- [x] Preserve the raw body before JSON parsing.
+- [x] Verify the provider signature with constant-time comparison.
+- [x] Enforce timestamp/replay protection where supported.
+- [x] Check idempotency before mutation.
+- [x] Keep duplicate, delayed, invalid, and out-of-order callbacks recoverable and auditable.
+- [x] Never log secrets or full payloads.
 
 ## Incident and rollback
 
