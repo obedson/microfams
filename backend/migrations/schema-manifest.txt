@@ -44,6 +44,7 @@ create_financial_rules.sql
 create_identity_verification.sql
 create_organization_verification.sql
 create_platform_administration.sql
+install_feature_flag_administration.sql
 create_trust_review_appeals.sql
 create_suspended_account_recovery.sql
 create_legal_hold_commands.sql

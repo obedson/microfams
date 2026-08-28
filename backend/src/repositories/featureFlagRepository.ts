@@ -28,7 +28,8 @@ export class SupabaseFeatureFlagRepository implements FeatureFlagRepository {
       supabase
         .from('feature_flag_overrides')
         .select('id, feature_key, scope_type, scope_id, environment, enabled, config, effective_from, effective_until')
-        .eq('feature_key', featureKey),
+        .eq('feature_key', featureKey)
+        .eq('status', 'approved'),
     ]);
 
     if (definitionResult.error) throw definitionResult.error;
