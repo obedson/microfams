@@ -87,6 +87,7 @@ jobs:
       - run: npm run test:ci
       - run: npm run build
       - run: npm audit --omit=dev --audit-level=high
+      - run: npm audit --audit-level=high
 
   browser-e2e:
     name: Browser E2E smoke
