@@ -7,11 +7,18 @@ This runbook records the current WP-P0-004 controls.
 Run in the Codespace:
 
 ```bash
-npm audit --omit=dev --audit-level=high
-npm audit --audit-level=high
+npm --prefix backend audit --audit-level=high
+npm --prefix frontend audit --audit-level=high
+npm --prefix mobile audit --audit-level=high
+npm --prefix mcp-servers audit --audit-level=high
 ```
 
 A high or critical finding blocks release. Remediate through a reviewed lockfile update, rerun all CI suites, and confirm no unrelated dependency drift.
+
+The mobile dependency tree pins Metro to patched release `0.84.5`; its high and critical
+audit findings are clear, and its production audit is clean. The remaining moderate UUID
+advisory is confined to Expo configuration tooling and requires a future Expo-compatible
+upgrade. Frontend development-tool findings remain release work and are tracked separately.
 
 ## Webhook controls
 
