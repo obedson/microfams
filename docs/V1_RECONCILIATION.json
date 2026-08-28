@@ -6,8 +6,8 @@
     "checked": 114,
     "candidateComplete": 79,
     "checkedWithEvidenceGaps": 35,
-    "partial": 38,
-    "notStarted": 2
+    "partial": 39,
+    "notStarted": 1
   },
   "items": [
     {
@@ -84,10 +84,10 @@
           "backend/migrations/add_domain_tenant_ownership.sql"
         ],
         "api": [
+          "backend/src/routes/webhooks.ts",
           "backend/src/controllers/adminController.ts",
           "backend/src/controllers/bookingController.ts",
-          "backend/src/controllers/paymentController.ts",
-          "backend/src/controllers/paymentOrchestrationController.ts"
+          "backend/src/controllers/paymentController.ts"
         ],
         "client": [
           "frontend/src/pages/Properties.tsx",
@@ -164,13 +164,13 @@
       "depth": 0,
       "workPlanChecked": false,
       "item": "Resolve critical dependency and webhook-security findings.",
-      "status": "not_started",
+      "status": "partial",
       "layers": {
         "specification": "evidence_found",
-        "implementation": "missing",
-        "api": "missing",
+        "implementation": "evidence_found",
+        "api": "evidence_found",
         "client": "not_required",
-        "tests": "missing",
+        "tests": "evidence_found",
         "operations": "evidence_found"
       },
       "evidence": {
@@ -180,13 +180,19 @@
           ".kiro/specs/farmle-platform-enhancement/design.md",
           ".kiro/specs/farmle-platform-enhancement/requirements.md"
         ],
-        "implementation": [],
-        "api": [],
+        "implementation": [
+          "backend/src/services/webhookSecurityService.ts"
+        ],
+        "api": [
+          "backend/src/routes/webhooks.ts"
+        ],
         "client": [
           "mobile/scripts/audit-production.mjs",
           "frontend/src/config/env.config.ts"
         ],
-        "tests": [],
+        "tests": [
+          "backend/src/tests/webhookSecurityService.test.ts"
+        ],
         "operations": [
           "docs/runbooks/BACKEND_DEPENDENCY_AUDIT.md",
           "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
@@ -7313,7 +7319,9 @@
           "backend/migrations/install_booking_reversal_recovery.sql",
           "backend/migrations/install_group_treasury_external_disbursements.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/routes/webhooks.ts"
+        ],
         "client": [
           "frontend/src/App.tsx",
           "frontend/src/components/analytics/__tests__/AnalyticsDashboard.test.tsx",
