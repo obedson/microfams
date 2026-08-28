@@ -56,7 +56,7 @@ Confirmed blockers include:
 - [x] Implement backend feature-flag service with tenant/environment overrides and audit records.
 - [x] Add architecture decision records and API/error conventions.
 - [x] Normalize browser API deployment URLs and restrict production/preview CORS origins.
-- [ ] Replace placeholder completion claims with evidence-linked status.
+- [x] Replace placeholder completion claims with evidence-linked status.
 
 Exit gate: clean builds, deterministic tests, secret scan, dependency gate, and documented recovery.
 
