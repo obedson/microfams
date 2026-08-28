@@ -27,6 +27,8 @@ jobs:
           cache: npm
           cache-dependency-path: backend/package-lock.json
       - run: npm ci
+      - name: Verify hermetic test configuration
+        run: bash scripts/verify-hermetic-test-environment.sh
       - run: npm run typecheck
       - run: npm run test:ci
       - run: npm run test:schema

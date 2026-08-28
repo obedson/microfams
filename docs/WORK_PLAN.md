@@ -50,7 +50,7 @@ Confirmed blockers include:
 
 - [ ] Rotate exposed secrets and remove sensitive values from history.
 - [ ] Establish CI for backend, frontend, mobile, migrations, security, and E2E.
-- [ ] Create hermetic test configuration and seeded test tenants.
+- [x] Create hermetic test configuration and seeded test tenants.
 - [ ] Resolve critical dependency and webhook-security findings.
 - [ ] Implement typed configuration validation and secret inventory.
 - [ ] Implement backend feature-flag service with tenant/environment overrides and audit records.

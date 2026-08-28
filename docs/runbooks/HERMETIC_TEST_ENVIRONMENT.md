@@ -1,5 +1,7 @@
 # Hermetic test environment
 
+This runbook covers the hermetic test configuration and seeded test tenants required for Version 1 release safety.
+
 The backend test suite loads `backend/tests/setup.ts` through Jest and uses synthetic defaults only when a value is not already supplied. Unit tests must not require network access, production credentials, or real personal data.
 
 ## Stable tenant fixtures
@@ -11,9 +13,13 @@ The backend test suite loads `backend/tests/setup.ts` through Jest and uses synt
 Run from the Codespace:
 
 ```bash
+npm --prefix backend run verify:hermetic
 npm --prefix backend test -- --runInBand tests/fixtures/tenantFixtures.test.ts
 npm --prefix backend run test:unit
 ```
+
+The verification command fails closed when unit-test defaults are not loopback-only,
+synthetic tenant fixtures are missing, or recognizable live secrets are committed.
 
 A unit test that attempts to contact the configured local Supabase URL is not hermetic and must be moved to the database-integration suite or supplied with a deterministic adapter. Never point the test defaults at a hosted or production database.
 
