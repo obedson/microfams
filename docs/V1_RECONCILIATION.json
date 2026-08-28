@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "summary": {
-    "workPlanSha256": "bb743d3a86e25d4064cd1acb2518df8512f9de2cb46eeba74c9ce7c2d3784c8e",
+    "workPlanSha256": "f102d2f01a93941657258530f673b86848fb102cd94f18ab9ed334776eb22c4d",
     "total": 154,
-    "checked": 114,
-    "candidateComplete": 79,
+    "checked": 115,
+    "candidateComplete": 80,
     "checkedWithEvidenceGaps": 35,
-    "partial": 39,
+    "partial": 38,
     "notStarted": 1
   },
   "items": [
@@ -162,9 +162,9 @@
       "phase": "Phase 0 — Foundation and release safety",
       "line": 54,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Resolve critical dependency and webhook-security findings.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
