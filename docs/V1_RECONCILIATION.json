@@ -4737,7 +4737,8 @@
         "tests": [
           "backend/tests/schema/test-group-membership-invitations.sql",
           "backend/src/tests/groupInvitationApi.test.ts",
-          "backend/tests/schema/test-loan-review-offers.sql"
+          "backend/tests/schema/test-loan-review-offers.sql",
+          "backend/tests/schema/test-organization-foundation.sql"
         ],
         "operations": [
           "docs/runbooks/GROUP_MEMBERSHIP_INVITATIONS.md"
