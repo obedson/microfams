@@ -7429,8 +7429,8 @@
         ],
         "operations": [
           "docs/runbooks/PAYOUT_ORCHESTRATION.md",
-          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
-          "docs/runbooks/FARM_RECORDS_OPERATIONS.md"
+          "docs/runbooks/TENANT_ISOLATION.md",
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
         ]
       }
     },
