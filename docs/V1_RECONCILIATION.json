@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "summary": {
-    "workPlanSha256": "f102d2f01a93941657258530f673b86848fb102cd94f18ab9ed334776eb22c4d",
+    "workPlanSha256": "b5778e38b05c8c1cb0a0a7a81925af4f251e928d7409fbdac07ed8fb3298dd3b",
     "total": 154,
-    "checked": 115,
-    "candidateComplete": 80,
+    "checked": 116,
+    "candidateComplete": 81,
     "checkedWithEvidenceGaps": 35,
-    "partial": 38,
+    "partial": 37,
     "notStarted": 1
   },
   "items": [
@@ -46,11 +46,12 @@
         "tests": [
           "backend/tests/schema/test-booking-state-transitions.sql",
           "backend/tests/schema/test-group-office-lifecycle.sql",
-          "backend/src/tests/loanApplicationApiContract.test.ts",
-          "backend/tests/schema/test-booking-authorization-audit.sql"
+          "backend/src/tests/environmentConfig.test.ts",
+          "backend/src/tests/loanApplicationApiContract.test.ts"
         ],
         "operations": [
-          "docs/CREDENTIALS_SETUP.md"
+          "docs/CREDENTIALS_SETUP.md",
+          "docs/runbooks/CONFIGURATION_VALIDATION.md"
         ]
       }
     },
@@ -205,9 +206,9 @@
       "phase": "Phase 0 — Foundation and release safety",
       "line": 55,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Implement typed configuration validation and secret inventory.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -236,13 +237,14 @@
           "frontend/src/pages/SavingsProviderCertification.tsx"
         ],
         "tests": [
+          "backend/src/tests/environmentConfig.test.ts",
           "backend/src/tests/liveProviderActivation.test.ts",
           "backend/src/tests/savingsProviderCertificationApi.test.ts",
           "backend/src/tests/savingsProviderCertificationService.test.ts"
         ],
         "operations": [
-          "docs/runbooks/SAVINGS_PROVIDER_CERTIFICATION.md",
-          "docs/CREDENTIALS_SETUP.md"
+          "docs/runbooks/CONFIGURATION_VALIDATION.md",
+          "docs/runbooks/SAVINGS_PROVIDER_CERTIFICATION.md"
         ]
       }
     },
@@ -390,7 +392,7 @@
         "tests": [
           "backend/src/tests/cors.test.ts",
           "frontend/src/config/env.config.test.ts",
-          "backend/src/tests/groupContributionRules.test.ts"
+          "backend/src/tests/environmentConfig.test.ts"
         ],
         "operations": [
           "docs/CREDENTIALS_SETUP.md",
@@ -7466,7 +7468,7 @@
         "tests": [],
         "operations": [
           "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
-          "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
+          "docs/runbooks/CONFIGURATION_VALIDATION.md"
         ]
       }
     }

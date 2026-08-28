@@ -8,6 +8,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import { assertMinorUnits, formatNgnMinor, majorDecimalToMinor, minorToMajorDecimal } from '../domains/financial/money.js';
 import { payoutService } from '../domains/financial/payoutService.js';
 import { financialRuleService } from '../domains/financial/financialRuleService.js';
+import { backendConfiguration } from '../config/environment.js';
 
 const withdrawalResponse = (request: any) => {
   const { amount, fee_amount, amount_minor, fee_amount_minor, account_number, ...identity } = request;
@@ -20,10 +21,7 @@ const withdrawalResponse = (request: any) => {
   };
 };
 
-const previewSigningSecret = (): string => {
-  if (!process.env.JWT_SECRET) throw new Error('Wallet preview signing is not configured');
-  return process.env.JWT_SECRET;
-};
+const previewSigningSecret = (): string => backendConfiguration.jwt.secret;
 
 const groupRequestResponse = (request: any) => {
   const { amount, ...identity } = request;
