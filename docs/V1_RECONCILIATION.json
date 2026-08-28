@@ -195,7 +195,8 @@
         ],
         "operations": [
           "docs/runbooks/BACKEND_DEPENDENCY_AUDIT.md",
-          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
+          "docs/runbooks/SECURITY_DEPENDENCY_AND_WEBHOOK_CONTROLS.md"
         ]
       }
     },
