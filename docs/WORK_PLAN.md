@@ -54,7 +54,7 @@ Confirmed blockers include:
 - [x] Resolve critical dependency and webhook-security findings.
 - [x] Implement typed configuration validation and secret inventory.
 - [x] Implement backend feature-flag service with tenant/environment overrides and audit records.
-- [ ] Add architecture decision records and API/error conventions.
+- [x] Add architecture decision records and API/error conventions.
 - [x] Normalize browser API deployment URLs and restrict production/preview CORS origins.
 - [ ] Replace placeholder completion claims with evidence-linked status.
 

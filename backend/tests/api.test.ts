@@ -68,6 +68,9 @@ describe('API Endpoints', () => {
         .expect(404);
 
       expect(response.body.success).toBe(false);
+      expect(response.body.code).toBe('ROUTE_NOT_FOUND');
+      expect(response.body.correlationId).toBeDefined();
+      expect(response.headers['x-correlation-id']).toBe(response.body.correlationId);
     });
 
     it('should return 404 for unknown nested API routes', async () => {
@@ -76,6 +79,9 @@ describe('API Endpoints', () => {
         .expect(404);
 
       expect(response.body.success).toBe(false);
+      expect(response.body.code).toBe('ROUTE_NOT_FOUND');
+      expect(response.body.correlationId).toBeDefined();
+      expect(response.headers['x-correlation-id']).toBe(response.body.correlationId);
     });
 
     it('should keep known contribution routes protected', async () => {
