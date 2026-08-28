@@ -10,6 +10,14 @@ A missing organization selector, malformed UUID, inactive membership, or insuffi
 
 Database membership checks must require both an active membership and an active organization. Suspended and closed organizations must return no tenant-owned rows even when a membership record remains active.
 
+Treat a present but empty or whitespace-only `X-Organization-Id` header as malformed. It must not fall back to automatic selection. Omission is allowed only when the authenticated user has exactly one active membership in an active organization. Multiple active memberships require an explicit selector, while forged selectors and suspended memberships or organizations use the same neutral `TENANT_ACCESS_DENIED` response.
+
+The tenant selection contract is exercised at three layers:
+
+- `tenantSelectionApi.test.ts` verifies the HTTP status and stable error codes.
+- `tenantService.test.ts` verifies membership-selection rules.
+- `tenantRepository.test.ts` verifies the active-membership and active-organization query predicates.
+
 Null ownership is never a fallback tenant. Legacy null-owned rows must remain invisible unless the domain specification deliberately defines a global record, such as approved global education or marketplace catalogue content with its own policy and projection.
 
 ## Deployment and rollback
