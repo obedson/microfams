@@ -160,7 +160,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Verify V1 reconciliation report is current
-        run: node scripts/reconcile-v1.mjs --check
+        run: node --test scripts/reconcile-v1.test.mjs
       - name: Reject committed private keys and common live-token formats
         shell: bash
         run: |
