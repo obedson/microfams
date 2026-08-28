@@ -589,10 +589,10 @@
           "frontend/src/store/organizationStore.ts"
         ],
         "tests": [
+          "backend/src/tests/organizationBrandingApi.test.ts",
           "backend/src/tests/organizationService.test.ts",
           "backend/src/tests/tenantMiddleware.test.ts",
-          "backend/tests/schema/test-group-committees-meetings.sql",
-          "backend/tests/schema/test-investment-fixed-unit-allocation.sql"
+          "backend/tests/schema/test-group-committees-meetings.sql"
         ],
         "operations": [
           "docs/runbooks/WALLET_LEDGER_CUTOVER.md"
