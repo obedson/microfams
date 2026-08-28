@@ -11,6 +11,19 @@ This runbook defines the operational evidence required for server-owned feature 
 5. Verify the effective decision for the target tenant and environment, then exercise one denied or enabled command in a non-production environment.
 6. Confirm audit evidence contains the key, actor, reason, before/after values, and timestamp. Never place secrets or identity numbers in the reason.
 
+## Administration API
+
+All routes require an authenticated active platform-administrator assignment:
+
+- `GET /api/admin/feature-flags` lists the registered catalog.
+- `GET /api/admin/feature-flags/:key/effective` evaluates an explicit environment and optional tenant, jurisdiction, or actor context.
+- `POST /api/admin/feature-flags/:key/overrides` proposes an effective-dated override with a mandatory reason.
+- `POST /api/admin/feature-flags/overrides/:overrideId/decision` independently approves or rejects a pending provider or regulated override.
+- `POST /api/admin/feature-flags/:key/emergency-stop` changes the emergency stop with a mandatory incident reference.
+- `GET /api/admin/feature-flags/audit` returns immutable before/after evidence.
+
+Standard-risk overrides are approved by the proposing platform administrator. Provider and regulated overrides remain pending and cannot affect runtime evaluation until a different platform administrator approves them. Rejected and revoked rows never participate in evaluation.
+
 ## Emergency stop
 
 Emergency stop is reserved for an active security, legal, provider, or ledger-integrity incident. Record the incident reference, authorized operator, reason, affected scope, and expected review time. The stop must fail closed for new exposure while preserving reads and servicing paths whose catalog failure mode is `open`.
