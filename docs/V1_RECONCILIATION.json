@@ -4,8 +4,8 @@
     "workPlanSha256": "5f55850c911bf6df2d0cf581fc41e8a1e6fb778828dae704f40a1920727354f0",
     "total": 154,
     "checked": 119,
-    "candidateComplete": 86,
-    "checkedWithEvidenceGaps": 33,
+    "candidateComplete": 88,
+    "checkedWithEvidenceGaps": 31,
     "partial": 34,
     "notStarted": 1
   },
@@ -3819,7 +3819,7 @@
           "backend/tests/schema/test-dividend-payment-servicing.sql"
         ],
         "operations": [
-          "docs/runbooks/DIVIDEND_OPERATIONS.md"
+          "docs/runbooks/DIVIDEND_ENTITLEMENT_OPERATIONS.md"
         ]
       }
     },
@@ -6705,14 +6705,14 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add DIV-01 immutable proportional paid-unit dividend entitlement snapshots with disclosed rounding residuals; approval and payment remain separate.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -6743,7 +6743,9 @@
           "backend/src/tests/dividendEntitlementApi.test.ts",
           "backend/src/tests/dividendPayableRecognitionApi.test.ts"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/DIVIDEND_ENTITLEMENT_OPERATIONS.md"
+        ]
       }
     },
     {
@@ -6753,14 +6755,14 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add DIV-02 maker-checker dividend review and approval with immutable transition evidence; payable recognition and payment remain separate.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -6793,7 +6795,9 @@
           "backend/tests/schema/test-investment-oversubscribed-unit-execution.sql",
           "backend/tests/schema/test-investment-refund-obligations.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/DIVIDEND_ENTITLEMENT_OPERATIONS.md"
+        ]
       }
     },
     {
@@ -6834,7 +6838,7 @@
           "backend/tests/schema/test-savings-withdrawals.sql"
         ],
         "operations": [
-          "docs/runbooks/LOAN_REPAYMENT_REVERSALS.md"
+          "docs/runbooks/DIVIDEND_ENTITLEMENT_OPERATIONS.md"
         ]
       }
     },
