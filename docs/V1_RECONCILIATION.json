@@ -4227,7 +4227,7 @@
         "api": "missing",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -4253,7 +4253,9 @@
           "backend/tests/schema/test-investment-refund-provider-submission.sql",
           "backend/tests/schema/test-booking-settlement-eligibility-fees.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/BOOKING_REVERSAL_RECOVERY.md"
+        ]
       }
     },
     {
@@ -4301,8 +4303,8 @@
           "backend/tests/schema/test-loan-repayment-reversal.sql"
         ],
         "operations": [
-          "docs/runbooks/LOAN_DISBURSEMENT_ORCHESTRATION.md",
-          "docs/runbooks/LOAN_RESTRUCTURING.md"
+          "docs/runbooks/BOOKING_REVERSAL_RECOVERY.md",
+          "docs/runbooks/LOAN_DISBURSEMENT_ORCHESTRATION.md"
         ]
       }
     },
