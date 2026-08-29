@@ -1,3 +1,4 @@
+// Maker-checker reconciliation resolution/write-off routes are permission and feature gated.
 import { Router } from 'express';
 import { accountingController } from '../controllers/accountingController.js';
 import { dividendEntitlementController } from '../controllers/dividendEntitlementController.js';
@@ -5,6 +6,7 @@ import { accountingMemberStatementController } from '../controllers/accountingMe
 import { accountingBudgetController } from '../controllers/accountingBudgetController.js';
 import { accountingCashFlowController } from '../controllers/accountingCashFlowController.js';
 import { accountingBalanceSheetController } from '../controllers/accountingBalanceSheetController.js';
+import { reconciliationController } from '../controllers/reconciliationController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { requireFeature } from '../middleware/requireFeature.js';
 import { requireTenantPermission, resolveTenant } from '../middleware/tenant.js';
@@ -20,3 +22,6 @@ router.post('/dividends/approve', requireFeature('financial.rules.approve'), req
 router.post('/dividends/payable', requireFeature('financial.accounting.post'), requireTenantPermission('financial.accounting.post'), dividendEntitlementController.recognizePayable);
 router.post('/dividends/pay', requireFeature('financial.dividends.service_existing'), requireTenantPermission('financial.accounting.post'), dividendEntitlementController.pay);
 export default router;
+router.post('/reconciliation/exceptions/:exceptionId/investigation', requireFeature('financial.payments.service_existing'), requireTenantPermission('financial.reconciliation.manual'), reconciliationController.startInvestigation);
+router.post('/reconciliation/exceptions/:exceptionId/resolution-requests', requireFeature('financial.payments.service_existing'), requireTenantPermission('financial.reconciliation.manual'), reconciliationController.requestResolution);
+router.post('/reconciliation/resolution-requests/:requestId/decision', requireFeature('financial.payments.service_existing'), requireTenantPermission('financial.reconciliation.manual'), reconciliationController.decideResolution);
