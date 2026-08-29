@@ -3263,7 +3263,8 @@
           "backend/migrations/install_investment_refund_callbacks.sql"
         ],
         "api": [
-          "backend/src/routes/investments.ts"
+          "backend/src/routes/investments.ts",
+          "backend/src/routes/webhooks.ts"
         ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx"

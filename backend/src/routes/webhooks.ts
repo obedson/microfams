@@ -23,6 +23,7 @@ router.post('/paystack/investment-refunds', async (req: Request, res: Response) 
 });
 
 router.post('/paystack', async (req: Request, res: Response) => {
+  // BS-09 booking reversal intake: signed raw provider events are persisted\n  // before processing and reversed booking payments flow through the recovery\n  // classification trigger.
   try {
     const envelope = requireRawWebhookEnvelope(req.body, req.headers['x-paystack-signature']);
     const receipt = await paymentService.ingestWebhook(envelope.rawBody, envelope.signature);
