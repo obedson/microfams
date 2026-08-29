@@ -3,6 +3,7 @@ import { AuthRequest } from '../middleware/auth.js';
 import { supabase } from '../utils/supabase.js';
 
 export const outboxOperationsController = {
+  // Exposes aggregate domain-event outbox state for durable job operations without payloads.
   async bookingNotificationHealth(_req: AuthRequest, res: Response) {
     const { data, error } = await supabase
       .from('booking_domain_notification_outbox')

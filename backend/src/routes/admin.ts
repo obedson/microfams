@@ -37,6 +37,7 @@ router.post(
 );
 
 router.get('/platform-administrators', platformAdministrationController.list);
+// Platform API for domain-event outbox and durable job processing health.
 router.get('/operations/outbox/booking-notifications', outboxOperationsController.bookingNotificationHealth);
 router.post('/platform-administrators', platformAdministrationController.grant);
 router.delete('/platform-administrators/:userId', platformAdministrationController.revoke);
