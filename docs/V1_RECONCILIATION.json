@@ -4,8 +4,8 @@
     "workPlanSha256": "5f55850c911bf6df2d0cf581fc41e8a1e6fb778828dae704f40a1920727354f0",
     "total": 154,
     "checked": 119,
-    "candidateComplete": 91,
-    "checkedWithEvidenceGaps": 28,
+    "candidateComplete": 94,
+    "checkedWithEvidenceGaps": 25,
     "partial": 34,
     "notStarted": 1
   },
@@ -3844,7 +3844,7 @@
         "api": "not_required",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -3877,7 +3877,9 @@
           "backend/tests/api.test.ts",
           "backend/tests/schema/test-booking-reservations.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md"
+        ]
       }
     },
     {
@@ -5684,14 +5686,14 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10C tenant-scoped shared-asset registration with governed custody, lifecycle metadata, idempotency, and immutable acquisition evidence.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -5724,7 +5726,9 @@
           "backend/src/tests/savingsProductService.test.ts",
           "backend/tests/schema/test-loan-product-foundation.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md"
+        ]
       }
     },
     {
@@ -5875,14 +5879,14 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10G requester-or-manager reservation cancellation with immutable evidence, idempotency, custody-state guards, and availability recomputation.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -5915,7 +5919,9 @@
           "backend/tests/schema/test-booking-reservations.sql",
           "backend/tests/schema/test-group-asset-condition-events.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md"
+        ]
       }
     },
     {
@@ -5925,14 +5931,14 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10H atomic checked-out custody-loss resolution with linked reservation and asset lifecycle evidence after pending bookings are cancelled.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -5965,7 +5971,9 @@
           "backend/tests/schema/test-group-asset-custody-loss.sql",
           "backend/src/tests/analytics-properties.test.ts"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md"
+        ]
       }
     },
     {
