@@ -5923,7 +5923,8 @@
         ],
         "operations": [
           "docs/runbooks/BOOKING_RESERVATION_LIFECYCLE.md",
-          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md"
+          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md",
+          "docs/runbooks/BOOKING_RESERVATION_ROLLBACK.md"
         ]
       }
     },
