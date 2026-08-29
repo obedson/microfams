@@ -723,10 +723,10 @@
           "backend/migrations/install_savings_accrual_posting.sql"
         ],
         "api": [
+          "backend/src/routes/admin.ts",
           "backend/src/controllers/bookingController.ts",
           "backend/src/controllers/bookingDisputeResolutionController.ts",
-          "backend/src/controllers/escrowController.ts",
-          "backend/src/routes/admin.ts"
+          "backend/src/controllers/escrowController.ts"
         ],
         "client": [],
         "tests": [
