@@ -22,3 +22,4 @@ The health endpoint is a liveness signal only. Queue, database, provider, and re
 ## Recovery
 
 If correlation propagation or health evidence regresses, keep existing records intact, disable only the affected new operation where possible, preserve logs and audit rows, and deploy a reviewed forward fix. Re-run correlation tests, affected domain checks, security scans, and reconciliation before re-enabling the operation.
+Platform administrators can inspect bounded in-process request metrics at GET /api/admin/operations/metrics. The response contains aggregate request and 5xx counts, duration totals, and normalized method/route labels; it never includes request bodies, query values, identifiers, or credentials. Metrics reset when the process restarts and are operational signals rather than durable audit evidence.

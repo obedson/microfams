@@ -27,6 +27,7 @@ import communicationRoutes from './routes/communications.js';
 import receiptRoutes from './routes/receipts.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { requestContext } from "./middleware/requestContext.js";
+import { requestMetrics } from './middleware/requestMetrics.js';
 
 import farmRecordRoutes from './routes/farmRecords.js';
 import courseRoutes from './routes/courses.js';
@@ -62,6 +63,7 @@ import PaymentTimeoutJob from './jobs/paymentTimeoutJob.js';
 
 const app = express();
 app.use(requestContext);
+app.use(requestMetrics);
 const PORT = backendConfiguration.port;
 
 // Security middleware
