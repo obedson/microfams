@@ -28,6 +28,7 @@ import receiptRoutes from './routes/receipts.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { requestContext } from "./middleware/requestContext.js";
 import { requestMetrics } from './middleware/requestMetrics.js';
+import { initSentry, sentryErrorHandler } from './utils/sentry.js';
 
 import farmRecordRoutes from './routes/farmRecords.js';
 import courseRoutes from './routes/courses.js';
@@ -62,6 +63,7 @@ import { startRetentionJobs } from './jobs/retentionJobs.js';
 import PaymentTimeoutJob from './jobs/paymentTimeoutJob.js';
 
 const app = express();
+initSentry(app);
 app.use(requestContext);
 app.use(requestMetrics);
 const PORT = backendConfiguration.port;
@@ -133,6 +135,7 @@ app.get('/health', (req, res) => {
 });
 
 // Error handling
+app.use(sentryErrorHandler);
 app.use(notFound);
 app.use(errorHandler);
 
