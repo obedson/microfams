@@ -5728,7 +5728,8 @@
           "backend/tests/schema/test-loan-product-foundation.sql"
         ],
         "operations": [
-          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md"
+          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md",
+          "docs/runbooks/BOOKING_RESERVATION_LIFECYCLE.md"
         ]
       }
     },
@@ -5921,7 +5922,9 @@
           "backend/tests/schema/test-group-asset-condition-events.sql"
         ],
         "operations": [
-          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md"
+          "docs/runbooks/BOOKING_RESERVATION_LIFECYCLE.md",
+          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md",
+          "docs/runbooks/BOOKING_RESERVATION_ROLLBACK.md"
         ]
       }
     },
