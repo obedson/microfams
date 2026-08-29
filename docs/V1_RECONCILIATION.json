@@ -330,10 +330,10 @@
           "backend/src/domains/platform/featureFlagAdministrationService.ts"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/savingsProviderCertificationController.ts",
           "backend/src/routes/admin.ts",
-          "backend/src/controllers/analyticsController.ts",
-          "backend/src/controllers/bookingDisputeResolutionController.ts"
+          "backend/src/controllers/analyticsController.ts"
         ],
         "client": [
           "frontend/src/components/farm-records/FarmRecommendations.test.tsx",
@@ -773,8 +773,8 @@
         "api": [
           "backend/src/controllers/investmentProductController.ts",
           "backend/src/controllers/paymentOrchestrationController.ts",
-          "backend/src/routes/accounting.ts",
-          "backend/src/routes/groupAdmin.ts"
+          "backend/src/controllers/reconciliationController.ts",
+          "backend/src/routes/accounting.ts"
         ],
         "client": [
           "frontend/src/pages/SavingsDashboard.tsx",
@@ -1513,10 +1513,10 @@
           "backend/migrations/install_booking_operational_statements.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/routes/accounting.ts",
           "backend/src/controllers/groupContributionCycleController.ts",
-          "backend/src/controllers/savingsController.ts",
-          "backend/src/controllers/savingsProviderCertificationController.ts"
+          "backend/src/controllers/savingsController.ts"
         ],
         "client": [],
         "tests": [
@@ -1560,6 +1560,7 @@
           "backend/migrations/create_financial_rules.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/routes/accounting.ts"
         ],
         "client": [
@@ -2662,6 +2663,7 @@
           "backend/migrations/install_booking_settlement_eligibility_fees.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/routes/credit.ts"
         ],
         "client": [
@@ -2757,7 +2759,8 @@
         ],
         "api": [
           "backend/src/routes/accounting.ts",
-          "backend/src/controllers/loanProductController.ts"
+          "backend/src/controllers/loanProductController.ts",
+          "backend/src/controllers/reconciliationController.ts"
         ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx"
@@ -3355,7 +3358,7 @@
           "backend/src/routes/investments.ts",
           "backend/src/controllers/investmentRefundReconciliationController.ts",
           "backend/src/controllers/investmentRefundReversalController.ts",
-          "backend/src/controllers/savingsProviderCertificationController.ts"
+          "backend/src/controllers/reconciliationController.ts"
         ],
         "client": [
           "frontend/src/App.tsx",
@@ -3403,10 +3406,10 @@
           "backend/migrations/install_group_treasury_external_disbursements.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/groupContributionCycleController.ts",
           "backend/src/controllers/investmentRefundReconciliationController.ts",
-          "backend/src/controllers/savingsProviderCertificationController.ts",
-          "backend/src/routes/accounting.ts"
+          "backend/src/controllers/savingsProviderCertificationController.ts"
         ],
         "client": [
           "frontend/src/pages/SavingsProviderCertification.tsx"
@@ -3452,10 +3455,10 @@
           "backend/migrations/create_payout_orchestration.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/groupTreasuryController.ts",
           "backend/src/controllers/investmentRefundReversalController.ts",
-          "backend/src/routes/groupAdmin.ts",
-          "backend/src/routes/investments.ts"
+          "backend/src/routes/groupAdmin.ts"
         ],
         "client": [
           "frontend/src/pages/CreditRepaymentReversals.tsx",
@@ -3554,6 +3557,7 @@
           "backend/migrations/create_financial_rules.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/escrowController.ts"
         ],
         "client": [
@@ -4261,6 +4265,7 @@
           "backend/migrations/create_financial_rules.sql"
         ],
         "api": [
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/savingsProviderCertificationController.ts",
           "backend/src/routes/accounting.ts"
         ],
@@ -6223,8 +6228,8 @@
         "api": [
           "backend/src/controllers/escrowController.ts",
           "backend/src/controllers/groupGovernanceController.ts",
-          "backend/src/controllers/savingsController.ts",
-          "backend/src/controllers/bookingController.ts"
+          "backend/src/controllers/reconciliationController.ts",
+          "backend/src/controllers/savingsController.ts"
         ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx",
@@ -6322,9 +6327,9 @@
         ],
         "api": [
           "backend/src/controllers/escrowController.ts",
+          "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/contributionController.ts",
-          "backend/src/controllers/groupCommitteeController.ts",
-          "backend/src/controllers/groupContributionController.ts"
+          "backend/src/controllers/groupCommitteeController.ts"
         ],
         "client": [
           "frontend/src/pages/Wallet.tsx",
@@ -6910,7 +6915,9 @@
           "backend/migrations/activate_wallet_ledger_cutover.sql",
           "backend/migrations/install_booking_dispute_resolution.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/controllers/reconciliationController.ts"
+        ],
         "client": [
           "frontend/src/pages/CashFlow.tsx",
           "frontend/src/services/accountingCashFlowAPI.ts",
