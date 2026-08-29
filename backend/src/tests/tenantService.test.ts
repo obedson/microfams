@@ -30,6 +30,13 @@ describe('TenantService', () => {
     await expect(service.resolve('user-1')).resolves.toMatchObject({ id: 'org-1', role: 'owner', userId: 'user-1' });
   });
 
+  it('rejects users without an active organization membership', async () => {
+    const service = new TenantService(repository([]));
+    await expect(service.resolve('user-1')).rejects.toMatchObject({
+      code: 'TENANT_MEMBERSHIP_REQUIRED', status: 403,
+    });
+  });
+
   it('requires an explicit selection when a user belongs to multiple organizations', async () => {
     const service = new TenantService(repository([membership('org-1'), membership('org-2')]));
     await expect(service.resolve('user-1')).rejects.toMatchObject({

@@ -20,10 +20,10 @@ export const createResolveTenant = (service: Pick<TenantService, 'resolve'>) => 
   if (!userId) return res.status(401).json({ success: false, error: 'AUTHENTICATION_REQUIRED' });
 
   const header = req.headers['x-organization-id'];
-  if (Array.isArray(header)) {
-    return res.status(400).json({ success: false, error: 'INVALID_TENANT_SELECTION' });
-  }
-  if (header && !UUID_PATTERN.test(header)) {
+  if (
+    Array.isArray(header)
+    || (header !== undefined && !UUID_PATTERN.test(header))
+  ) {
     return res.status(400).json({ success: false, error: 'INVALID_TENANT_SELECTION' });
   }
 

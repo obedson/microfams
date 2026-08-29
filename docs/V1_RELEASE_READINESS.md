@@ -8,8 +8,8 @@ The repository contains mature database-enforced foundations for financial accou
 
 ## Current Evidence
 
-- The work plan contains 154 checkbox items; 113 are marked complete.
-- Automated reconciliation currently classifies 41 items as `candidate_complete` and 72 checked items as having discoverable evidence gaps.
+- The generated [V1 reconciliation report](V1_RECONCILIATION.md) is the current source for work-plan counts, evidence paths, and status. Numeric claims are not duplicated here because they become stale as stacked delivery PRs advance.
+- `candidate_complete` means every automatically required layer has discoverable evidence; it does not mean accepted or release-ready. Checked rows with missing layers remain `claimed_complete_evidence_gap`.
 - CI covers type checks, unit tests, clean-schema migration tests, hosted database integration, frontend/mobile checks, a browser smoke test, dependency audit, and basic secret-pattern scanning.
 - Financial and governance work is concentrated in migrations and schema tests; application-layer and user-journey coverage is less complete.
 
@@ -19,7 +19,7 @@ These counts are navigation aids, not acceptance metrics. A row becomes complete
 
 | Gate | Status | Required to pass |
 |---|---|---|
-| Phase 0: foundation and release safety | Fail | Secret remediation, configuration inventory, architecture/API conventions, deterministic evidence-linked status |
+| Phase 0: foundation and release safety | Fail | Secret remediation and any remaining CI release-gate evidence; deterministic evidence reconciliation is enforced in CI |
 | Phase 1: tenant platform kernel | Fail | End-to-end isolation, durable jobs/events, observability and correlation evidence |
 | Phase 2: trust and identity | Fail | Approved NIN/KYC flow, provider contracts, privacy/replay and complete journeys |
 | Phase 3: financial core | Partial | Full account servicing, limits/freezes/closures, provider certification and zero-variance reconciliation |
@@ -41,6 +41,8 @@ AND required web/mobile workflow
 AND required test layers passing in CI
 AND operational, reconciliation, disable, and recovery documentation
 ```
+
+The operating and recovery procedure is documented in [V1 evidence reconciliation operations](runbooks/V1_EVIDENCE_RECONCILIATION.md).
 
 ## Next Release Milestone
 

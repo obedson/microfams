@@ -12,6 +12,7 @@ import { decideBookingDisputeResolution } from '../controllers/bookingDisputeRes
 import { resolveTenant } from '../middleware/tenant.js';
 import { requireBookingPermission } from '../middleware/requireBookingPermission.js';
 import { outboxOperationsController } from '../controllers/outboxOperationsController.js';
+import { featureFlagAdministrationController } from '../controllers/featureFlagAdministrationController.js';
 
 const router = Router();
 
@@ -41,6 +42,12 @@ router.post('/platform-administrators', platformAdministrationController.grant);
 router.delete('/platform-administrators/:userId', platformAdministrationController.revoke);
 router.post('/users/:id/suspend', requireFeature('trust.suspensions'), platformAdministrationController.suspend);
 router.post('/users/:id/resume', platformAdministrationController.resume);
+router.get('/feature-flags', featureFlagAdministrationController.listCatalog);
+router.get('/feature-flags/audit', featureFlagAdministrationController.listAudit);
+router.get('/feature-flags/:key/effective', featureFlagAdministrationController.effectiveDecision);
+router.post('/feature-flags/:key/overrides', featureFlagAdministrationController.proposeOverride);
+router.post('/feature-flags/overrides/:overrideId/decision', featureFlagAdministrationController.decideOverride);
+router.post('/feature-flags/:key/emergency-stop', featureFlagAdministrationController.setEmergencyStop);
 router.get('/trust/reviews', trustController.listReviews);
 router.post('/trust/reviews', requireFeature('trust.review_cases'), trustController.openReview);
 router.post('/trust/reviews/:caseId/assign', trustController.assignReview);

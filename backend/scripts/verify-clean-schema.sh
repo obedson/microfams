@@ -514,6 +514,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-organization-foundation.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-organization-verification.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
@@ -599,3 +602,5 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
   < "$repo_root/backend/tests/schema/test-escrow-expiry-servicing.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-escrow-dispute-resolution.sql"
 
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-feature-flag-administration.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-tenant-membership-rls-hardening.sql"

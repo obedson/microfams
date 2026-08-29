@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "summary": {
-    "workPlanSha256": "f102d2f01a93941657258530f673b86848fb102cd94f18ab9ed334776eb22c4d",
+    "workPlanSha256": "5f55850c911bf6df2d0cf581fc41e8a1e6fb778828dae704f40a1920727354f0",
     "total": 154,
-    "checked": 115,
-    "candidateComplete": 80,
-    "checkedWithEvidenceGaps": 35,
-    "partial": 38,
+    "checked": 119,
+    "candidateComplete": 83,
+    "checkedWithEvidenceGaps": 36,
+    "partial": 34,
     "notStarted": 1
   },
   "items": [
@@ -46,11 +46,12 @@
         "tests": [
           "backend/tests/schema/test-booking-state-transitions.sql",
           "backend/tests/schema/test-group-office-lifecycle.sql",
-          "backend/src/tests/loanApplicationApiContract.test.ts",
-          "backend/tests/schema/test-booking-authorization-audit.sql"
+          "backend/src/tests/environmentConfig.test.ts",
+          "backend/src/tests/featureFlagAdministrationService.test.ts"
         ],
         "operations": [
-          "docs/CREDENTIALS_SETUP.md"
+          "docs/CREDENTIALS_SETUP.md",
+          "docs/runbooks/CONFIGURATION_VALIDATION.md"
         ]
       }
     },
@@ -147,10 +148,10 @@
           "frontend/src/components/bookings/__tests__/BookingCalendar.properties.test.tsx"
         ],
         "tests": [
+          "backend/src/tests/featureFlagAdministrationService.test.ts",
           "backend/src/tests/payoutAdapters.test.ts",
           "backend/src/tests/savingsProviderCertificationApi.test.ts",
-          "backend/src/tests/savingsProviderCertificationService.test.ts",
-          "backend/tests/schema/test-financial-rules.sql"
+          "backend/src/tests/savingsProviderCertificationService.test.ts"
         ],
         "operations": [
           "docs/runbooks/HERMETIC_TEST_ENVIRONMENT.md"
@@ -205,9 +206,9 @@
       "phase": "Phase 0 — Foundation and release safety",
       "line": 55,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Implement typed configuration validation and secret inventory.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -236,13 +237,14 @@
           "frontend/src/pages/SavingsProviderCertification.tsx"
         ],
         "tests": [
+          "backend/src/tests/environmentConfig.test.ts",
           "backend/src/tests/liveProviderActivation.test.ts",
           "backend/src/tests/savingsProviderCertificationApi.test.ts",
           "backend/src/tests/savingsProviderCertificationService.test.ts"
         ],
         "operations": [
-          "docs/runbooks/SAVINGS_PROVIDER_CERTIFICATION.md",
-          "docs/CREDENTIALS_SETUP.md"
+          "docs/runbooks/CONFIGURATION_VALIDATION.md",
+          "docs/runbooks/SAVINGS_PROVIDER_CERTIFICATION.md"
         ]
       }
     },
@@ -251,9 +253,9 @@
       "phase": "Phase 0 — Foundation and release safety",
       "line": 56,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Implement backend feature-flag service with tenant/environment overrides and audit records.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -276,10 +278,10 @@
           "backend/migrations/create_identity_verification.sql"
         ],
         "api": [
+          "backend/src/controllers/featureFlagAdministrationController.ts",
+          "backend/src/routes/admin.ts",
           "backend/src/controllers/savingsProviderCertificationController.ts",
-          "backend/src/controllers/analyticsController.ts",
-          "backend/src/controllers/bookingController.ts",
-          "backend/src/controllers/farmRecordController.ts"
+          "backend/src/controllers/analyticsController.ts"
         ],
         "client": [
           "frontend/src/pages/SavingsProviderCertification.test.tsx",
@@ -288,10 +290,10 @@
           "frontend/src/components/farm-records/FarmRecommendations.test.tsx"
         ],
         "tests": [
+          "backend/src/tests/featureFlagAdministrationService.test.ts",
           "backend/src/tests/featureFlagMatrix.test.ts",
-          "backend/src/tests/featureFlagService.test.ts",
-          "backend/src/tests/releaseRecoverySmoke.test.ts",
-          "backend/src/tests/savingsProviderCertificationApi.test.ts"
+          "backend/tests/schema/test-feature-flag-administration.sql",
+          "backend/src/tests/featureFlagAdministrationApi.test.ts"
         ],
         "operations": [
           "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
@@ -303,9 +305,9 @@
       "phase": "Phase 0 — Foundation and release safety",
       "line": 57,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Add architecture decision records and API/error conventions.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -325,7 +327,7 @@
           "backend/migrations/install_group_treasury_disbursements.sql",
           "backend/migrations/install_group_contribution_cycles.sql",
           "backend/src/domains/financial/savingsProviderCertificationService.ts",
-          "backend/src/domains/trust/suspendedAccountRecoveryService.ts"
+          "backend/src/domains/platform/featureFlagAdministrationService.ts"
         ],
         "api": [
           "backend/src/controllers/savingsProviderCertificationController.ts",
@@ -346,8 +348,8 @@
           "backend/src/tests/bookingSettlementApi.test.ts"
         ],
         "operations": [
-          "docs/runbooks/INTELLIGENCE_ADAPTER_OPERATIONS.md",
-          "docs/runbooks/SUSPENDED_ACCOUNT_RECOVERY.md"
+          "docs/runbooks/FEATURE_FLAG_OPERATIONS.md",
+          "docs/runbooks/INTELLIGENCE_ADAPTER_OPERATIONS.md"
         ]
       }
     },
@@ -390,7 +392,7 @@
         "tests": [
           "backend/src/tests/cors.test.ts",
           "frontend/src/config/env.config.test.ts",
-          "backend/src/tests/groupContributionRules.test.ts"
+          "backend/src/tests/environmentConfig.test.ts"
         ],
         "operations": [
           "docs/CREDENTIALS_SETUP.md",
@@ -404,9 +406,9 @@
       "phase": "Phase 0 — Foundation and release safety",
       "line": 59,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Replace placeholder completion claims with evidence-linked status.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -621,23 +623,23 @@
           "docs/specs/FEATURE_FLAGS.md"
         ],
         "implementation": [
+          "backend/src/domains/platform/featureFlagAdministrationService.ts",
           "backend/migrations/create_admin_user.sql",
           "backend/migrations/add_marketplace_order_workflow.sql",
-          "backend/migrations/create_feature_flags.sql",
-          "backend/migrations/create_financial_account_provisioning.sql"
+          "backend/migrations/create_feature_flags.sql"
         ],
         "api": [
+          "backend/src/controllers/featureFlagAdministrationController.ts",
           "backend/src/routes/admin.ts",
           "backend/src/controllers/bookingDisputeResolutionController.ts",
-          "backend/src/controllers/contributionController.ts",
-          "backend/src/controllers/groupTreasuryController.ts"
+          "backend/src/controllers/contributionController.ts"
         ],
         "client": [],
         "tests": [
+          "backend/src/tests/featureFlagAdministrationApi.test.ts",
+          "backend/src/tests/featureFlagAdministrationService.test.ts",
           "backend/src/tests/bookingDisputeResolutionApi.test.ts",
-          "backend/src/tests/platformAdministrationApi.test.ts",
-          "backend/src/tests/trustApi.test.ts",
-          "backend/tests/schema/test-booking-dispute-resolution.sql"
+          "backend/src/tests/platformAdministrationApi.test.ts"
         ],
         "operations": [
           "docs/runbooks/TRUST_REVIEW_APPEALS.md"
@@ -2419,7 +2421,7 @@
         ],
         "operations": [
           "docs/runbooks/LOAN_REVIEW_OFFERS.md",
-          "docs/runbooks/LOAN_RESTRUCTURING.md"
+          "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
         ]
       }
     },
@@ -4735,7 +4737,8 @@
         "tests": [
           "backend/tests/schema/test-group-membership-invitations.sql",
           "backend/src/tests/groupInvitationApi.test.ts",
-          "backend/tests/schema/test-loan-review-offers.sql"
+          "backend/tests/schema/test-loan-review-offers.sql",
+          "backend/tests/schema/test-organization-foundation.sql"
         ],
         "operations": [
           "docs/runbooks/GROUP_MEMBERSHIP_INVITATIONS.md"
@@ -4882,7 +4885,7 @@
         ],
         "operations": [
           "docs/runbooks/GROUP_MEMBER_DISCIPLINE_APPEALS.md",
-          "docs/runbooks/GROUP_CONSTITUTION_OFFICES.md"
+          "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
         ]
       }
     },
@@ -5157,7 +5160,8 @@
           "backend/tests/schema/test-group-treasury-emergency-expenditure.sql"
         ],
         "operations": [
-          "docs/runbooks/GROUP_TREASURY_DISBURSEMENTS.md"
+          "docs/runbooks/GROUP_TREASURY_DISBURSEMENTS.md",
+          "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
         ]
       }
     },
@@ -6020,13 +6024,12 @@
         ],
         "tests": [
           "backend/tests/schema/test-group-asset-disposal-accounting-facts.sql",
+          "backend/src/tests/featureFlagAdministrationApi.test.ts",
           "backend/src/tests/groupProposalApi.test.ts",
-          "backend/tests/schema/test-group-asset-disposal-execution.sql",
-          "backend/tests/schema/test-group-asset-transfer-accounting-facts.sql"
+          "backend/tests/schema/test-group-asset-disposal-execution.sql"
         ],
         "operations": [
-          "docs/runbooks/INVESTMENT_PRODUCTS.md",
-          "docs/runbooks/GROUP_ADMISSION_PAYMENTS.md"
+          "docs/runbooks/INVESTMENT_PRODUCTS.md"
         ]
       }
     },
@@ -6682,14 +6685,14 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add DIV-01 immutable proportional paid-unit dividend entitlement snapshots with disclosed rounding residuals; approval and payment remain separate.",
-      "status": "candidate_complete",
+      "status": "claimed_complete_evidence_gap",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "evidence_found"
+        "operations": "missing"
       },
       "evidence": {
         "specification": [
@@ -6720,9 +6723,7 @@
           "backend/src/tests/dividendEntitlementApi.test.ts",
           "backend/src/tests/dividendPayableRecognitionApi.test.ts"
         ],
-        "operations": [
-          "docs/runbooks/DIVIDEND_ENTITLEMENTS.md"
-        ]
+        "operations": []
       }
     },
     {
@@ -6865,8 +6866,7 @@
           "backend/tests/schema/test-group-treasury-external-disbursements.sql"
         ],
         "operations": [
-          "docs/runbooks/DIVIDEND_PAYMENT_SERVICING.md",
-          "docs/runbooks/INBOUND_PAYMENTS.md"
+          "docs/runbooks/DIVIDEND_PAYMENT_SERVICING.md"
         ]
       }
     },
@@ -7146,8 +7146,7 @@
           "backend/src/tests/weatherService.test.ts"
         ],
         "operations": [
-          "docs/runbooks/INTELLIGENCE_ADAPTER_OPERATIONS.md",
-          "docs/CREDENTIALS_SETUP.md"
+          "docs/runbooks/INTELLIGENCE_ADAPTER_OPERATIONS.md"
         ]
       }
     },
@@ -7370,6 +7369,7 @@
           "backend/migrations/install_group_asset_disposal_accounting_facts.sql"
         ],
         "api": [
+          "backend/src/controllers/featureFlagAdministrationController.ts",
           "backend/src/controllers/groupTreasuryEmergencyController.ts"
         ],
         "client": [
@@ -7380,7 +7380,7 @@
         ],
         "tests": [
           "backend/src/tests/featureFlagMatrix.test.ts",
-          "backend/src/tests/featureFlagService.test.ts"
+          "backend/src/tests/featureFlagAdministrationApi.test.ts"
         ],
         "operations": [
           "docs/runbooks/FEATURE_FLAG_MATRIX.md"
@@ -7417,6 +7417,7 @@
           "backend/migrations/create_feature_flags.sql"
         ],
         "api": [
+          "backend/src/controllers/featureFlagAdministrationController.ts",
           "backend/src/controllers/receiptController.ts",
           "backend/src/controllers/trustController.ts"
         ],
@@ -7429,8 +7430,8 @@
         ],
         "operations": [
           "docs/runbooks/PAYOUT_ORCHESTRATION.md",
-          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
-          "docs/runbooks/FARM_RECORDS_OPERATIONS.md"
+          "docs/runbooks/TENANT_ISOLATION.md",
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
         ]
       }
     },
@@ -7465,8 +7466,7 @@
         "client": [],
         "tests": [],
         "operations": [
-          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
-          "docs/runbooks/FEATURE_FLAG_OPERATIONS.md"
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
         ]
       }
     }
