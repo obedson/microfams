@@ -3878,7 +3878,8 @@
           "backend/tests/schema/test-booking-reservations.sql"
         ],
         "operations": [
-          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md"
+          "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md",
+          "docs/runbooks/BOOKING_FOUNDATION_RECOVERY.md"
         ]
       }
     },
