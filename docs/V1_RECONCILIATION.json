@@ -737,7 +737,7 @@
         ],
         "operations": [
           "docs/runbooks/OBSERVABILITY_AND_CORRELATION.md",
-          "docs/runbooks/TENANT_ISOLATION.md"
+          "docs/runbooks/DIVIDEND_OPERATIONS.md"
         ]
       }
     },
@@ -3785,7 +3785,7 @@
         "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
-        "operations": "missing"
+        "operations": "evidence_found"
       },
       "evidence": {
         "specification": [
@@ -3818,7 +3818,9 @@
           "backend/tests/schema/test-booking-settlement-eligibility-fees.sql",
           "backend/tests/schema/test-dividend-payment-servicing.sql"
         ],
-        "operations": []
+        "operations": [
+          "docs/runbooks/DIVIDEND_OPERATIONS.md"
+        ]
       }
     },
     {
