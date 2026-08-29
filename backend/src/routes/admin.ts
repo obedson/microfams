@@ -59,6 +59,7 @@ router.post('/trust/reviews/:caseId/decision', trustController.decideReview);
 router.get('/trust/appeals', trustController.listAppeals);
 router.post('/trust/appeals/:appealId/decision', trustController.decideAppeal);
 router.post('/trust/retention/dry-runs', requireFeature('trust.retention.dry_run'), trustController.createRetentionDryRun);
+// API contract for the retention item-selection worker; destructive retention is not performed.
 router.post('/trust/retention/dry-runs/:runId/select-items', trustController.selectRetentionItems);
 router.get('/trust/legal-holds', legalHoldController.list);
 router.post('/trust/legal-holds', requireFeature('trust.legal_holds'), legalHoldController.place);
