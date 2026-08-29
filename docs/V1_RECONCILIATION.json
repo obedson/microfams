@@ -331,9 +331,9 @@
         ],
         "api": [
           "backend/src/controllers/savingsProviderCertificationController.ts",
+          "backend/src/routes/admin.ts",
           "backend/src/controllers/analyticsController.ts",
-          "backend/src/controllers/bookingDisputeResolutionController.ts",
-          "backend/src/controllers/bookingRecoveryController.ts"
+          "backend/src/controllers/bookingDisputeResolutionController.ts"
         ],
         "client": [
           "frontend/src/components/farm-records/FarmRecommendations.test.tsx",
@@ -589,10 +589,10 @@
           "frontend/src/store/organizationStore.ts"
         ],
         "tests": [
+          "backend/src/tests/organizationBrandingApi.test.ts",
           "backend/src/tests/organizationService.test.ts",
           "backend/src/tests/tenantMiddleware.test.ts",
-          "backend/tests/schema/test-group-committees-meetings.sql",
-          "backend/tests/schema/test-investment-fixed-unit-allocation.sql"
+          "backend/tests/schema/test-group-committees-meetings.sql"
         ],
         "operations": [
           "docs/runbooks/WALLET_LEDGER_CUTOVER.md"
@@ -657,7 +657,7 @@
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
-        "api": "missing",
+        "api": "evidence_found",
         "client": "not_required",
         "tests": "evidence_found",
         "operations": "evidence_found"
@@ -675,7 +675,10 @@
           "backend/migrations/install_investment_refund_provider_submission.sql",
           "backend/migrations/install_investment_refund_reconciliation.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/routes/admin.ts",
+          "backend/src/controllers/outboxOperationsController.ts"
+        ],
         "client": [],
         "tests": [
           "backend/src/tests/investmentRefundSubmissionService.test.ts",
@@ -720,10 +723,10 @@
           "backend/migrations/install_savings_accrual_posting.sql"
         ],
         "api": [
+          "backend/src/routes/admin.ts",
           "backend/src/controllers/bookingController.ts",
           "backend/src/controllers/bookingDisputeResolutionController.ts",
-          "backend/src/controllers/escrowController.ts",
-          "backend/src/routes/admin.ts"
+          "backend/src/controllers/escrowController.ts"
         ],
         "client": [],
         "tests": [
@@ -4494,7 +4497,9 @@
         ],
         "api": [
           "backend/src/controllers/investmentRefundReconciliationController.ts",
-          "backend/src/controllers/investmentRefundReversalController.ts"
+          "backend/src/controllers/investmentRefundReversalController.ts",
+          "backend/src/controllers/outboxOperationsController.ts",
+          "backend/src/routes/admin.ts"
         ],
         "client": [],
         "tests": [
