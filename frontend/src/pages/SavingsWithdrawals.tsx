@@ -1,3 +1,4 @@
+// SAV-04 governed withdrawals into personal wallets: lock-rule snapshots, fees or return forfeiture, liability reservations, maker-checker settlement, exactly-once recovery.
 import React,{useEffect,useState}from'react';
 import{RefreshCw}from'lucide-react';
 import{savingsAPI}from'../services/savingsAPI';
