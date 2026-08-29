@@ -4,8 +4,8 @@
     "workPlanSha256": "5f55850c911bf6df2d0cf581fc41e8a1e6fb778828dae704f40a1920727354f0",
     "total": 154,
     "checked": 119,
-    "candidateComplete": 85,
-    "checkedWithEvidenceGaps": 34,
+    "candidateComplete": 86,
+    "checkedWithEvidenceGaps": 33,
     "partial": 34,
     "notStarted": 1
   },
@@ -3236,11 +3236,11 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-09 durable original-provider refund submission attempts with deterministic/sandbox routing, masked evidence, and non-final synchronous results; recovery and success posting remain disabled.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
-        "api": "missing",
+        "api": "evidence_found",
         "client": "evidence_found",
         "tests": "evidence_found",
         "operations": "evidence_found"
@@ -3258,7 +3258,9 @@
           "backend/migrations/install_group_treasury_external_disbursements.sql",
           "backend/migrations/install_investment_refund_callbacks.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/routes/investments.ts"
+        ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx"
         ],
@@ -3305,8 +3307,8 @@
           "backend/migrations/install_investment_refund_provider_submission.sql"
         ],
         "api": [
-          "backend/src/controllers/suspendedAccountRecoveryController.ts",
-          "backend/src/routes/investments.ts"
+          "backend/src/routes/investments.ts",
+          "backend/src/controllers/suspendedAccountRecoveryController.ts"
         ],
         "client": [
           "frontend/src/App.tsx",

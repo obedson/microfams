@@ -1,3 +1,4 @@
+// API contract for durable original-provider investment refund submission attempts; results remain non-final.
 import { Router } from 'express'; import rateLimit from 'express-rate-limit';
 import { investmentProductController } from '../controllers/investmentProductController.js'; import { investmentAllocationPlanController } from '../controllers/investmentAllocationPlanController.js'; import { investmentSubscriptionController } from '../controllers/investmentSubscriptionController.js'; import { authenticateToken } from '../middleware/auth.js'; import { requireFeature } from '../middleware/requireFeature.js'; import { requireTenantPermission,resolveTenant } from '../middleware/tenant.js';
 import { investmentRefundSubmissionController } from '../controllers/investmentRefundSubmissionController.js';
