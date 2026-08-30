@@ -60,7 +60,7 @@ import { startBookingJobs } from './jobs/bookingJobs.js';
 import { startWalletJobs } from './jobs/walletJobs.js';
 import { startSavingsJobs } from './jobs/savingsJobs.js';
 import { startRetentionJobs } from './jobs/retentionJobs.js';
-import PaymentTimeoutJob from './jobs/paymentTimeoutJob.js';
+import { paymentTimeoutJob } from './jobs/paymentTimeoutJob.js';
 
 const app = express();
 initSentry(app);
@@ -154,7 +154,7 @@ if (backendConfiguration.nodeEnv !== 'test') {
     startWalletJobs();
     startSavingsJobs();
     startRetentionJobs();
-    PaymentTimeoutJob.scheduleJob();
+    paymentTimeoutJob.scheduleJob();
     logger.info('✅ Cron jobs enabled (production mode)');
   } else {
     logger.warn('⚠️  Cron jobs disabled (development mode)');

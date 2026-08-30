@@ -1,70 +1,151 @@
+import crypto from 'crypto';
+import cron from 'node-cron';
 import { PaymentRecoveryService } from '../services/paymentRecoveryService.js';
+import {
+  DurableJobExecutionRepository,
+  SupabaseDurableJobExecutionRepository,
+} from '../services/durableJobExecutionService.js';
 import { logAudit } from '../utils/audit.js';
+import { logger } from '../utils/logger.js';
 
-/**
- * Job to process automatic payment timeout cancellations
- * This should be run periodically (e.g., every hour) to check for expired payments
- */
+const JOB_KEY = 'payments.timeout-cancellation';
+const scheduledHour = (date: Date): string => new Date(
+  Math.floor(date.getTime() / (60 * 60 * 1000)) * 60 * 60 * 1000,
+).toISOString();
+
+export interface PaymentTimeoutResult {
+  claimed: boolean;
+  succeeded: boolean;
+  processed: number;
+  cancelled: number;
+  deferred: number;
+  errors: number;
+}
+
 export class PaymentTimeoutJob {
-  /**
-   * Processes all expired payment bookings
-   */
-  static async processTimeouts(): Promise<void> {
+  constructor(
+    private readonly executions: DurableJobExecutionRepository,
+    private readonly processTimeoutCancellations = (
+      () => PaymentRecoveryService.processTimeoutCancellations()
+    ),
+    private readonly clock: () => Date = () => new Date(),
+    private readonly workerId = `payment-timeout-${crypto.randomUUID()}`,
+  ) {}
+
+  async runOnce(): Promise<PaymentTimeoutResult> {
+    const startedAt = this.clock();
+    const execution = await this.executions.claim({
+      jobKey: JOB_KEY,
+      scheduledFor: scheduledHour(startedAt),
+      workerId: this.workerId,
+      now: startedAt.toISOString(),
+      leaseSeconds: 900,
+      maxAttempts: 5,
+    });
+    if (!execution) {
+      return {
+        claimed: false,
+        succeeded: false,
+        processed: 0,
+        cancelled: 0,
+        deferred: 0,
+        errors: 0,
+      };
+    }
+
     try {
-      console.log('Starting payment timeout processing...');
-      
-      const results = await PaymentRecoveryService.processTimeoutCancellations();
-      
-      // Log job execution
-      await logAudit({
-        user_id: null, // System job
-        action: 'payment_timeout_job_executed',
-        resource_type: 'system',
-        resource_id: 'payment_timeout_job',
-        details: {
+      const results = await this.processTimeoutCancellations();
+      const completedAt = this.clock().toISOString();
+      await this.executions.complete({
+        executionId: execution.id,
+        workerId: this.workerId,
+        completedAt,
+        result: {
           processed: results.processed,
           cancelled: results.cancelled,
-          errors: results.errors,
-          executed_at: new Date().toISOString()
-        }
+          deferred: results.deferred,
+          errorCount: results.errors.length,
+        },
       });
-
-      if (results.errors.length > 0) {
-        console.error('Payment timeout job completed with errors:', results.errors);
-      } else {
-        console.log(`Payment timeout job completed successfully: ${results.cancelled}/${results.processed} bookings cancelled`);
+      try {
+        await logAudit({
+          user_id: null,
+          action: 'payment_timeout_job_executed',
+          resource_type: 'system',
+          resource_id: 'payment_timeout_job',
+          details: {
+            processed: results.processed,
+            cancelled: results.cancelled,
+            deferred: results.deferred,
+            error_count: results.errors.length,
+            execution_id: execution.id,
+            executed_at: completedAt,
+          },
+        });
+      } catch (auditError) {
+        logger.error('Unable to write payment timeout completion audit', {
+          executionId: execution.id,
+          error: auditError instanceof Error ? auditError.message : 'Unknown error',
+        });
       }
-
+      if (results.errors.length > 0) {
+        logger.warn('Payment timeout job completed with item errors', {
+          executionId: execution.id,
+          errorCount: results.errors.length,
+        });
+      }
+      return {
+        claimed: true,
+        succeeded: true,
+        processed: results.processed,
+        cancelled: results.cancelled,
+        deferred: results.deferred,
+        errors: results.errors.length,
+      };
     } catch (error) {
-      console.error('Payment timeout job failed:', error);
-      
-      // Log job failure
-      await logAudit({
-        user_id: null,
-        action: 'payment_timeout_job_failed',
-        resource_type: 'system',
-        resource_id: 'payment_timeout_job',
-        details: {
-          error: error instanceof Error ? error.message : 'Unknown error',
-          executed_at: new Date().toISOString()
-        }
+      const failedAt = this.clock().toISOString();
+      try {
+        await this.executions.fail({
+          executionId: execution.id,
+          workerId: this.workerId,
+          failureCode: 'PAYMENT_TIMEOUT_JOB_FAILED',
+          failedAt,
+        });
+      } catch (failureError) {
+        logger.error('Unable to persist payment timeout job failure', {
+          executionId: execution.id,
+          error: failureError instanceof Error ? failureError.message : 'Unknown error',
+        });
+      }
+      logger.error('Payment timeout job failed', {
+        executionId: execution.id,
+        error: error instanceof Error ? error.message : 'Unknown error',
       });
+      return {
+        claimed: true,
+        succeeded: false,
+        processed: 0,
+        cancelled: 0,
+        deferred: 0,
+        errors: 1,
+      };
     }
   }
 
-  /**
-   * Schedules the timeout job to run periodically
-   * This would typically be called from a cron job or scheduler
-   */
-  static scheduleJob(): void {
-    // Run every hour
-    setInterval(async () => {
-      await this.processTimeouts();
-    }, 60 * 60 * 1000); // 1 hour in milliseconds
-
-    console.log('Payment timeout job scheduled to run every hour');
+  scheduleJob(): void {
+    cron.schedule('*/5 * * * *', async () => {
+      try {
+        await this.runOnce();
+      } catch (error) {
+        logger.error('Unable to claim payment timeout job execution', {
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
+    });
+    logger.info('Payment timeout job scheduled with durable hourly leases');
   }
 }
 
-// Export for use in other modules
-export default PaymentTimeoutJob;
+export const paymentTimeoutJob = new PaymentTimeoutJob(
+  new SupabaseDurableJobExecutionRepository(),
+);

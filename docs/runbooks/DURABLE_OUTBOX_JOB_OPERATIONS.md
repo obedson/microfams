@@ -2,12 +2,30 @@
 
 The booking notification outbox is the reference durable-job implementation for WP-P1-005. Domain writes enqueue tenant-scoped events; workers lease pending work, apply bounded retries, and retain terminal/dead-letter evidence independently of financial state.
 
+## Payment timeout execution leases
+
+The payment timeout worker polls every five minutes for one deterministic UTC
+hour slot. The database permits only one active worker lease for that slot.
+Failed runs retry with bounded exponential backoff, expired leases can be
+reclaimed, and successful runs retain aggregate result evidence. Tenant clients
+cannot read or operate the execution table or its functions.
+
+Inspect `durable_job_executions` using service-role operational access only.
+For `payments.timeout-cancellation`, alert on `retry` or `dead_letter`, leases
+past `lease_expires_at`, and hourly slots without `succeeded` evidence.
+
+Do not manually mark a run successful. Restore the failed dependency and allow
+the scheduler to reclaim the slot. The underlying timeout command is
+idempotent and re-evaluates current booking/payment state on every retry.
+
 ## Verification
 
 Run from the Codespace:
 
 ```bash
 npm --prefix backend test -- --runInBand src/tests/bookingNotificationOutboxService.test.ts src/tests/outboxOperationsApi.test.ts
+npm --prefix backend test -- --runInBand src/tests/paymentTimeoutJob.test.ts
+npm --prefix backend run test:schema
 ```
 
 The platform-admin outbox health endpoint reports aggregate state counts without exposing event payloads. Queue health must be reviewed alongside worker logs and database counts.
@@ -23,3 +41,5 @@ The platform-admin outbox health endpoint reports aggregate state counts without
 ## Recovery and rollback
 
 A worker restart safely allows expired leases to be reclaimed. For persistent failure, pause the worker or disable the affected feature, preserve the queue, correct the provider/configuration issue, then replay verified records through the worker. Never delete pending or dead-letter rows to make health appear green. Re-run queue health, unit/integration tests, and reconciliation before re-enabling processing.
+
+Rollback the payment-timeout scheduler code only after stopping all workers. Preserve `durable_job_executions`; dropping the table removes incident and retry evidence and is not an operational rollback.
