@@ -4,6 +4,7 @@ import { walletService } from '../services/walletService.js';
 import { logger } from '../utils/logger.js';
 import { payoutService } from '../domains/financial/payoutService.js';
 import { paymentService } from '../domains/financial/paymentService.js';
+import { providerEventDrainWorker } from '../services/providerEventDrainService.js';
 
 /**
  * Requirement 5.11: Pending withdrawal timeout job
@@ -45,47 +46,6 @@ const checkPendingWithdrawals = async () => {
   }
 };
 
-const processProviderEvents = async () => {
-  try {
-    const { data: events, error } = await supabase
-      .from('provider_events')
-      .select('id')
-      .eq('processing_state', 'received')
-      .order('received_at', { ascending: true })
-      .limit(50);
-    if (error) throw error;
-    for (const event of events ?? []) {
-      try {
-        await payoutService.processProviderEvent(event.id);
-      } catch (eventError: any) {
-        logger.error(`Failed to process provider event ${event.id}: ${eventError.message}`);
-      }
-    }
-  } catch (error: any) {
-    logger.error(`Error in provider event processing job: ${error.message}`);
-  }
-};
-
-const processPaymentProviderEvents = async () => {
-  try {
-    const { data: events, error } = await supabase
-      .from('payment_provider_events')
-      .select('id')
-      .eq('processing_state', 'received')
-      .order('received_at', { ascending: true })
-      .limit(50);
-    if (error) throw error;
-    for (const event of events ?? []) {
-      try {
-        await paymentService.processProviderEvent(event.id);
-      } catch (eventError: any) {
-        logger.error('Failed to process payment provider event', { event_id: event.id, error: eventError.message });
-      }
-    }
-  } catch (error: any) {
-    logger.error('Error in payment provider event job', { error: error.message });
-  }
-};
 
 const recoverPendingPayments = async () => {
   try {
@@ -207,9 +167,16 @@ export const startWalletJobs = () => {
   cron.schedule('0 * * * *', checkPendingWithdrawals);
 
   // Verified provider events (every minute)
-  cron.schedule('* * * * *', processPaymentProviderEvents);
+  cron.schedule('* * * * *', async () => {
+    try {
+      await providerEventDrainWorker.runOnce();
+    } catch (error) {
+      logger.error('Provider event drain could not run', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
   cron.schedule('*/15 * * * *', recoverPendingPayments);
-  cron.schedule('* * * * *', processProviderEvents);
   
   // NUBAN retry (every 5 minutes)
   cron.schedule('*/5 * * * *', retryNubanProvisioning);

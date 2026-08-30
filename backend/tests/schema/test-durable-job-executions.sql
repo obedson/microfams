@@ -62,6 +62,25 @@ BEGIN
     RAISE EXCEPTION 'concurrent worker claimed an active durable job lease';
   END IF;
 
+  v_duplicate := claim_durable_job_execution(
+    'payments.timeout-cancellation',
+    v_now + INTERVAL '1 minute',
+    'schema-worker-two',
+    v_now + INTERVAL '1 minute',
+    300,
+    3
+  );
+  IF v_duplicate.id IS NOT NULL THEN
+    RAISE EXCEPTION 'next schedule slot overlapped an active durable job lease';
+  END IF;
+  IF EXISTS (
+    SELECT 1 FROM durable_job_executions
+    WHERE job_key = 'payments.timeout-cancellation'
+      AND scheduled_for = v_now + INTERVAL '1 minute'
+  ) THEN
+    RAISE EXCEPTION 'denied overlapping slot left an orphan queued execution';
+  END IF;
+
   v_execution := fail_durable_job_execution(
     v_execution.id,
     'schema-worker-one',
