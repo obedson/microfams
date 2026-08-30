@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "summary": {
-    "workPlanSha256": "64d9e0047aff4da87a015edf1f79cc662ddd02667c38adb0e12893e53e984fb1",
+    "workPlanSha256": "05e0e5588896037872afb4f5cb37ebd2de086e750a19fe2e887720ec83781e16",
     "total": 154,
-    "checked": 121,
-    "candidateComplete": 96,
+    "checked": 122,
+    "candidateComplete": 97,
     "checkedWithEvidenceGaps": 25,
-    "partial": 32,
+    "partial": 31,
     "notStarted": 1
   },
   "items": [
@@ -98,8 +98,8 @@
         ],
         "tests": [
           "backend/src/tests/v1TestLayerMatrix.test.ts",
-          "backend/src/tests/auditEvidence.test.ts",
-          "backend/src/tests/booking-api-integration.test.ts"
+          "backend/src/tests/booking-api-integration.test.ts",
+          "backend/src/tests/committeeRules.test.ts"
         ],
         "operations": [
           "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
@@ -698,9 +698,9 @@
       "phase": "Phase 1 — Multi-tenant platform kernel",
       "line": 69,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Audit, metrics, tracing, health checks, and correlation IDs.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
