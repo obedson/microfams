@@ -32,6 +32,19 @@ bounded backoff; an expired process lease can be reclaimed. Completion evidence
 records payment/payout batch sizes, processed items, and failed items without
 copying provider payloads into the job record.
 
+## Pending payment and refund recovery leases
+
+Stale `requires_action` or `processing` payments and recoverable refunds are
+scanned every 15 minutes under `payments.pending-recovery`. One database lease
+prevents multiple application instances from querying and applying the same
+financial recovery batch concurrently.
+
+Each payment status query and refund submission/query remains idempotent at the
+financial service and database layers. Item failures remain in their recoverable
+state for a later scan. Candidate-selection failures mark the durable execution
+for bounded retry. Completion evidence stores only candidate, processed, and
+failed counts; it does not copy payment, customer, or provider details.
+
 ## Verification
 
 Run from the Codespace:
@@ -41,6 +54,7 @@ npm --prefix backend test -- --runInBand src/tests/bookingNotificationOutboxServ
 npm --prefix backend test -- --runInBand src/tests/paymentTimeoutJob.test.ts
 npm --prefix backend run test:schema
 npm --prefix backend test -- --runInBand src/tests/providerEventDrainService.test.ts
+npm --prefix backend test -- --runInBand src/tests/pendingPaymentRecoveryService.test.ts
 ```
 
 The platform-admin outbox health endpoint reports aggregate state counts without exposing event payloads. Queue health must be reviewed alongside worker logs and database counts.
@@ -60,3 +74,5 @@ A worker restart safely allows expired leases to be reclaimed. For persistent fa
 Rollback the payment-timeout scheduler code only after stopping all workers. Preserve `durable_job_executions`; dropping the table removes incident and retry evidence and is not an operational rollback.
 
 For provider-event drain rollback, stop all workers before restoring the legacy scheduler. Preserve provider-event rows and durable executions, then confirm no active lease remains before restarting one processing path.
+
+For payment-recovery rollback, stop all workers before restoring the legacy loop. Preserve payment, refund, and durable-execution records; never reset recoverable financial states merely to re-run a batch.
