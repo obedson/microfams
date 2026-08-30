@@ -8,6 +8,32 @@ DECLARE
   v_claimed booking_domain_notification_outbox;
   v_now TIMESTAMPTZ := TIMESTAMPTZ '2000-01-01 00:00:00+00';
 BEGIN
+  IF has_table_privilege(
+    'authenticated', 'booking_domain_notification_outbox', 'SELECT'
+  ) OR has_table_privilege(
+    'authenticated', 'booking_domain_notification_outbox', 'INSERT'
+  ) OR has_table_privilege(
+    'authenticated', 'booking_domain_notification_outbox', 'UPDATE'
+  ) OR has_table_privilege(
+    'authenticated', 'booking_domain_notification_outbox', 'DELETE'
+  ) THEN
+    RAISE EXCEPTION 'tenant clients can inspect or mutate the booking notification queue';
+  END IF;
+  IF has_function_privilege(
+    'authenticated',
+    'claim_booking_domain_notifications(text,timestamp with time zone,integer,integer)',
+    'EXECUTE'
+  ) OR has_function_privilege(
+    'authenticated',
+    'deliver_booking_domain_notification(uuid,text,timestamp with time zone)',
+    'EXECUTE'
+  ) OR has_function_privilege(
+    'authenticated',
+    'fail_booking_domain_notification(uuid,text,text,timestamp with time zone)',
+    'EXECUTE'
+  ) THEN
+    RAISE EXCEPTION 'tenant clients can operate the booking notification worker queue';
+  END IF;
   SELECT booking.* INTO v_booking
   FROM bookings AS booking
   JOIN organization_memberships AS membership
