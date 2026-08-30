@@ -80,6 +80,7 @@ install_booking_authorization_completion.sql
 install_booking_operational_statements.sql
 install_booking_notification_outbox.sql
 install_durable_job_executions.sql
+harden_durable_job_execution_claims.sql
 install_group_lifecycle_foundation.sql
 install_group_constitution_offices.sql
 install_group_membership_invitations.sql
