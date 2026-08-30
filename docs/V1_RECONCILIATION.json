@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "summary": {
-    "workPlanSha256": "05e0e5588896037872afb4f5cb37ebd2de086e750a19fe2e887720ec83781e16",
+    "workPlanSha256": "42329d20d421dc1c45948620c2f610ea8782f0155a06757cabe503af69873cc6",
     "total": 154,
-    "checked": 122,
-    "candidateComplete": 97,
+    "checked": 123,
+    "candidateComplete": 98,
     "checkedWithEvidenceGaps": 25,
-    "partial": 31,
+    "partial": 30,
     "notStarted": 1
   },
   "items": [
@@ -507,9 +507,9 @@
       "phase": "Phase 1 — Multi-tenant platform kernel",
       "line": 65,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Tenant context propagation and database isolation.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -4251,7 +4251,7 @@
           "backend/tests/schema/test-booking-refund-orchestration.sql",
           "backend/tests/schema/test-booking-reversal-recovery.sql",
           "backend/tests/schema/test-investment-refund-provider-submission.sql",
-          "backend/tests/schema/test-booking-settlement-eligibility-fees.sql"
+          "backend/tests/schema/test-accounting-audit-export.sql"
         ],
         "operations": [
           "docs/runbooks/BOOKING_REVERSAL_RECOVERY.md"
