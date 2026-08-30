@@ -1,14 +1,15 @@
 import { requestContext } from '../middleware/requestContext.js';
+import { currentCorrelationId } from '../utils/correlationContext.js';
 
 describe('request correlation context', () => {
-  it('preserves a valid correlation id and emits it on the response', () => {
-    const req = { header: () => '123e4567-e89b-12d3-a456-426614174000', correlationId: undefined as string | undefined };
+  it('preserves a valid correlation id in response and async context', () => {
+    const id = '123e4567-e89b-12d3-a456-426614174000';
+    const req = { header: () => id, correlationId: undefined as string | undefined };
     const setHeader = jest.fn();
-    const res = { setHeader } as never;
-    const next = jest.fn();
-    requestContext(req as never, res, next);
-    expect(req.correlationId).toBe('123e4567-e89b-12d3-a456-426614174000');
-    expect(setHeader).toHaveBeenCalledWith('x-correlation-id', req.correlationId);
+    const next = jest.fn(() => expect(currentCorrelationId()).toBe(id));
+    requestContext(req as never, { setHeader } as never, next);
+    expect(req.correlationId).toBe(id);
+    expect(setHeader).toHaveBeenCalledWith('x-correlation-id', id);
     expect(next).toHaveBeenCalled();
   });
 
