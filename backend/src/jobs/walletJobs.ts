@@ -3,8 +3,8 @@ import { supabase } from '../utils/supabase.js';
 import { walletService } from '../services/walletService.js';
 import { logger } from '../utils/logger.js';
 import { payoutService } from '../domains/financial/payoutService.js';
-import { paymentService } from '../domains/financial/paymentService.js';
 import { providerEventDrainWorker } from '../services/providerEventDrainService.js';
+import { pendingPaymentRecoveryWorker } from '../services/pendingPaymentRecoveryService.js';
 
 /**
  * Requirement 5.11: Pending withdrawal timeout job
@@ -46,51 +46,6 @@ const checkPendingWithdrawals = async () => {
   }
 };
 
-
-const recoverPendingPayments = async () => {
-  try {
-    const recoveryThreshold = new Date(Date.now() - 15 * 60 * 1000).toISOString();
-    const { data: payments, error } = await supabase
-      .from('payments')
-      .select('id, internal_reference')
-      .in('state', ['requires_action', 'processing'])
-      .lt('updated_at', recoveryThreshold)
-      .limit(50);
-    if (error) throw error;
-    for (const payment of payments ?? []) {
-      try {
-        await paymentService.queryAndApply(payment.id);
-      } catch (recoveryError: any) {
-        logger.error('Failed to recover pending payment', {
-          payment_reference: payment.internal_reference,
-          error: recoveryError.message,
-        });
-      }
-    }
-    const { data: refunds, error: refundError } = await supabase
-      .from('payment_refunds')
-      .select('id, organization_id, internal_reference, state')
-      .in('state', ['created', 'submitted', 'processing'])
-      .lt('updated_at', recoveryThreshold)
-      .limit(50);
-    if (refundError) throw refundError;
-    for (const refund of refunds ?? []) {
-      try {
-        if (refund.state === 'created') {
-          await paymentService.submitRefund(refund.id, refund.organization_id);
-        } else await paymentService.queryRefundAndApply(refund.id);
-      } catch (recoveryError: any) {
-        logger.error('Failed to recover pending refund', {
-          refund_reference: refund.internal_reference,
-          error: recoveryError.message,
-        });
-      }
-    }
-
-  } catch (error: any) {
-    logger.error('Error in payment recovery job', { error: error.message });
-  }
-};
 
 /**
  * Requirement 2.3: NUBAN retry job
@@ -176,7 +131,15 @@ export const startWalletJobs = () => {
       });
     }
   });
-  cron.schedule('*/15 * * * *', recoverPendingPayments);
+  cron.schedule('*/15 * * * *', async () => {
+    try {
+      await pendingPaymentRecoveryWorker.runOnce();
+    } catch (error) {
+      logger.error('Pending payment recovery could not run', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
   
   // NUBAN retry (every 5 minutes)
   cron.schedule('*/5 * * * *', retryNubanProvisioning);

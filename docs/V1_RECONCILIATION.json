@@ -671,9 +671,9 @@
         ],
         "implementation": [
           "backend/src/services/bookingRefundOrchestrationService.ts",
+          "backend/src/services/pendingPaymentRecoveryService.ts",
           "backend/src/services/providerEventDrainService.ts",
-          "backend/migrations/harden_durable_job_execution_claims.sql",
-          "backend/migrations/install_booking_notification_outbox.sql"
+          "backend/migrations/harden_durable_job_execution_claims.sql"
         ],
         "api": [
           "backend/src/routes/admin.ts",
@@ -681,10 +681,10 @@
         ],
         "client": [],
         "tests": [
+          "backend/src/tests/pendingPaymentRecoveryService.test.ts",
           "backend/src/tests/investmentRefundSubmissionService.test.ts",
           "backend/src/tests/paymentTimeoutJob.test.ts",
-          "backend/src/tests/providerEventDrainService.test.ts",
-          "backend/tests/schema/test-booking-notification-outbox.sql"
+          "backend/src/tests/providerEventDrainService.test.ts"
         ],
         "operations": [
           "docs/runbooks/DURABLE_OUTBOX_JOB_OPERATIONS.md",
