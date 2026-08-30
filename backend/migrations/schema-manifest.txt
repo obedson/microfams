@@ -30,6 +30,7 @@ create_audit_logs.sql
 create_refunds.sql
 create_organizations.sql
 add_domain_tenant_ownership.sql
+harden_audit_observability.sql
 add_marketplace_order_workflow.sql
 add_education_reporting_tenancy.sql
 create_feature_flags.sql
