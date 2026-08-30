@@ -61,7 +61,7 @@ BEGIN
       'booking_settlement_rules','booking_fee_rules','booking_settlement_holds',
       'booking_settlement_posting_links','booking_disputes',
       'booking_dispute_evidence','booking_dispute_events',
-      'booking_domain_notification_outbox','group_lifecycle_events',
+      'booking_domain_notification_outbox','durable_job_executions','group_lifecycle_events',
       'group_legacy_reviews','group_proposals','group_voting_snapshots',
       'group_voter_snapshot_members','group_vote_history','group_proposal_events',
       'group_entry_requirement_versions','group_entry_requirement_events',
@@ -448,6 +448,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-booking-notification-outbox.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-durable-job-executions.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-group-lifecycle-foundation.sql"

@@ -672,8 +672,8 @@
         "implementation": [
           "backend/src/services/bookingRefundOrchestrationService.ts",
           "backend/migrations/install_booking_notification_outbox.sql",
-          "backend/migrations/install_investment_refund_provider_submission.sql",
-          "backend/migrations/install_investment_refund_reconciliation.sql"
+          "backend/migrations/install_durable_job_executions.sql",
+          "backend/migrations/install_investment_refund_provider_submission.sql"
         ],
         "api": [
           "backend/src/routes/admin.ts",
@@ -682,9 +682,9 @@
         "client": [],
         "tests": [
           "backend/src/tests/investmentRefundSubmissionService.test.ts",
+          "backend/src/tests/paymentTimeoutJob.test.ts",
           "backend/tests/schema/test-booking-notification-outbox.sql",
-          "backend/tests/schema/test-investment-refund-provider-submission.sql",
-          "backend/tests/schema/test-loan-disbursement-orchestration.sql"
+          "backend/tests/schema/test-durable-job-executions.sql"
         ],
         "operations": [
           "docs/runbooks/DURABLE_OUTBOX_JOB_OPERATIONS.md",
@@ -1319,10 +1319,10 @@
           "frontend/src/App.tsx"
         ],
         "tests": [
+          "backend/tests/schema/test-durable-job-executions.sql",
           "backend/tests/schema/test-group-admission-payments.sql",
           "backend/tests/schema/test-group-asset-condition-events.sql",
-          "backend/tests/schema/test-group-asset-custody-loss.sql",
-          "backend/tests/schema/test-group-asset-lifecycle-cancellation.sql"
+          "backend/tests/schema/test-group-asset-custody-loss.sql"
         ],
         "operations": [
           "docs/runbooks/WALLET_LEDGER_CUTOVER.md"
