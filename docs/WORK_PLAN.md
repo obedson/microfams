@@ -19,7 +19,6 @@ The repository contains 384 tracked files: 168 backend, 131 frontend, 43 mobile,
 
 Confirmed blockers include:
 
-- no GitHub Actions workflows;
 - exposed deployment credentials requiring rotation and history cleanup;
 - backend tests that cannot initialize consistently without Supabase test configuration;
 - dependency audit findings, including a critical advisory;
@@ -49,7 +48,7 @@ Confirmed blockers include:
 ## Phase 0 — Foundation and release safety
 
 - [ ] Rotate exposed secrets and remove sensitive values from history.
-- [ ] Establish CI for backend, frontend, mobile, migrations, security, and E2E.
+- [x] Establish CI for backend, frontend, mobile, migrations, security, and E2E.
 - [x] Create hermetic test configuration and seeded test tenants.
 - [x] Resolve critical dependency and webhook-security findings.
 - [x] Implement typed configuration validation and secret inventory.

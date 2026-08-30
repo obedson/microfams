@@ -1,19 +1,19 @@
 {
   "schemaVersion": 1,
   "summary": {
-    "workPlanSha256": "5f55850c911bf6df2d0cf581fc41e8a1e6fb778828dae704f40a1920727354f0",
+    "workPlanSha256": "cd7a97c32035233bc9966f1a3dace5a79d4677c68c49c3c5e6b365cbac7e9aa2",
     "total": 154,
-    "checked": 119,
-    "candidateComplete": 94,
+    "checked": 120,
+    "candidateComplete": 95,
     "checkedWithEvidenceGaps": 25,
-    "partial": 34,
+    "partial": 33,
     "notStarted": 1
   },
   "items": [
     {
       "id": "WP-P0-001",
       "phase": "Phase 0 — Foundation and release safety",
-      "line": 51,
+      "line": 50,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Rotate exposed secrets and remove sensitive values from history.",
@@ -58,11 +58,11 @@
     {
       "id": "WP-P0-002",
       "phase": "Phase 0 — Foundation and release safety",
-      "line": 52,
+      "line": 51,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Establish CI for backend, frontend, mobile, migrations, security, and E2E.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -109,7 +109,7 @@
     {
       "id": "WP-P0-003",
       "phase": "Phase 0 — Foundation and release safety",
-      "line": 53,
+      "line": 52,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Create hermetic test configuration and seeded test tenants.",
@@ -161,7 +161,7 @@
     {
       "id": "WP-P0-004",
       "phase": "Phase 0 — Foundation and release safety",
-      "line": 54,
+      "line": 53,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Resolve critical dependency and webhook-security findings.",
@@ -204,7 +204,7 @@
     {
       "id": "WP-P0-005",
       "phase": "Phase 0 — Foundation and release safety",
-      "line": 55,
+      "line": 54,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Implement typed configuration validation and secret inventory.",
@@ -251,7 +251,7 @@
     {
       "id": "WP-P0-006",
       "phase": "Phase 0 — Foundation and release safety",
-      "line": 56,
+      "line": 55,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Implement backend feature-flag service with tenant/environment overrides and audit records.",
@@ -303,7 +303,7 @@
     {
       "id": "WP-P0-007",
       "phase": "Phase 0 — Foundation and release safety",
-      "line": 57,
+      "line": 56,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Add architecture decision records and API/error conventions.",
@@ -356,7 +356,7 @@
     {
       "id": "WP-P0-008",
       "phase": "Phase 0 — Foundation and release safety",
-      "line": 58,
+      "line": 57,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Normalize browser API deployment URLs and restrict production/preview CORS origins.",
@@ -404,7 +404,7 @@
     {
       "id": "WP-P0-009",
       "phase": "Phase 0 — Foundation and release safety",
-      "line": 59,
+      "line": 58,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Replace placeholder completion claims with evidence-linked status.",
@@ -452,7 +452,7 @@
     {
       "id": "WP-P1-001",
       "phase": "Phase 1 — Multi-tenant platform kernel",
-      "line": 65,
+      "line": 64,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Organization/tenant model and migration.",
@@ -505,7 +505,7 @@
     {
       "id": "WP-P1-002",
       "phase": "Phase 1 — Multi-tenant platform kernel",
-      "line": 66,
+      "line": 65,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Tenant context propagation and database isolation.",
@@ -552,7 +552,7 @@
     {
       "id": "WP-P1-003",
       "phase": "Phase 1 — Multi-tenant platform kernel",
-      "line": 67,
+      "line": 66,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Organization roles, permissions, branding, settings, and reporting scopes.",
@@ -602,7 +602,7 @@
     {
       "id": "WP-P1-004",
       "phase": "Phase 1 — Multi-tenant platform kernel",
-      "line": 68,
+      "line": 67,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Global platform administration separated from tenant administration.",
@@ -649,7 +649,7 @@
     {
       "id": "WP-P1-005",
       "phase": "Phase 1 — Multi-tenant platform kernel",
-      "line": 69,
+      "line": 68,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Domain-event outbox and durable job processing.",
@@ -696,7 +696,7 @@
     {
       "id": "WP-P1-006",
       "phase": "Phase 1 — Multi-tenant platform kernel",
-      "line": 70,
+      "line": 69,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Audit, metrics, tracing, health checks, and correlation IDs.",
@@ -744,7 +744,7 @@
     {
       "id": "WP-P2-001",
       "phase": "Phase 2 — Trust and identity",
-      "line": 76,
+      "line": 75,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Approve one authoritative NIN ownership flow.",
@@ -796,7 +796,7 @@
     {
       "id": "WP-P2-002",
       "phase": "Phase 2 — Trust and identity",
-      "line": 77,
+      "line": 76,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Implement provider-neutral KYC contracts, OTP, consent, retries, and redaction.",
@@ -844,7 +844,7 @@
     {
       "id": "WP-P2-003",
       "phase": "Phase 2 — Trust and identity",
-      "line": 78,
+      "line": 77,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Add organization verification and optional BVN/face-verification adapters.",
@@ -895,7 +895,7 @@
     {
       "id": "WP-P2-004",
       "phase": "Phase 2 — Trust and identity",
-      "line": 79,
+      "line": 78,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Add identity review, suspension, appeal, retention, and audit workflows.",
@@ -946,7 +946,7 @@
     {
       "id": "WP-P2-005",
       "phase": "Phase 2 — Trust and identity",
-      "line": 80,
+      "line": 79,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Trust review cases, independent appeals, tenant/platform suspension boundaries, audit evidence, and retention dry-run foundation.",
@@ -998,7 +998,7 @@
     {
       "id": "WP-P2-006",
       "phase": "Phase 2 — Trust and identity",
-      "line": 81,
+      "line": 80,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add single-purpose suspended-account recovery and appeal tokens.",
@@ -1046,7 +1046,7 @@
     {
       "id": "WP-P2-007",
       "phase": "Phase 2 — Trust and identity",
-      "line": 82,
+      "line": 81,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add legal-hold placement/release command history.",
@@ -1096,7 +1096,7 @@
     {
       "id": "WP-P2-008",
       "phase": "Phase 2 — Trust and identity",
-      "line": 83,
+      "line": 82,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add the retention item-selection worker.",
@@ -1135,7 +1135,7 @@
     {
       "id": "WP-P2-009",
       "phase": "Phase 2 — Trust and identity",
-      "line": 84,
+      "line": 83,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add negative-path trust and recovery E2E coverage.",
@@ -1184,7 +1184,7 @@
     {
       "id": "WP-P3-001",
       "phase": "Phase 3 — Financial core",
-      "line": 90,
+      "line": 89,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Approve accounting and money specifications.",
@@ -1236,7 +1236,7 @@
     {
       "id": "WP-P3-002",
       "phase": "Phase 3 — Financial core",
-      "line": 92,
+      "line": 91,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Replace the current wallet transaction model with first-class ledger accounts and balanced postings.",
@@ -1288,7 +1288,7 @@
     {
       "id": "WP-P3-003",
       "phase": "Phase 3 — Financial core",
-      "line": 93,
+      "line": 92,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add audited tenant cutover, protected derived caches, reservations, reversals, rollback controls, and concurrent overcommit coverage.",
@@ -1332,7 +1332,7 @@
     {
       "id": "WP-P3-004",
       "phase": "Phase 3 — Financial core",
-      "line": 94,
+      "line": 93,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Add idempotent payment orchestration, provider adapters, webhooks, settlement, fees, refunds, reversals, and reconciliation.",
@@ -1384,7 +1384,7 @@
     {
       "id": "WP-P3-005",
       "phase": "Phase 3 — Financial core",
-      "line": 95,
+      "line": 94,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Remove direct backend-role mutation rights and run the payment/refund/reversal/settlement SQL contract in clean-schema CI.",
@@ -1436,7 +1436,7 @@
     {
       "id": "WP-P3-006",
       "phase": "Phase 3 — Financial core",
-      "line": 96,
+      "line": 95,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Persist reconciliation runs and source evidence atomically with tenant validation and replay protection.",
@@ -1486,7 +1486,7 @@
     {
       "id": "WP-P3-007",
       "phase": "Phase 3 — Financial core",
-      "line": 97,
+      "line": 96,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add authorized, auditable, and idempotent reconciliation exception investigation transitions.",
@@ -1533,7 +1533,7 @@
     {
       "id": "WP-P3-008",
       "phase": "Phase 3 — Financial core",
-      "line": 98,
+      "line": 97,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add maker-checker resolution and write-off with immutable evidence and compensating-journal validation.",
@@ -1581,7 +1581,7 @@
     {
       "id": "WP-P3-009",
       "phase": "Phase 3 — Financial core",
-      "line": 99,
+      "line": 98,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Implement individual, group, escrow, savings, investment, clearing, fee, and settlement accounts.",
@@ -1633,7 +1633,7 @@
     {
       "id": "FC-02",
       "phase": "Phase 3 — Financial core",
-      "line": 100,
+      "line": 99,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add canonical FC-02 account purposes and idempotent tenant provisioning for every required V1 account family.",
@@ -1682,7 +1682,7 @@
     {
       "id": "WP-P3-011",
       "phase": "Phase 3 — Financial core",
-      "line": 101,
+      "line": 100,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Add statements, limits, approvals, freezes, closures, and incident recovery.",
@@ -1733,7 +1733,7 @@
     {
       "id": "WP-P3-012",
       "phase": "Phase 3 — Financial core",
-      "line": 102,
+      "line": 101,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add reproducible journal-derived personal and group wallet statements.",
@@ -1785,7 +1785,7 @@
     {
       "id": "WP-P4-001",
       "phase": "Phase 4 — Financial products",
-      "line": 110,
+      "line": 109,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Approve the cross-product rules in [`docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md`](specs/FINANCIAL_MODULES_APPROVAL_SPEC.md). Approved by the product owner on 2026-08-09.",
@@ -1835,7 +1835,7 @@
     {
       "id": "WP-P4-002",
       "phase": "Phase 4 — Financial products",
-      "line": 111,
+      "line": 110,
       "depth": 0,
       "workPlanChecked": false,
       "item": "savings products, interest/accrual, standing orders, goals, early withdrawal",
@@ -1886,7 +1886,7 @@
     {
       "id": "SAV-01",
       "phase": "Phase 4 — Financial products",
-      "line": 112,
+      "line": 111,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add SAV-01 versioned products, immutable disclosures, maker-checker activation, tenant-isolated enrolment, idempotency, and canonical savings accounts.",
@@ -1939,7 +1939,7 @@
     {
       "id": "SAV-02",
       "phase": "Phase 4 — Financial products",
-      "line": 113,
+      "line": 112,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add SAV-02 atomic manual contributions, consent-backed standing orders, no-debt failed attempts, hold-aware availability, lifecycle servicing, and worker recovery.",
@@ -1988,7 +1988,7 @@
     {
       "id": "SAV-03",
       "phase": "Phase 4 — Financial products",
-      "line": 114,
+      "line": 113,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add SAV-03 completed-day simple-return accruals, immutable formula snapshots, rejection recovery, independent approval, and balanced accrued-return posting.",
@@ -2036,7 +2036,7 @@
     {
       "id": "SAV-04",
       "phase": "Phase 4 — Financial products",
-      "line": 115,
+      "line": 114,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add SAV-04 governed withdrawals into personal wallets with lock-rule snapshots, fees or return forfeiture, liability reservations, maker-checker settlement, and exactly-once recovery.",
@@ -2081,7 +2081,7 @@
     {
       "id": "SAV-05",
       "phase": "Phase 4 — Financial products",
-      "line": 116,
+      "line": 115,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add SAV-05 journal-derived member statements and tenant finance reconciliation controls with servicing-safe feature flags.",
@@ -2131,7 +2131,7 @@
     {
       "id": "SAV-06",
       "phase": "Phase 4 — Financial products",
-      "line": 117,
+      "line": 116,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add SAV-06 provider-neutral certification evidence, zero-variance scenarios, maker-checker decisions, and fail-closed tenant acquisition readiness.",
@@ -2180,7 +2180,7 @@
     {
       "id": "WP-P4-009",
       "phase": "Phase 4 — Financial products",
-      "line": 118,
+      "line": 117,
       "depth": 2,
       "workPlanChecked": false,
       "item": "Add contributions, standing orders, accruals, withdrawals, servicing statements, reconciliation, and provider certification.",
@@ -2233,7 +2233,7 @@
     {
       "id": "WP-P4-010",
       "phase": "Phase 4 — Financial products",
-      "line": 119,
+      "line": 118,
       "depth": 0,
       "workPlanChecked": false,
       "item": "credit products, eligibility, underwriting inputs, schedules, delinquency, restructuring, write-off",
@@ -2285,7 +2285,7 @@
     {
       "id": "CRD-01",
       "phase": "Phase 4 — Financial products",
-      "line": 120,
+      "line": 119,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-01 versioned loan products, complete rule snapshots, immutable disclosures, revision history, tenant isolation, idempotency, and maker-checker activation.",
@@ -2335,7 +2335,7 @@
     {
       "id": "CRD-02",
       "phase": "Phase 4 — Financial products",
-      "line": 121,
+      "line": 120,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-02 tenant-scoped applications, pinned product/disclosure facts, deterministic eligibility and affordability decisions, explainable adverse notices, and independent human review.",
@@ -2388,7 +2388,7 @@
     {
       "id": "CRD-03",
       "phase": "Phase 4 — Financial products",
-      "line": 122,
+      "line": 121,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-03 independent manual credit review, immutable revised offers, exact borrower acceptance evidence, expiry servicing, and pre-acceptance withdrawal.",
@@ -2439,7 +2439,7 @@
     {
       "id": "CRD-04",
       "phase": "Phase 4 — Financial products",
-      "line": 123,
+      "line": 122,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-04 immutable contractual repayment schedules with disbursement-relative timing, deterministic allocation, and exact accepted-offer reconciliation.",
@@ -2491,7 +2491,7 @@
     {
       "id": "CRD-05",
       "phase": "Phase 4 — Financial products",
-      "line": 124,
+      "line": 123,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-05 versioned conditions precedent, independently verified encrypted destinations, provider-neutral disbursement orchestration, confirmed-success receivable activation, calendar due dates, and late-success reconciliation quarantine.",
@@ -2536,7 +2536,7 @@
     {
       "id": "CRD-06",
       "phase": "Phase 4 — Financial products",
-      "line": 125,
+      "line": 124,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-06 governed repayment allocation, balanced posting, payoff transitions, and fail-closed fee-bearing servicing.",
@@ -2585,7 +2585,7 @@
     {
       "id": "CRD-07",
       "phase": "Phase 4 — Financial products",
-      "line": 126,
+      "line": 125,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-07 deterministic arrears classification from pinned product stages with immutable assessment evidence.",
@@ -2639,7 +2639,7 @@
     {
       "id": "CRD-08",
       "phase": "Phase 4 — Financial products",
-      "line": 127,
+      "line": 126,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-08 maker-checker reversal of settled zero-interest repayments with linked compensating journals.",
@@ -2687,7 +2687,7 @@
     {
       "id": "CRD-09",
       "phase": "Phase 4 — Financial products",
-      "line": 128,
+      "line": 127,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-09 maker-checker zero-interest restructuring with immutable prior schedules and principal-conserving replacement installments.",
@@ -2735,7 +2735,7 @@
     {
       "id": "CRD-10",
       "phase": "Phase 4 — Financial products",
-      "line": 129,
+      "line": 128,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add CRD-10 maker-checker principal write-off for defaulted zero-interest loans with balanced credit-loss accounting.",
@@ -2784,7 +2784,7 @@
     {
       "id": "WP-P4-021",
       "phase": "Phase 4 — Financial products",
-      "line": 130,
+      "line": 129,
       "depth": 0,
       "workPlanChecked": false,
       "item": "investments, units, valuation, subscriptions, redemptions, disclosures",
@@ -2833,7 +2833,7 @@
     {
       "id": "INV-01",
       "phase": "Phase 4 — Financial products",
-      "line": 131,
+      "line": 130,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-01 governed investment products, immutable risk disclosures, pro-rata oversubscription defaults, and independent compliance approval.",
@@ -2885,7 +2885,7 @@
     {
       "id": "INV-02",
       "phase": "Phase 4 — Financial products",
-      "line": 132,
+      "line": 131,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-02 disclosure-bound pending subscription intents with offer, amount, jurisdiction, tenant, and replay controls; no cash or unit allocation.",
@@ -2936,7 +2936,7 @@
     {
       "id": "INV-03",
       "phase": "Phase 4 — Financial products",
-      "line": 133,
+      "line": 132,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-03 governed approved-to-open offer activation with window validation, replay protection, and subscription gating.",
@@ -2988,7 +2988,7 @@
     {
       "id": "INV-04",
       "phase": "Phase 4 — Financial products",
-      "line": 134,
+      "line": 133,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-04 verified provider-settlement binding for pending subscriptions without duplicate journals or unit allocation.",
@@ -3040,7 +3040,7 @@
     {
       "id": "INV-05",
       "phase": "Phase 4 — Financial products",
-      "line": 135,
+      "line": 134,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-05 immutable fixed-price unit allocation after non-oversubscribed offers close; defer governed oversubscription, valuation, and redemption.",
@@ -3089,7 +3089,7 @@
     {
       "id": "INV-06",
       "phase": "Phase 4 — Financial products",
-      "line": 136,
+      "line": 135,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-06 deterministic oversubscription plans with refund obligations and independent approval; execution remains disabled.",
@@ -3137,7 +3137,7 @@
     {
       "id": "INV-07",
       "phase": "Phase 4 — Financial products",
-      "line": 137,
+      "line": 136,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-07 settlement-linked refund-obligation recognition with balanced liability reclassification; provider submission and oversubscribed unit execution remain disabled.",
@@ -3184,7 +3184,7 @@
     {
       "id": "INV-08",
       "phase": "Phase 4 — Financial products",
-      "line": 138,
+      "line": 137,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-08 idempotent oversubscribed unit execution after every required refund obligation and recognition journal exists; provider submission remains disabled.",
@@ -3236,7 +3236,7 @@
     {
       "id": "INV-09",
       "phase": "Phase 4 — Financial products",
-      "line": 139,
+      "line": 138,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-09 durable original-provider refund submission attempts with deterministic/sandbox routing, masked evidence, and non-final synchronous results; recovery and success posting remain disabled.",
@@ -3285,7 +3285,7 @@
     {
       "id": "INV-10",
       "phase": "Phase 4 — Financial products",
-      "line": 140,
+      "line": 139,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-10 original-provider recovery queries with append-only evidence and exactly-once verified success posting; callbacks, broad reconciliation, and reversals remain disabled.",
@@ -3335,7 +3335,7 @@
     {
       "id": "INV-11",
       "phase": "Phase 4 — Financial products",
-      "line": 141,
+      "line": 140,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-11 signed replay-safe provider refund callbacks with late-success handling and exactly-once verified success posting; broad reconciliation and reversals remain disabled.",
@@ -3386,7 +3386,7 @@
     {
       "id": "INV-12",
       "phase": "Phase 4 — Financial products",
-      "line": 142,
+      "line": 141,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-12 append-only provider refund reconciliation with durable mismatch exceptions and no automated financial correction.",
@@ -3435,7 +3435,7 @@
     {
       "id": "INV-13",
       "phase": "Phase 4 — Financial products",
-      "line": 143,
+      "line": 142,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add INV-13 maker-checker correction for verified post-success provider reversals with one compensating journal and preserved unit evidence.",
@@ -3487,7 +3487,7 @@
     {
       "id": "WP-P4-035",
       "phase": "Phase 4 — Financial products",
-      "line": 144,
+      "line": 143,
       "depth": 0,
       "workPlanChecked": false,
       "item": "escrow funding, release conditions, disputes, partial release, expiry",
@@ -3537,7 +3537,7 @@
     {
       "id": "ESC-01",
       "phase": "Phase 4 — Financial products",
-      "line": 145,
+      "line": 144,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Add ESC-01 immutable tenant-scoped escrow contract terms with idempotent maker-checker activation before funding.",
@@ -3585,7 +3585,7 @@
     {
       "id": "ESC-02",
       "phase": "Phase 4 — Financial products",
-      "line": 146,
+      "line": 145,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add ESC-02 exactly-once internal-wallet funding with hold-aware balance checks, canonical escrow liability accounts, and balanced journals.",
@@ -3632,7 +3632,7 @@
     {
       "id": "ESC-03",
       "phase": "Phase 4 — Financial products",
-      "line": 147,
+      "line": 146,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add ESC-03 governed milestone release-request evidence with beneficiary or arbiter authorization and no money movement.",
@@ -3678,7 +3678,7 @@
     {
       "id": "ESC-04",
       "phase": "Phase 4 — Financial products",
-      "line": 148,
+      "line": 147,
       "depth": 0,
       "workPlanChecked": true,
       "item": "Add ESC-04 independent escrow release approval and rejection evidence without moving funds.",
@@ -3730,7 +3730,7 @@
     {
       "id": "ESC-05",
       "phase": "Phase 4 — Financial products",
-      "line": 149,
+      "line": 148,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add ESC-05 exactly-once approved escrow release execution into beneficiary wallets with balanced journals and terminal-state evidence.",
@@ -3782,7 +3782,7 @@
     {
       "id": "WP-P4-041",
       "phase": "Phase 4 — Financial products",
-      "line": 150,
+      "line": 149,
       "depth": 0,
       "workPlanChecked": false,
       "item": "dividends/profit sharing, eligibility date, allocation, withholding metadata, approval and payment.",
@@ -3834,7 +3834,7 @@
     {
       "id": "WP-P5-001",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 156,
+      "line": 155,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Atomic booking creation, reservation holds, state transitions, pricing snapshots, payouts, refunds, disputes.",
@@ -3887,7 +3887,7 @@
     {
       "id": "WP-P5-002",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 157,
+      "line": 156,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add atomic reservations, immutable pricing snapshots, canonical cancellation/refunds, and idempotent owner approval/completion transitions.",
@@ -3934,7 +3934,7 @@
     {
       "id": "BS-01",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 158,
+      "line": 157,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Approve BS-01 through BS-12 booking settlement, dispute, fee, refund, and supplier-payout rules in [`docs/specs/BOOKING_SETTLEMENTS.md`](specs/BOOKING_SETTLEMENTS.md). Approved by the product owner on 2026-07-28.",
@@ -3984,7 +3984,7 @@
     {
       "id": "WP-P5-004",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 159,
+      "line": 158,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add booking settlement contracts, booking-specific escrow custody, refund/reversal allocations, legacy review quarantine, and acquisition/servicing flags.",
@@ -4034,7 +4034,7 @@
     {
       "id": "WP-P5-005",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 160,
+      "line": 159,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add effective-dated settlement and fee rules, maker-checker activation, completion-time eligibility snapshots, hold-aware release checks, and balanced cross-tenant supplier/platform accounting.",
@@ -4078,7 +4078,7 @@
     {
       "id": "BS-06",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 161,
+      "line": 160,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-06 customer/support dispute opening, atomic contested-amount freezes, append-only malware-aware evidence, and tenant-safe timelines.",
@@ -4126,7 +4126,7 @@
     {
       "id": "BS-07",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 162,
+      "line": 161,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-07 versioned response rules and notices, monotonic dispute review, conserved maker-checker resolutions, pending-refund reservations, cumulative partial releases and recovery commands.",
@@ -4168,7 +4168,7 @@
     {
       "id": "BS-08",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 163,
+      "line": 162,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-08 encrypted verified provider beneficiaries, destination-change holds and independent approval, release-scoped supplier payouts, recoverable servicing, restoration on failure, and exact success postings.",
@@ -4216,7 +4216,7 @@
     {
       "id": "BS-09",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 164,
+      "line": 163,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-09 reversal intake that preserves original evidence, classifies escrow/unpaid/post-payout exposure, creates balanced cross-tenant recovery accounting, and forbids automatic unrelated-wallet debit.",
@@ -4261,7 +4261,7 @@
     {
       "id": "BS-09-10",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 165,
+      "line": 164,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-09 recovery servicing with evidenced maker-checker repayment, provider recovery, insurance, bounded future-settlement offsets and write-offs, plus late-payout-success reconciliation that never silently repays terminal payouts.",
@@ -4311,7 +4311,7 @@
     {
       "id": "BS-10A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 166,
+      "line": 165,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-10A durable organization-scoped authorization decisions and audited API permission gates for dispute opening/resolution and settlement reads/releases, with privacy-minimized denial evidence.",
@@ -4359,7 +4359,7 @@
     {
       "id": "BS-10B",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 167,
+      "line": 166,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-10B payout read/servicing resource authorization, masked payout-state reads, and neutral organization-scoped independent dispute approval.",
@@ -4406,7 +4406,7 @@
     {
       "id": "BS-11",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 168,
+      "line": 167,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-11 acquisition/servicing feature-flag separation and fail-closed live payment/payout activation gates requiring complete provider, credential, beneficiary, webhook, settlement, reconciliation, compliance, and approval evidence.",
@@ -4451,7 +4451,7 @@
     {
       "id": "BS-12A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 169,
+      "line": 168,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-12A perspective-safe customer and supplier settlement statements plus permission-gated finance reconciliation controls from payment through recovery.",
@@ -4503,7 +4503,7 @@
     {
       "id": "BS-12B",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 170,
+      "line": 169,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add BS-12B durable tenant-aware booking notification events, leased in-app delivery, deterministic retries/backoff, and dead-letter evidence independent of financial state.",
@@ -4550,7 +4550,7 @@
     {
       "id": "WP-P5-016",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 171,
+      "line": 170,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Group treasury, contributions, projects, committees, meetings, voting, documents, and shared assets.",
@@ -4597,7 +4597,7 @@
     {
       "id": "GT-01",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 172,
+      "line": 171,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Approve GT-01 through GT-12 group governance, contribution ownership, treasury, project, meeting, document, and shared-asset rules in [`docs/specs/GROUP_GOVERNANCE_TREASURY.md`](specs/GROUP_GOVERNANCE_TREASURY.md). Approved by the product owner on 2026-07-30.",
@@ -4649,7 +4649,7 @@
     {
       "id": "GT-01A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 173,
+      "line": 172,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-01A tenant-owned group memberships and votes, multi-group eligibility, lifecycle evidence, legacy quarantine, and backend rollout flags.",
@@ -4694,7 +4694,7 @@
     {
       "id": "GT-02A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 174,
+      "line": 173,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-02A immutable initial constitutions, effective-dated required offices, legacy governance review, and constitution-gated group activation.",
@@ -4743,7 +4743,7 @@
     {
       "id": "GT-02B1",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 175,
+      "line": 174,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-02B1 tenant-bound hashed, expiring, single-use membership invitations and applicant-state evidence.",
@@ -4787,7 +4787,7 @@
     {
       "id": "GT-03A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 176,
+      "line": 175,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-03A tenant-bound proposals, immutable eligible-voter and conflict snapshots, append-only ballots, deterministic thresholds, cancellation, and evidenced decisions.",
@@ -4834,7 +4834,7 @@
     {
       "id": "GT-02B2",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 177,
+      "line": 176,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-02B2 versioned entry requirements, proposal-backed applicant admission, verified payment-gated activation, fee allocation journals, and reversal-safe membership servicing.",
@@ -4882,7 +4882,7 @@
     {
       "id": "GT-02C",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 178,
+      "line": 177,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-02C noticed, proposal-backed suspension and expulsion, independent appeal servicing, immutable evidence, and remove legacy direct discipline paths.",
@@ -4931,7 +4931,7 @@
     {
       "id": "GT-02D",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 179,
+      "line": 178,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-02D proposal-executed office appointments/removals, explicit terms and incompatibilities, bounded temporary delegations, expiry servicing, vacancies, and immutable office history.",
@@ -4976,7 +4976,7 @@
     {
       "id": "GT-04A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 180,
+      "line": 179,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-04A classified contribution products with CHECK-derived economic ownership, proposal-executed versioned rules, disclosed member-attributed withdrawal and loss terms, verified payment-gated allocation to class-specific accounts, and reversal-safe contribution evidence.",
@@ -5019,7 +5019,7 @@
     {
       "id": "GT-05A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 181,
+      "line": 180,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-05A dated contribution cycles pinned to one immutable rule version, per-member obligations generated from the opening eligibility snapshot, evidenced adjustments that preserve the original amount, excess parked for explicit disposition, journal-derived dashboards, and accounting-period-gated immutable close.",
@@ -5068,7 +5068,7 @@
     {
       "id": "GT-06A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 182,
+      "line": 181,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-06A budget-capped internal disbursements with journal-derived available funds, atomic approve-and-reserve, enforced maker/checker/beneficiary separation backed by a chair approval permission, disclosed low-value bands recorded whole, execution that revalidates the approval snapshot, and exactly-once reservation consume or release.",
@@ -5117,7 +5117,7 @@
     {
       "id": "GT-06B1",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 183,
+      "line": 182,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-06B1 external provider disbursements against a maker–checker verified off-platform beneficiary registry, an NGN-only inherited settlement ceiling, deferred Option-B posting that commits at begin and posts only on confirmed provider success, exactly-once reservation consume on success or release on failure, and provider timeout reconciliation that records a late success as a non-repaying exception.",
@@ -5168,7 +5168,7 @@
     {
       "id": "GT-06B2",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 184,
+      "line": 183,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-06B2 disclosed emergency expenditure with mandatory post-hoc ratification.",
@@ -5210,7 +5210,7 @@
     {
       "id": "GT-07A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 185,
+      "line": 184,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-07A journal-derived group treasury statements with cutoff reservations and aggregate ownership classification.",
@@ -5260,7 +5260,7 @@
     {
       "id": "GT-08A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 186,
+      "line": 185,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-08A governed group project drafts, immutable initial budgets, proposal binding, independent approval, and activation without financial posting.",
@@ -5313,7 +5313,7 @@
     {
       "id": "GT-08B1",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 187,
+      "line": 186,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-08B1 proposal-bound project budget amendments with immutable version retention and independent approval.",
@@ -5365,7 +5365,7 @@
     {
       "id": "GT-08B2",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 188,
+      "line": 187,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-08B2 reasoned, tenant-governed project pause and resume transitions with append-only evidence.",
@@ -5410,7 +5410,7 @@
     {
       "id": "GT-08B3",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 189,
+      "line": 188,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-08B3 evidence-bound project completion with deliverables, residual-fund disposition, assets, and final reconciliation.",
@@ -5453,7 +5453,7 @@
     {
       "id": "GT-08B4",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 190,
+      "line": 189,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-08B4 proposal-authorized project closeout after completion evidence, residual disposition, and budget finality.",
@@ -5497,7 +5497,7 @@
     {
       "id": "GT-08B5",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 191,
+      "line": 190,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-08B5 active-project, approved-budget, cumulative-cap, and restricted-fund guards to project treasury requests.",
@@ -5544,7 +5544,7 @@
     {
       "id": "GT-09",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 192,
+      "line": 191,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-09 proposal-executed committee mandates traceable to the authorizing vote, effective-dated committee membership with a single sitting chair, notice-validated meetings with snapshot-based quorum, attendance records that confer no approval, and immutable approved minutes corrected only by linked addenda.",
@@ -5588,7 +5588,7 @@
     {
       "id": "GT-10A",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 193,
+      "line": 192,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10A tenant-scoped group document metadata, governed publication, immutable approved versions, linked corrections, and append-only evidence.",
@@ -5635,7 +5635,7 @@
     {
       "id": "GT-10B",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 194,
+      "line": 193,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10B permission-checked, rate-limited document download URLs with short expiry and immutable access evidence.",
@@ -5686,7 +5686,7 @@
     {
       "id": "GT-10C",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 195,
+      "line": 194,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10C tenant-scoped shared-asset registration with governed custody, lifecycle metadata, idempotency, and immutable acquisition evidence.",
@@ -5739,7 +5739,7 @@
     {
       "id": "GT-10D",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 196,
+      "line": 195,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10D non-overlapping confirmed shared-asset reservations with auditable check-out and check-in custody evidence.",
@@ -5788,7 +5788,7 @@
     {
       "id": "GT-10E",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 197,
+      "line": 196,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10E manager-controlled damage reporting and maintenance servicing with immutable before/after condition evidence and reservation-aware availability guards.",
@@ -5828,7 +5828,7 @@
     {
       "id": "GT-10F",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 198,
+      "line": 197,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10F manager-controlled loss reporting for uncommitted assets with immutable lifecycle, condition, custody, location, and evidence snapshots.",
@@ -5880,7 +5880,7 @@
     {
       "id": "GT-10G",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 199,
+      "line": 198,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10G requester-or-manager reservation cancellation with immutable evidence, idempotency, custody-state guards, and availability recomputation.",
@@ -5934,7 +5934,7 @@
     {
       "id": "GT-10H",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 200,
+      "line": 199,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10H atomic checked-out custody-loss resolution with linked reservation and asset lifecycle evidence after pending bookings are cancelled.",
@@ -5986,7 +5986,7 @@
     {
       "id": "GT-10I",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 201,
+      "line": 200,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10I atomic lifecycle-linked cancellation of requested and confirmed reservations when an uncommitted asset is reported lost.",
@@ -6039,7 +6039,7 @@
     {
       "id": "GT-10J",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 202,
+      "line": 201,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10J governed shared-asset disposal proposals with evidence, conflict guards, maker-checker approval, and execution disabled pending journal mappings.",
@@ -6090,7 +6090,7 @@
     {
       "id": "GT-10K",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 203,
+      "line": 202,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10K governed shared-asset transfer proposals with destination evidence, conflict guards, maker-checker approval, and execution disabled pending journal mappings.",
@@ -6141,7 +6141,7 @@
     {
       "id": "GT-10L",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 204,
+      "line": 203,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10L approved disposal and book-value transfer journal mapping contracts with fixed-asset account purposes and execution disabled.",
@@ -6189,7 +6189,7 @@
     {
       "id": "GT-10M",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 205,
+      "line": 204,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10M immutable, period-validated disposal accounting facts bound to approved ledger accounts and journal mappings, without execution.",
@@ -6238,7 +6238,7 @@
     {
       "id": "GT-10N",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 206,
+      "line": 205,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10N atomic approved-disposal execution with balanced journal posting, lifecycle finalization, idempotency, and reconciliation evidence.",
@@ -6291,7 +6291,7 @@
     {
       "id": "GT-10O",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 207,
+      "line": 206,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10O immutable, period-validated book-value transfer accounting facts bound to source/destination ledger accounts and destination acceptance, without execution.",
@@ -6338,7 +6338,7 @@
     {
       "id": "GT-10P",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 208,
+      "line": 207,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add GT-10P atomic approved book-value transfer execution with balanced journal posting, destination custody, idempotency, and reconciliation evidence.",
@@ -6390,7 +6390,7 @@
     {
       "id": "WP-P5-054",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 209,
+      "line": 208,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Chart of accounts, fiscal periods, journals, trial balance, income statement, balance sheet, cash flow, budgets, member accounts, dividends, loans, and audit exports.",
@@ -6442,7 +6442,7 @@
     {
       "id": "AC-01",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 210,
+      "line": 209,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add AC-01 permission-checked, cutoff-reproducible, journal-derived organization trial balances with balanced debit/credit totals.",
@@ -6492,7 +6492,7 @@
     {
       "id": "AC-02",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 211,
+      "line": 210,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add AC-02 permission-checked, cutoff-reproducible, journal-derived income statements with revenue, expense, and net-income totals.",
@@ -6541,7 +6541,7 @@
     {
       "id": "AC-03",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 212,
+      "line": 211,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add AC-03 permission-checked, cutoff-reproducible, journal-derived balance sheets with current-period earnings and accounting-equation validation.",
@@ -6589,7 +6589,7 @@
     {
       "id": "AC-04",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 213,
+      "line": 212,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add AC-04 permission-checked, cutoff-reproducible, journal-derived cash-flow reports with classified and unclassified cash movements.",
@@ -6634,7 +6634,7 @@
     {
       "id": "AC-05",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 214,
+      "line": 213,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add AC-05 immutable approved budget versions with cutoff-reproducible budget-versus-actual reporting.",
@@ -6682,7 +6682,7 @@
     {
       "id": "AC-06",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 215,
+      "line": 214,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add AC-06 permission-checked, journal-derived member account statements with pagination and cutoff reproducibility.",
@@ -6736,7 +6736,7 @@
     {
       "id": "DIV-01",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 216,
+      "line": 215,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add DIV-01 immutable proportional paid-unit dividend entitlement snapshots with disclosed rounding residuals; approval and payment remain separate.",
@@ -6786,7 +6786,7 @@
     {
       "id": "DIV-02",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 217,
+      "line": 216,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add DIV-02 maker-checker dividend review and approval with immutable transition evidence; payable recognition and payment remain separate.",
@@ -6837,7 +6837,7 @@
     {
       "id": "DIV-03",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 218,
+      "line": 217,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add DIV-03 exactly-once approved-dividend payable recognition against retained surplus with disclosed residual preservation; payment remains separate.",
@@ -6880,7 +6880,7 @@
     {
       "id": "DIV-04",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 219,
+      "line": 218,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add DIV-04 exactly-once internal wallet payment servicing from dividends payable, with immutable payment evidence; external provider payout remains separate.",
@@ -6932,7 +6932,7 @@
     {
       "id": "AC-07",
       "phase": "Phase 5 — Booking, groups, and cooperative accounting",
-      "line": 220,
+      "line": 219,
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add AC-07 tenant-scoped, cutoff-reproducible accounting journal audit exports with complete entry and line evidence.",
@@ -6981,7 +6981,7 @@
     {
       "id": "WP-P6-001",
       "phase": "Phase 6 — Farm operations, assets, marketplace, and education",
-      "line": 224,
+      "line": 223,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Farm/plot/livestock records, calendars, workers, tasks, inputs, yields, expenses, evidence, and offline sync.",
@@ -7027,7 +7027,7 @@
     {
       "id": "WP-P6-002",
       "phase": "Phase 6 — Farm operations, assets, marketplace, and education",
-      "line": 225,
+      "line": 224,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Inventory, warehouses, equipment, maintenance, internal resource booking, and utilization.",
@@ -7070,7 +7070,7 @@
     {
       "id": "WP-P6-003",
       "phase": "Phase 6 — Farm operations, assets, marketplace, and education",
-      "line": 226,
+      "line": 225,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Marketplace orders, services, delivery, ratings, escrow, settlements, returns, and disputes.",
@@ -7122,7 +7122,7 @@
     {
       "id": "WP-P6-004",
       "phase": "Phase 6 — Farm operations, assets, marketplace, and education",
-      "line": 227,
+      "line": 226,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Courses, learning paths, assessments, certificates, extension-officer tools, group learning, offline content.",
@@ -7170,7 +7170,7 @@
     {
       "id": "WP-P7-001",
       "phase": "Phase 7 — Intelligence and institutional portals",
-      "line": 231,
+      "line": 230,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Provider-neutral weather, mapping, and satellite adapters.",
@@ -7214,7 +7214,7 @@
     {
       "id": "WP-P7-002",
       "phase": "Phase 7 — Intelligence and institutional portals",
-      "line": 232,
+      "line": 231,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Agronomic recommendations with provenance and confidence.",
@@ -7259,7 +7259,7 @@
     {
       "id": "WP-P7-003",
       "phase": "Phase 7 — Intelligence and institutional portals",
-      "line": 233,
+      "line": 232,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Tenant-scoped AI assistant using service APIs, permission checks, citations, audit, and human confirmation for actions.",
@@ -7312,7 +7312,7 @@
     {
       "id": "WP-P7-004",
       "phase": "Phase 7 — Intelligence and institutional portals",
-      "line": 234,
+      "line": 233,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Government/NGO programme setup, targeting, cohorts, benefits, monitoring, outcomes, dashboards, and exports.",
@@ -7354,7 +7354,7 @@
     {
       "id": "WP-P8-001",
       "phase": "Phase 8 — Release validation",
-      "line": 238,
+      "line": 237,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Full unit, integration, API, component, E2E, security, performance, accessibility, recovery, and reconciliation suites.",
@@ -7403,7 +7403,7 @@
     {
       "id": "WP-P8-002",
       "phase": "Phase 8 — Release validation",
-      "line": 239,
+      "line": 238,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Feature-flag matrix tested in enabled, disabled, misconfigured, and degraded-provider states.",
@@ -7451,7 +7451,7 @@
     {
       "id": "WP-P8-003",
       "phase": "Phase 8 — Release validation",
-      "line": 240,
+      "line": 239,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Production runbooks, incident response, backup/restore, migration rollback, and support procedures.",
@@ -7499,7 +7499,7 @@
     {
       "id": "WP-P8-004",
       "phase": "Phase 8 — Release validation",
-      "line": 241,
+      "line": 240,
       "depth": 0,
       "workPlanChecked": false,
       "item": "Version 1 release candidate and acceptance evidence.",
