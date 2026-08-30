@@ -61,7 +61,7 @@ Exit gate: clean builds, deterministic tests, secret scan, dependency gate, and 
 
 ## Phase 1 — Multi-tenant platform kernel
 
-- [ ] Organization/tenant model and migration.
+- [x] Organization/tenant model and migration.
 - [ ] Tenant context propagation and database isolation.
 - [ ] Organization roles, permissions, branding, settings, and reporting scopes.
 - [x] Global platform administration separated from tenant administration.
