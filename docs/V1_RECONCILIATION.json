@@ -98,8 +98,8 @@
         ],
         "tests": [
           "backend/src/tests/v1TestLayerMatrix.test.ts",
-          "backend/src/tests/booking-api-integration.test.ts",
-          "backend/src/tests/committeeRules.test.ts"
+          "backend/src/tests/auditEvidence.test.ts",
+          "backend/src/tests/booking-api-integration.test.ts"
         ],
         "operations": [
           "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
@@ -730,10 +730,10 @@
         ],
         "client": [],
         "tests": [
+          "backend/src/tests/auditEvidence.test.ts",
           "backend/src/tests/bookingDisputeResolutionApi.test.ts",
           "backend/src/tests/dividendPaymentApi.test.ts",
-          "backend/src/tests/financialStatementService.test.ts",
-          "backend/src/tests/loanRepaymentReversalService.test.ts"
+          "backend/src/tests/financialStatementService.test.ts"
         ],
         "operations": [
           "docs/runbooks/OBSERVABILITY_AND_CORRELATION.md",
