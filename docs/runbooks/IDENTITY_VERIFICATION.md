@@ -34,6 +34,10 @@ Provider-start failure marks the request failed without storing provider payload
 
 If confirmation fails, the attempt counter is incremented. Exhausted challenges are rejected. Never reset attempts or edit evidence manually.
 
+The production identity job runs every minute. It claims one durable execution lease and expires up to 100 due `created` or `awaiting_otp` requests with a bounded, skip-locked transaction. Expiry clears encrypted provider challenge state, records `CHALLENGE_EXPIRED`, and appends one `expired` event. Replaying the same servicing window is a safe success and does not duplicate events.
+
+Failed executions enter the durable job retry lifecycle and dead-letter after five attempts. Recover a dead-letter only after resolving the database or deployment fault; use the durable-job recovery procedure and rerun the normal scheduler. Do not edit request state, tokens, events, attempt counts, or job evidence manually. Logs contain aggregate counts and stable failure codes only, never provider references, challenge state, OTPs, fingerprints, or identity numbers.
+
 Fingerprints created before the platform-wide binding migration cannot be compared across tenants because they were derived with tenant context. They remain valid tenant evidence, but cross-tenant portability requires a governed re-verification that creates the platform binding. Never attempt to reconstruct a raw NIN or BVN from historical evidence.
 
 ## Verification

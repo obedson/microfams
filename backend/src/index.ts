@@ -59,6 +59,7 @@ import { startBookingJobs } from './jobs/bookingJobs.js';
 import { startWalletJobs } from './jobs/walletJobs.js';
 import { startSavingsJobs } from './jobs/savingsJobs.js';
 import { startRetentionJobs } from './jobs/retentionJobs.js';
+import { startIdentityJobs } from './jobs/identityJobs.js';
 import { paymentTimeoutJob } from './jobs/paymentTimeoutJob.js';
 
 const app = express();
@@ -152,6 +153,7 @@ if (backendConfiguration.nodeEnv !== 'test') {
     startWalletJobs();
     startSavingsJobs();
     startRetentionJobs();
+    startIdentityJobs();
     paymentTimeoutJob.scheduleJob();
     logger.info('✅ Cron jobs enabled (production mode)');
   } else {
