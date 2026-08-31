@@ -590,9 +590,9 @@
         ],
         "tests": [
           "backend/src/tests/organizationService.test.ts",
+          "backend/src/tests/organizationSettingsApi.test.ts",
           "backend/src/tests/organizationBrandingApi.test.ts",
-          "backend/src/tests/tenantMiddleware.test.ts",
-          "backend/tests/schema/test-group-committees-meetings.sql"
+          "backend/src/tests/tenantMiddleware.test.ts"
         ],
         "operations": [
           "docs/runbooks/WALLET_LEDGER_CUTOVER.md"
