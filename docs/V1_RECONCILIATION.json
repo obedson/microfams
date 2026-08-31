@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "summary": {
-    "workPlanSha256": "0680a1da0f544ca87b6207bb1d5298de8bc9aa544984eecaa9dd21d6fffc82ef",
+    "workPlanSha256": "d359db020ff05bf2e0cd974cc7d43b81e8b1e3b4168de4029d9056c299f5b64b",
     "total": 154,
-    "checked": 124,
-    "candidateComplete": 99,
+    "checked": 125,
+    "candidateComplete": 100,
     "checkedWithEvidenceGaps": 25,
-    "partial": 29,
+    "partial": 28,
     "notStarted": 1
   },
   "items": [
@@ -554,9 +554,9 @@
       "phase": "Phase 1 — Multi-tenant platform kernel",
       "line": 66,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Organization roles, permissions, branding, settings, and reporting scopes.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -581,8 +581,8 @@
         "api": [
           "backend/src/controllers/organizationController.ts",
           "backend/src/controllers/groupCommitteeController.ts",
-          "backend/src/routes/organizations.ts",
-          "backend/src/controllers/analyticsController.ts"
+          "backend/src/controllers/programmeReportingScopeController.ts",
+          "backend/src/routes/organizations.ts"
         ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx",
@@ -591,8 +591,8 @@
         "tests": [
           "backend/src/tests/organizationService.test.ts",
           "backend/src/tests/organizationSettingsApi.test.ts",
-          "backend/src/tests/organizationBrandingApi.test.ts",
-          "backend/src/tests/reportingApi.test.ts"
+          "backend/tests/schema/test-institutional-programme-reporting-scopes.sql",
+          "backend/src/tests/organizationBrandingApi.test.ts"
         ],
         "operations": [
           "docs/runbooks/WALLET_LEDGER_CUTOVER.md"
@@ -7347,7 +7347,9 @@
         ],
         "client": [],
         "tests": [
-          "backend/src/tests/programmeApiContract.test.ts"
+          "backend/tests/schema/test-institutional-programme-reporting-scopes.sql",
+          "backend/src/tests/programmeApiContract.test.ts",
+          "backend/src/tests/programmeReportingScopeService.test.ts"
         ],
         "operations": [
           "docs/runbooks/INSTITUTIONAL_PROGRAMMES.md",
