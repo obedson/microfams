@@ -5,6 +5,7 @@ import { logger } from '../utils/logger.js';
 import { payoutService } from '../domains/financial/payoutService.js';
 import { providerEventDrainWorker } from '../services/providerEventDrainService.js';
 import { pendingPaymentRecoveryWorker } from '../services/pendingPaymentRecoveryService.js';
+import { payoutReconciliationWorker } from '../services/payoutReconciliationWorker.js';
 
 /**
  * Requirement 5.11: Pending withdrawal timeout job
