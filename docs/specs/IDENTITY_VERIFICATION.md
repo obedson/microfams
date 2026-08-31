@@ -29,3 +29,7 @@ Successful NIN verification may set `users.nin_verified = true` for existing aut
 ## IV-07 Atomicity and recovery
 
 Platform binding, tenant evidence, financial KYC evidence, request completion, compatibility state, and audit event creation occur in one database transaction. Completion is idempotent. A conflict or failed evidence write rolls back the entire completion. Historical tenant-derived fingerprints remain tenant evidence but require governed re-verification before cross-tenant portability.
+
+## IV-08 Degraded-provider recovery
+
+A provider transport failure before challenge creation terminates that request with a stable reason and requires a new idempotency key. A transient provider failure during OTP confirmation preserves the active challenge, does not consume an OTP attempt, records a tenant-scoped deferred event, and permits confirmation retry until expiry. Provider error details must not be returned or logged.

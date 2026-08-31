@@ -1,6 +1,15 @@
 export type IdentityEvidenceType = 'nin' | 'bvn';
 export type IdentityProviderEnvironment = 'deterministic' | 'sandbox' | 'live';
 
+export class IdentityProviderUnavailableError extends Error {
+  readonly code = 'IDENTITY_PROVIDER_UNAVAILABLE';
+
+  constructor() {
+    super('Identity provider is temporarily unavailable');
+    this.name = 'IdentityProviderUnavailableError';
+  }
+}
+
 export interface StartIdentityChallenge {
   requestId: string;
   evidenceType: IdentityEvidenceType;

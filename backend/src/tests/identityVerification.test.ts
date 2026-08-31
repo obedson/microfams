@@ -4,6 +4,7 @@ import { interswitchService } from '../services/interswitchService.js';
 import { IdentityVerificationService } from '../domains/identity/identityVerificationService.js';
 import {
   IdentityChallenge,
+  IdentityProviderUnavailableError,
   IdentityVerificationAdapter,
   StartIdentityChallenge,
 } from '../domains/identity/identityTypes.js';
@@ -150,5 +151,75 @@ describe('identity verification', () => {
     })).rejects.toThrow('valid registered phone');
     expect(adapter.start).not.toHaveBeenCalled();
     expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
+  it('maps provider transport failures to a provider-neutral error', async () => {
+    jest.spyOn(interswitchService, 'getNINFullDetails')
+      .mockRejectedValue(new Error('upstream host and token detail'));
+
+    const result = new InterswitchIdentityAdapter().start({
+      requestId: 'request-provider-outage',
+      evidenceType: 'nin',
+      identifier: startInput.identifier,
+      registeredPhone: startInput.registeredPhone,
+      firstName: startInput.firstName,
+      lastName: startInput.lastName,
+      consentAccepted: true,
+    });
+    await expect(result).rejects.toBeInstanceOf(IdentityProviderUnavailableError);
+    await expect(result).rejects.not.toThrow('upstream host and token detail');
+  });
+
+  it('marks provider-start outages terminal and returns a sanitized retry instruction', async () => {
+    (supabase.rpc as jest.Mock)
+      .mockResolvedValueOnce({ data: {
+        id: 'request-start-outage', state: 'created', evidence_type: 'nin',
+        provider_name: 'deterministic', provider_environment: 'deterministic',
+        maximum_otp_attempts: 5, otp_attempts: 0,
+      }, error: null } as never)
+      .mockResolvedValueOnce({ data: { id: 'request-start-outage' }, error: null } as never);
+    startAdapter.mockRejectedValue(new IdentityProviderUnavailableError());
+
+    await expect(new IdentityVerificationService(() => adapter).start(startInput))
+      .rejects.toThrow('start a new verification request');
+    expect(supabase.rpc).toHaveBeenCalledWith('fail_identity_verification', {
+      p_request_id: 'request-start-outage',
+      p_reason_code: 'PROVIDER_START_UNAVAILABLE',
+    });
+  });
+
+  it('audits a provider outage and completes a later confirmation retry', async () => {
+    const active = {
+      id: 'request-retry', state: 'awaiting_otp', challenge_token: 'opaque',
+      provider_name: 'deterministic', provider_environment: 'deterministic',
+      evidence_type: 'nin', maximum_otp_attempts: 5, otp_attempts: 0,
+    };
+    (supabase.rpc as jest.Mock)
+      .mockResolvedValueOnce({ data: active, error: null } as never)
+      .mockResolvedValueOnce({ data: active, error: null } as never)
+      .mockResolvedValueOnce({ data: active, error: null } as never)
+      .mockResolvedValueOnce({ data: { ...active, state: 'validated' }, error: null } as never);
+    confirmAdapter
+      .mockRejectedValueOnce(new IdentityProviderUnavailableError())
+      .mockResolvedValueOnce(true);
+    const service = new IdentityVerificationService(() => adapter);
+    const command = {
+      organizationId: startInput.organizationId,
+      userId: startInput.userId,
+      requestId: 'request-retry',
+      otp: '123456',
+    };
+
+    await expect(service.confirm(command))
+      .rejects.toThrow('retry confirmation before the challenge expires');
+    await expect(service.confirm(command)).resolves.toEqual(
+      expect.objectContaining({ id: 'request-retry', state: 'validated' }),
+    );
+    expect(supabase.rpc).toHaveBeenCalledWith('record_identity_provider_deferred', {
+      p_request_id: 'request-retry',
+    });
+    expect(supabase.rpc).not.toHaveBeenCalledWith(
+      'record_identity_otp_failure', expect.anything(),
+    );
   });
 });

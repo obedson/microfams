@@ -45,6 +45,7 @@ create_financial_rules.sql
 create_identity_verification.sql
 install_identity_platform_binding.sql
 install_identity_challenge_expiry.sql
+install_identity_provider_recovery.sql
 create_organization_verification.sql
 create_platform_administration.sql
 install_feature_flag_administration.sql

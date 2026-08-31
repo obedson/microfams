@@ -3,6 +3,7 @@ import { supabase } from '../../utils/supabase.js';
 import { configuredIdentityAdapter } from './identityAdapters.js';
 import {
   ConfirmIdentityVerificationInput,
+  IdentityProviderUnavailableError,
   IdentityVerificationAdapter,
   StartIdentityVerificationInput,
 } from './identityTypes.js';
@@ -91,10 +92,14 @@ export class IdentityVerificationService {
       if (updateError || !awaitingOtp) throw updateError ?? new Error('Identity challenge state could not be recorded');
       return publicRequest(awaitingOtp);
     } catch (providerError) {
+      const unavailable = providerError instanceof IdentityProviderUnavailableError;
       await supabase.rpc('fail_identity_verification', {
         p_request_id: request.id,
-        p_reason_code: 'PROVIDER_START_FAILED',
+        p_reason_code: unavailable ? 'PROVIDER_START_UNAVAILABLE' : 'PROVIDER_START_FAILED',
       });
+      if (unavailable) {
+        throw new Error('Identity provider is temporarily unavailable; start a new verification request');
+      }
       throw providerError;
     }
   }
@@ -111,7 +116,19 @@ export class IdentityVerificationService {
     if (adapter.name !== request.provider_name || adapter.environment !== request.provider_environment) {
       throw new Error('Configured identity adapter does not match the verification request');
     }
-    const valid = await adapter.confirm(request.challenge_token, input.otp);
+    let valid: boolean;
+    try {
+      valid = await adapter.confirm(request.challenge_token, input.otp);
+    } catch (providerError) {
+      if (!(providerError instanceof IdentityProviderUnavailableError)) throw providerError;
+      const { error: deferredError } = await supabase.rpc('record_identity_provider_deferred', {
+        p_request_id: request.id,
+      });
+      if (deferredError) throw deferredError;
+      throw new Error(
+        'Identity provider is temporarily unavailable; retry confirmation before the challenge expires',
+      );
+    }
     if (!valid) {
       const { error: attemptError } = await supabase.rpc('record_identity_otp_failure', {
         p_request_id: request.id,

@@ -34,6 +34,8 @@ Provider-start failure marks the request failed without storing provider payload
 
 If confirmation fails, the attempt counter is incremented. Exhausted challenges are rejected. Never reset attempts or edit evidence manually.
 
+A provider transport failure during confirmation returns a stable retry instruction and records `PROVIDER_CONFIRM_UNAVAILABLE` without consuming an OTP attempt or clearing the encrypted challenge. Retry the same request before `expires_at`; a later valid response completes through the normal atomic path. Provider error bodies, hosts, tokens, and stack details must not appear in API responses or logs. A provider outage before challenge creation marks the request failed and requires a new idempotency key.
+
 The production identity job runs every minute. It claims one durable execution lease and expires up to 100 due `created` or `awaiting_otp` requests with a bounded, skip-locked transaction. Expiry clears encrypted provider challenge state, records `CHALLENGE_EXPIRED`, and appends one `expired` event. Replaying the same servicing window is a safe success and does not duplicate events.
 
 Failed executions enter the durable job retry lifecycle and dead-letter after five attempts. Recover a dead-letter only after resolving the database or deployment fault; use the durable-job recovery procedure and rerun the normal scheduler. Do not edit request state, tokens, events, attempt counts, or job evidence manually. Logs contain aggregate counts and stable failure codes only, never provider references, challenge state, OTPs, fingerprints, or identity numbers.
