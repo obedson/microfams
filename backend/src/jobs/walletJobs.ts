@@ -2,50 +2,9 @@ import cron from 'node-cron';
 import { supabase } from '../utils/supabase.js';
 import { walletService } from '../services/walletService.js';
 import { logger } from '../utils/logger.js';
-import { payoutService } from '../domains/financial/payoutService.js';
 import { providerEventDrainWorker } from '../services/providerEventDrainService.js';
 import { pendingPaymentRecoveryWorker } from '../services/pendingPaymentRecoveryService.js';
 import { payoutReconciliationWorker } from '../services/payoutReconciliationWorker.js';
-
-/**
- * Requirement 5.11: Pending withdrawal timeout job
- * Runs every hour
- */
-const checkPendingWithdrawals = async () => {
-  try {
-    const { data: expiredReservations, error: expiryError } = await supabase.rpc(
-      'expire_wallet_reservations',
-      { p_organization_id: null },
-    );
-    if (expiryError) {
-      logger.error(`Failed to expire wallet reservations: ${expiryError.message}`);
-    } else if (Number(expiredReservations) > 0) {
-      logger.info(`Expired ${expiredReservations} wallet fund reservations`);
-    }
-    const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    
-    const { data: pendingPayouts } = await supabase
-      .from('payouts')
-      .select('id, internal_reference')
-      .in('state', ['submitted', 'processing'])
-      .lt('updated_at', twentyFourHoursAgo);
-
-    if (!pendingPayouts || pendingPayouts.length === 0) return;
-
-    logger.info(`Checking ${pendingPayouts.length} pending payouts`);
-
-    for (const payout of pendingPayouts) {
-      try {
-        const result = await payoutService.queryAndApply(payout.id);
-        logger.info(`Reconciled payout ${payout.internal_reference} to ${result.state}`);
-      } catch (error: any) {
-        logger.error(`Failed to reconcile payout ${payout.internal_reference}: ${error.message}`);
-      }
-    }
-  } catch (error: any) {
-    logger.error(`Error in checkPendingWithdrawals job: ${error.message}`);
-  }
-};
 
 
 /**
@@ -120,7 +79,15 @@ const checkGracePeriodExpiries = async () => {
 
 export const startWalletJobs = () => {
   // Pending withdrawal timeout (every hour)
-  cron.schedule('0 * * * *', checkPendingWithdrawals);
+  cron.schedule('0 * * * *', async () => {
+    try {
+      await payoutReconciliationWorker.runOnce();
+    } catch (error) {
+      logger.error('Payout reconciliation could not run', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+    }
+  });
 
   // Verified provider events (every minute)
   cron.schedule('* * * * *', async () => {
