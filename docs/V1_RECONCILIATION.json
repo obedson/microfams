@@ -618,9 +618,9 @@
       "evidence": {
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
+          "docs/specs/MULTITENANCY.md",
           "docs/specs/PLATFORM_ADMINISTRATION.md",
-          "docs/specs/TRUST_REVIEW_APPEALS.md",
-          "docs/specs/FEATURE_FLAGS.md"
+          "docs/specs/TRUST_REVIEW_APPEALS.md"
         ],
         "implementation": [
           "backend/src/domains/platform/featureFlagAdministrationService.ts",
@@ -4772,7 +4772,8 @@
           "backend/migrations/install_group_admission_payments.sql"
         ],
         "api": [
-          "backend/src/routes/groupAdmin.ts"
+          "backend/src/routes/groupAdmin.ts",
+          "backend/src/routes/organizations.ts"
         ],
         "client": [],
         "tests": [

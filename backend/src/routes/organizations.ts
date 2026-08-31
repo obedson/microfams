@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { organizationController } from '../controllers/organizationController.js';
 import { organizationInvitationController } from '../controllers/organizationInvitationController.js';
+import { organizationMembershipController } from '../controllers/organizationMembershipController.js';
 import { authenticateToken } from '../middleware/auth.js';
 import { requireTenantRole, resolveTenant } from '../middleware/tenant.js';
 import { requireFeature } from '../middleware/requireFeature.js';
@@ -28,6 +29,18 @@ router.post(
   resolveTenant,
   requireTenantRole(['owner', 'admin']),
   organizationInvitationController.revoke,
+);
+router.get(
+  '/current/memberships',
+  resolveTenant,
+  requireTenantRole(['owner', 'admin']),
+  organizationMembershipController.list,
+);
+router.patch(
+  '/current/memberships/:membershipId/access',
+  resolveTenant,
+  requireTenantRole(['owner']),
+  organizationMembershipController.updateAccess,
 );
 router.get('/current', resolveTenant, organizationController.current);
 router.get('/current/verification', resolveTenant, organizationController.getVerification);

@@ -168,4 +168,5 @@ install_inventory_foundation.sql
 install_institutional_programme_foundation.sql
 harden_tenant_membership_rls.sql
 install_organization_membership_invitations.sql
+install_organization_membership_access.sql
 install_organization_settings.sql
