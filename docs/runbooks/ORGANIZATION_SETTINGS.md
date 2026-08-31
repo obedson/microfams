@@ -19,6 +19,9 @@ PATCH /api/organizations/current/settings.
 - Reporting/export settings do not themselves authorize cross-tenant reporting.
   Any such workflow must separately enforce explicit consent, purpose
   limitation, data minimization, disclosure controls, and audit evidence.
+- CSV exports fail closed unless `reportingPolicy.exportsEnabled` is exactly
+  `true`. A missing or malformed policy, or a settings lookup failure, prevents
+  the export before tenant data is queried.
 
 ## Rollout verification
 
@@ -31,6 +34,8 @@ PATCH /api/organizations/current/settings.
    organization.settings.updated audit entry.
 5. Confirm an administrator can update operational settings and that a
    non-administrator receives an authorization failure.
+6. Confirm CSV export returns forbidden while exports are disabled, then
+   succeeds only after an authorized, audited settings update enables exports.
 
 ## Recovery and rollback
 

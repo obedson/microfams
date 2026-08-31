@@ -574,9 +574,9 @@
         ],
         "implementation": [
           "backend/src/services/organizationService.ts",
+          "backend/src/services/reportingService.ts",
           "backend/migrations/create_organizations.sql",
-          "backend/migrations/harden_wallet_ledger_cutover.sql",
-          "backend/migrations/install_group_committees_meetings.sql"
+          "backend/migrations/harden_wallet_ledger_cutover.sql"
         ],
         "api": [
           "backend/src/controllers/organizationController.ts",
@@ -592,7 +592,7 @@
           "backend/src/tests/organizationService.test.ts",
           "backend/src/tests/organizationSettingsApi.test.ts",
           "backend/src/tests/organizationBrandingApi.test.ts",
-          "backend/src/tests/tenantMiddleware.test.ts"
+          "backend/src/tests/reportingApi.test.ts"
         ],
         "operations": [
           "docs/runbooks/WALLET_LEDGER_CUTOVER.md"
