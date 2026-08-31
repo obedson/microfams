@@ -4767,9 +4767,9 @@
         ],
         "implementation": [
           "backend/migrations/install_group_membership_invitations.sql",
+          "backend/migrations/install_organization_membership_invitations.sql",
           "backend/migrations/create_organizations.sql",
-          "backend/migrations/install_group_admission_payments.sql",
-          "backend/migrations/install_payment_recovery.sql"
+          "backend/migrations/install_group_admission_payments.sql"
         ],
         "api": [
           "backend/src/routes/groupAdmin.ts"
@@ -4778,11 +4778,12 @@
         "tests": [
           "backend/tests/schema/test-group-membership-invitations.sql",
           "backend/src/tests/groupInvitationApi.test.ts",
-          "backend/tests/schema/test-loan-review-offers.sql",
-          "backend/tests/schema/test-organization-foundation.sql"
+          "backend/src/tests/organizationInvitationApi.test.ts",
+          "backend/tests/schema/test-loan-review-offers.sql"
         ],
         "operations": [
-          "docs/runbooks/GROUP_MEMBERSHIP_INVITATIONS.md"
+          "docs/runbooks/GROUP_MEMBERSHIP_INVITATIONS.md",
+          "docs/runbooks/ORGANIZATION_MEMBERSHIP_INVITATIONS.md"
         ]
       }
     },
