@@ -5,6 +5,7 @@ export interface StartIdentityChallenge {
   requestId: string;
   evidenceType: IdentityEvidenceType;
   identifier: string;
+  registeredPhone: string;
   firstName: string;
   lastName: string;
   consentAccepted: true;
@@ -28,6 +29,7 @@ export interface StartIdentityVerificationInput {
   userId: string;
   evidenceType: IdentityEvidenceType;
   identifier: string;
+  registeredPhone: string;
   firstName: string;
   lastName: string;
   consentVersion: string;

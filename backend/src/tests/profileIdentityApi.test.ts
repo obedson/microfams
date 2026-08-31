@@ -21,8 +21,8 @@ const response = () => {
   return res;
 };
 
-const mockUserLookup = (name = 'Ada Farmer') => {
-  const single = jest.fn().mockResolvedValue({ data: { name }, error: null } as never);
+const mockUserLookup = (name = 'Ada Farmer', phone = '08031234123') => {
+  const single = jest.fn().mockResolvedValue({ data: { name, phone }, error: null } as never);
   const eq = jest.fn().mockReturnValue({ single });
   const select = jest.fn().mockReturnValue({ eq });
   (supabase.from as jest.Mock).mockReturnValue({ select });
@@ -68,6 +68,7 @@ describe('identity verification API contract', () => {
       evidenceType: 'nin',
       identifier: '12345678901',
       firstName: 'Ada',
+      registeredPhone: '08031234123',
       lastName: 'Farmer',
       idempotencyKey: 'identity-request-001',
     }));
@@ -76,6 +77,19 @@ describe('identity verification API contract', () => {
       maskedDestination: '0803****123',
     }));
     expect(JSON.stringify((res.json as jest.Mock).mock.calls[0][0])).not.toContain('12345678901');
+  });
+
+  it('requires a registered account phone before starting verification', async () => {
+    mockUserLookup('Ada Farmer', '');
+    const res = response();
+
+    await profileController.verifyNIN({
+      body: { nin: '12345678901', consent: true },
+      user: { id: 'user-1' }, tenant: { id: 'tenant-1' }, headers: {},
+    } as any, res);
+
+    expect(res.status).toHaveBeenCalledWith(422);
+    expect(identityVerificationService.start).not.toHaveBeenCalled();
   });
 
   it('uses an opaque random idempotency key when the client omits one', async () => {

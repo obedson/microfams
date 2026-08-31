@@ -89,6 +89,14 @@ else
   fi
 fi
 
+identity_platform_binding_present="$(docker exec "$container" psql --username postgres --dbname microfams \
+  --no-psqlrc --tuples-only --no-align \
+  --command "SELECT to_regclass('public.platform_identity_bindings') IS NOT NULL")"
+if [[ "$identity_platform_binding_present" == "f" ]]; then
+  migrations+=(install_identity_platform_binding.sql)
+fi
+
+
 # Later booking and savings migrations use the canonical purpose catalogue.
 # Some hosted schemas have the ledger tables but predate this additive layer.
 financial_account_provisioning_present="$(docker exec "$container" psql --username postgres --dbname microfams \

@@ -72,7 +72,7 @@ Exit gate: automated tenant-isolation tests across database, API, exports, jobs,
 
 ## Phase 2 — Trust and identity
 
-- [ ] Approve one authoritative NIN ownership flow.
+- [x] Approve one authoritative NIN ownership flow.
 - [ ] Implement provider-neutral KYC contracts, OTP, consent, retries, and redaction.
 - [ ] Add organization verification and optional BVN/face-verification adapters.
 - [ ] Add identity review, suspension, appeal, retention, and audit workflows.

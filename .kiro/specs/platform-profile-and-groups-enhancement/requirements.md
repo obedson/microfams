@@ -72,6 +72,8 @@ These features collectively introduce identity verification as a prerequisite fo
 
 ### Requirement 3: NIN Verification Flow
 
+> **Authoritative V1 override (approved 2026-08-31):** V1 uses provider-neutral NIN/BVN verification with versioned consent and an OTP sent only to the phone registered on the Micro Fams account. Raw identity numbers and provider-returned identity profiles must not be persisted. A platform-wide HMAC fingerprint binds one identity type to one user, while tenant-scoped evidence records provider, consent, status, expiry, and regulatory context. Successful NIN verification may set `nin_verified` for legacy compatibility but must not populate `nin_number`. This override supersedes Acceptance Criteria 3.1-3.7 wherever they require Interswitch-specific behavior or raw NIN/profile persistence.
+
 **User Story:** As a user, I want to verify my identity using my NIN so that I can unlock group features and financial transactions on the platform.
 
 #### Acceptance Criteria

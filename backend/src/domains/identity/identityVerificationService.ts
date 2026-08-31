@@ -10,13 +10,13 @@ import {
 const identifierPattern = /^[0-9]{11}$/;
 const sha256 = (value: string): string => crypto.createHash('sha256').update(value).digest('hex');
 
-const fingerprint = (organizationId: string, evidenceType: string, identifier: string): string => {
+const fingerprint = (evidenceType: string, identifier: string): string => {
   const configured = process.env.IDENTITY_FINGERPRINT_KEY;
   if (!configured && process.env.NODE_ENV === 'production') {
     throw new Error('Identity fingerprinting is not configured');
   }
   return crypto.createHmac('sha256', configured ?? 'development-only-identity-fingerprint-key')
-    .update(organizationId + ':' + evidenceType + ':' + identifier)
+    .update(evidenceType + ':' + identifier)
     .digest('hex');
 };
 
@@ -38,17 +38,20 @@ export class IdentityVerificationService {
 
   async start(input: StartIdentityVerificationInput) {
     if (!identifierPattern.test(input.identifier)) throw new Error('Identity number must contain exactly 11 digits');
+    if (input.registeredPhone.replace(/\D/g, '').length < 10) throw new Error('A valid registered phone is required for identity verification');
     if (!/^[a-f0-9]{64}$/.test(input.consentTextHash)) throw new Error('Consent text hash is invalid');
     if (input.consentVersion.trim().length < 1) throw new Error('Consent version is required');
     if (input.idempotencyKey.length < 8) throw new Error('Idempotency key is too short');
 
     const adapter = this.adapterFactory();
-    const identityFingerprint = fingerprint(input.organizationId, input.evidenceType, input.identifier);
+    const identityFingerprint = fingerprint(input.evidenceType, input.identifier);
+    const registeredPhoneHash = sha256(input.registeredPhone.replace(/\D/g, ''));
     const requestHash = sha256(JSON.stringify({
       organizationId: input.organizationId,
       userId: input.userId,
       evidenceType: input.evidenceType,
       identityFingerprint,
+      registeredPhoneHash,
       consentVersion: input.consentVersion,
       consentTextHash: input.consentTextHash,
       provider: adapter.name,
@@ -74,6 +77,7 @@ export class IdentityVerificationService {
         requestId: request.id,
         evidenceType: input.evidenceType,
         identifier: input.identifier,
+        registeredPhone: input.registeredPhone,
         firstName: input.firstName,
         lastName: input.lastName,
         consentAccepted: true,

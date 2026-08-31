@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
-import { DeterministicIdentityAdapter } from '../domains/identity/identityAdapters.js';
+import { DeterministicIdentityAdapter, InterswitchIdentityAdapter } from '../domains/identity/identityAdapters.js';
+import { interswitchService } from '../services/interswitchService.js';
 import { IdentityVerificationService } from '../domains/identity/identityVerificationService.js';
 import {
   IdentityChallenge,
@@ -28,6 +29,7 @@ const startInput = {
   userId: '00000000-0000-4000-8000-000000000102',
   evidenceType: 'nin' as const,
   identifier: '12345678901',
+  registeredPhone: '08031234123',
   firstName: 'Ada',
   lastName: 'Farmer',
   consentVersion: 'v1',
@@ -36,18 +38,40 @@ const startInput = {
 };
 
 describe('identity verification', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
+  });
 
   it('uses a deterministic adapter without accepting arbitrary OTPs', async () => {
     const deterministic = new DeterministicIdentityAdapter();
     const challenge = await deterministic.start({
-      requestId: 'request-1', evidenceType: 'nin', identifier: '12345678901',
+      requestId: 'request-1', evidenceType: 'nin', identifier: '12345678901', registeredPhone: '08031234123',
       firstName: 'Ada', lastName: 'Farmer', consentAccepted: true,
     });
     expect(challenge.maskedDestination).toBe('0803****123');
     await expect(deterministic.confirm(challenge.challengeToken, '123456')).resolves.toBe(true);
     await expect(deterministic.confirm(challenge.challengeToken, '111111')).resolves.toBe(false);
     await expect(deterministic.confirm(challenge.challengeToken, '12345678')).resolves.toBe(false);
+  });
+
+  it('rejects a provider phone that differs from the registered account phone', async () => {
+    const providerLookup = jest.spyOn(interswitchService, 'getNINFullDetails').mockResolvedValue({
+      data: { mobile: '08049999222' },
+    } as never);
+    const sendOtp = jest.spyOn(interswitchService, 'sendOTP');
+
+    await expect(new InterswitchIdentityAdapter().start({
+      requestId: 'request-provider-phone',
+      evidenceType: 'nin',
+      identifier: startInput.identifier,
+      registeredPhone: startInput.registeredPhone,
+      firstName: startInput.firstName,
+      lastName: startInput.lastName,
+      consentAccepted: true,
+    })).rejects.toThrow('does not match the registered account phone');
+    expect(providerLookup).toHaveBeenCalled();
+    expect(sendOtp).not.toHaveBeenCalled();
   });
 
   it('stores only a fingerprint and provider challenge metadata', async () => {
@@ -74,6 +98,24 @@ describe('identity verification', () => {
     expect(JSON.stringify(firstCall[1])).not.toContain(startInput.identifier);
   });
 
+  it('derives the same platform fingerprint across organizations without exposing the identifier', async () => {
+    const rpc = supabase.rpc as jest.Mock;
+    rpc.mockResolvedValue({ data: {
+      id: 'existing', state: 'failed', evidence_type: 'nin', provider_name: 'deterministic',
+      provider_environment: 'deterministic', maximum_otp_attempts: 5, otp_attempts: 0,
+    }, error: null } as never);
+
+    const service = new IdentityVerificationService(() => adapter);
+    await service.start(startInput);
+    await service.start({ ...startInput, organizationId: '00000000-0000-4000-8000-000000000202' });
+
+    const firstFacts = rpc.mock.calls[0][1] as any;
+    const secondFacts = rpc.mock.calls[1][1] as any;
+    expect(firstFacts.p_identity_fingerprint).toBe(secondFacts.p_identity_fingerprint);
+    expect(JSON.stringify(firstFacts)).not.toContain(startInput.identifier);
+    expect(JSON.stringify(secondFacts)).not.toContain(startInput.identifier);
+  });
+
   it('records failed OTP attempts and never completes invalid challenges', async () => {
     (supabase.rpc as jest.Mock)
       .mockResolvedValueOnce({ data: {
@@ -98,6 +140,14 @@ describe('identity verification', () => {
     await expect(new IdentityVerificationService(() => adapter).start({
       ...startInput, identifier: '123',
     })).rejects.toThrow('exactly 11 digits');
+    expect(adapter.start).not.toHaveBeenCalled();
+    expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
+  it('rejects an invalid registered phone before creating evidence', async () => {
+    await expect(new IdentityVerificationService(() => adapter).start({
+      ...startInput, registeredPhone: '123',
+    })).rejects.toThrow('valid registered phone');
     expect(adapter.start).not.toHaveBeenCalled();
     expect(supabase.rpc).not.toHaveBeenCalled();
   });
