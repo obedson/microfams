@@ -523,6 +523,9 @@ docker exec --interactive "$container" psql --username postgres --dbname microfa
   < "$repo_root/backend/tests/schema/test-organization-membership-invitations.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \
   --set ON_ERROR_STOP=1 \
+  < "$repo_root/backend/tests/schema/test-organization-membership-access.sql"
+docker exec --interactive "$container" psql --username postgres --dbname microfams \
+  --set ON_ERROR_STOP=1 \
   < "$repo_root/backend/tests/schema/test-organization-settings.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams --set ON_ERROR_STOP=1 < "$repo_root/backend/tests/schema/test-audit-observability.sql"
 docker exec --interactive "$container" psql --username postgres --dbname microfams \

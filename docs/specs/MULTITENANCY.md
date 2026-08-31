@@ -29,6 +29,12 @@ Suspended or closed organizations and suspended or removed memberships cannot pr
 
 Built-in roles are owner, admin, finance manager, programme manager, farm manager, auditor, member, and viewer. Roles provide coarse workflow boundaries. Explicit permission strings provide fine-grained capability checks.
 
+Only an active owner may change an active non-owner membership's role or
+permissions. The command is tenant-bound and audited with before/after access
+values. Generic access administration cannot assign, remove, or transfer the
+owner role; ownership changes require a separately approved legal-identity
+workflow.
+
 Financial approvals, manual ledger corrections, payouts, product configuration, write-offs, distributions, and high-risk feature changes require later maker-checker policies in addition to role membership. No user may satisfy both maker and checker for the same operation.
 
 ## Isolation rules
