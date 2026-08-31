@@ -45,6 +45,27 @@ state for a later scan. Candidate-selection failures mark the durable execution
 for bounded retry. Completion evidence stores only candidate, processed, and
 failed counts; it does not copy payment, customer, or provider details.
 
+## Production worker inventory
+
+The production entry point starts only these background paths:
+
+- booking notification delivery, which leases each outbox row;
+- payment timeout cancellation under `payments.timeout-cancellation`;
+- payment and payout provider-event drain under
+  `financial.provider-event-drain`;
+- pending payment/refund recovery under `payments.pending-recovery`;
+- payout reconciliation under `payouts.pending-reconciliation`;
+- NUBAN provisioning retry under `wallet.nuban-provisioning-retry`;
+- savings standing-order servicing under `savings.standing-order-servicing`; and
+- retention dry-run selection under `retention.dry-run-selection`.
+
+The legacy contribution schedulers, blanket pending-booking expiry, and
+grace-period wallet redistribution are not production-wired. The grace path
+conflicts with GT-02: personal funds must move to an owner-linked
+suspense/unclaimed-funds liability, not group income, pending an approved legal
+process. A future worker requires that approved financial command and a durable
+execution lease.
+
 ## Verification
 
 Run from the Codespace:
@@ -55,6 +76,9 @@ npm --prefix backend test -- --runInBand src/tests/paymentTimeoutJob.test.ts
 npm --prefix backend run test:schema
 npm --prefix backend test -- --runInBand src/tests/providerEventDrainService.test.ts
 npm --prefix backend test -- --runInBand src/tests/pendingPaymentRecoveryService.test.ts
+npm --prefix backend test -- --runInBand src/tests/payoutReconciliationWorker.test.ts src/tests/nubanRetryWorker.test.ts
+npm --prefix backend test -- --runInBand src/tests/durableSavingsStandingOrderJob.test.ts src/tests/durableRetentionSelectionJob.test.ts
+npm --prefix backend test -- --runInBand src/tests/walletJobsWiring.test.ts src/tests/bookingJobsWiring.test.ts
 ```
 
 The platform-admin outbox health endpoint reports aggregate state counts without exposing event payloads. Queue health must be reviewed alongside worker logs and database counts.

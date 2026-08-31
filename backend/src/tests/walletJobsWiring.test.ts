@@ -18,4 +18,11 @@ describe('wallet job durable scheduler wiring', () => {
     expect(source).not.toContain('retryNubanProvisioning');
     expect(source).not.toContain(".from('group_virtual_accounts')");
   });
+
+  it('does not schedule the prohibited grace-period redistribution path', () => {
+    expect(source).not.toContain('checkGracePeriodExpiries');
+    expect(source).not.toContain('handleGracePeriodExpiry');
+    expect(source).not.toContain("cron.schedule('0 2 * * *'");
+    expect(source).not.toContain(".from('users')");
+  });
 });

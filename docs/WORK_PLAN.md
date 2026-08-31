@@ -65,7 +65,7 @@ Exit gate: clean builds, deterministic tests, secret scan, dependency gate, and 
 - [x] Tenant context propagation and database isolation.
 - [ ] Organization roles, permissions, branding, settings, and reporting scopes.
 - [x] Global platform administration separated from tenant administration.
-- [ ] Domain-event outbox and durable job processing.
+- [x] Domain-event outbox and durable job processing.
 - [x] Audit, metrics, tracing, health checks, and correlation IDs.
 
 Exit gate: automated tenant-isolation tests across database, API, exports, jobs, and analytics.
