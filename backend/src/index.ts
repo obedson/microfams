@@ -55,7 +55,6 @@ import intelligenceRoutes from './routes/intelligence.js';
 import inventoryRoutes from './routes/inventory.js';
 import assistantRoutes from './routes/assistant.js';
 import programmeRoutes from './routes/programmes.js';
-import { startCronJobs } from './jobs/contributionJobs.js';
 import { startBookingJobs } from './jobs/bookingJobs.js';
 import { startWalletJobs } from './jobs/walletJobs.js';
 import { startSavingsJobs } from './jobs/savingsJobs.js';
@@ -149,7 +148,6 @@ if (backendConfiguration.nodeEnv !== 'test') {
 
   // Only run cron jobs if not in test environment
   if (backendConfiguration.nodeEnv === 'production') {
-    startCronJobs();
     startBookingJobs();
     startWalletJobs();
     startSavingsJobs();
