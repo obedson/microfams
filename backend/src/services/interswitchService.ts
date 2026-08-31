@@ -98,7 +98,7 @@ class InterswitchService {
         isConsent: consent 
       };
 
-      console.log(`Interswitch NIN: Requesting details for ${nin.slice(0,3)}******* with consent ${consent}`);
+      console.log('Interswitch NIN: Requesting consent-backed identity verification');
       
       const response = await axios.post(
         `${this.marketplaceUrl}/marketplace-routing/api/v1/verify/identity/nin/verify`,
@@ -131,6 +131,34 @@ class InterswitchService {
       }
       
       throw new Error(errorMessage);
+    }
+  }
+
+  /**
+   * BVN verification for progressive KYC. Callers must discard the full
+   * provider profile after extracting the registered-phone match.
+   */
+  async getBVNFullDetails(bvn: string) {
+    try {
+      const token = await this.getAccessToken();
+      const response = await axios.post(
+        `${this.marketplaceUrl}/marketplace-routing/api/v1/verify/identity/bvn/verify`,
+        { id: bvn },
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'TerminalId': process.env.INTERSWITCH_TERMINAL_ID || '',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          timeout: 30000
+        }
+      );
+
+      return response.data;
+    } catch {
+      console.error('Interswitch BVN API request failed');
+      throw new Error('BVN verification failed');
     }
   }
 

@@ -6,6 +6,7 @@ describe('V1 feature-flag matrix', () => {
   const repo = (state: any): FeatureFlagRepository => ({ getState: jest.fn().mockResolvedValue(state) });
   it.each([
     ['disabled by default', 'integration.ai_assistant', {}, false, 'default'],
+    ['BVN progressive KYC disabled by default', 'integration.identity_bvn_verification', {}, false, 'default'],
     ['enabled by tenant override', 'integration.weather', { overrides: [{ id: 't', featureKey: 'integration.weather', scopeType: 'tenant', scopeId: 'tenant-1', environment: 'test', enabled: true, config: {}, effectiveFrom: '2020-01-01T00:00:00Z', effectiveUntil: null }] }, true, 'override'],
     ['misconfigured storage fails closed', 'integration.weather', null, false, 'failure_mode'],
     ['degraded provider remains a service decision', 'integration.weather', { overrides: [{ id: 't', featureKey: 'integration.weather', scopeType: 'tenant', scopeId: 'tenant-1', environment: 'test', enabled: false, config: { degraded: true }, effectiveFrom: '2020-01-01T00:00:00Z', effectiveUntil: null }] }, false, 'override'],

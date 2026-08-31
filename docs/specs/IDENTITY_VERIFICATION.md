@@ -33,3 +33,9 @@ Platform binding, tenant evidence, financial KYC evidence, request completion, c
 ## IV-08 Degraded-provider recovery
 
 A provider transport failure before challenge creation terminates that request with a stable reason and requires a new idempotency key. A transient provider failure during OTP confirmation preserves the active challenge, does not consume an OTP attempt, records a tenant-scoped deferred event, and permits confirmation retry until expiry. Provider error details must not be returned or logged.
+
+## IV-09 Progressive BVN verification
+
+Interswitch sandbox implements the provider-neutral BVN lookup contract. BVN verification is available only when both the general identity-verification flag and the dedicated BVN progressive-KYC flag are enabled.
+
+The full provider profile is used only in process memory to compare the provider-registered phone with the Micro Fams registered phone, then discarded. Face verification remains deferred.

@@ -12,6 +12,13 @@ router.use(authenticateToken as any);
 
 router.get('/', profileController.getProfile);
 router.post('/verify-nin', resolveTenant, requireFeature('integration.identity_verification'), profileController.verifyNIN as any);
+router.post(
+  '/verify-bvn',
+  resolveTenant,
+  requireFeature('integration.identity_verification'),
+  requireFeature('integration.identity_bvn_verification'),
+  profileController.verifyBVN as any,
+);
 router.post('/send-otp', resolveTenant, requireFeature('integration.identity_verification'), profileController.sendOTP as any);
 router.post('/confirm-otp', resolveTenant, requireFeature('integration.identity_verification'), profileController.confirmOTP as any);
 router.post('/upload-profile-picture', upload.single('image'), profileController.uploadProfilePicture);
