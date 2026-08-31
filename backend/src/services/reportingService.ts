@@ -2,6 +2,8 @@ import { supabase } from '../utils/supabase.js';
 import { logger } from '../utils/logger.js';
 import { buildCsv, REPORT_TENANT_SCOPES } from './reportingPolicy.js';
 
+export const REPORT_EXPORT_DISABLED = 'Organization report exports are disabled';
+
 export class ReportingService {
   static async getBookingReport(organizationId: string, startDate: string, endDate: string) {
     const { data: bookings, error } = await supabase.from('bookings').select(`
@@ -74,10 +76,29 @@ export class ReportingService {
       analysis_date: new Date().toISOString(),
     };
   }
+  private static async assertExportEnabled(organizationId: string) {
+    const { data, error } = await supabase
+      .from('organization_settings')
+      .select('reporting_policy')
+      .eq('organization_id', organizationId)
+      .maybeSingle();
+    if (error) {
+      logger.error('Organization reporting policy lookup failed', {
+        organizationId,
+        error,
+      });
+      throw new Error(REPORT_EXPORT_DISABLED);
+    }
+    const policy = data?.reporting_policy as Record<string, unknown> | undefined;
+    if (policy?.exportsEnabled !== true) {
+      throw new Error(REPORT_EXPORT_DISABLED);
+    }
+  }
 
   static async exportToCSV(organizationId: string, tableName: string, fields: string[]) {
     const scope = REPORT_TENANT_SCOPES[tableName];
     if (!scope) throw new Error('Export tenant scope is not configured');
+    await this.assertExportEnabled(organizationId);
     let query = supabase.from(tableName).select(fields.join(',')).limit(1000);
     if (scope === 'booking_participant') {
       query = query.or(`organization_id.eq.${organizationId},provider_organization_id.eq.${organizationId}`);

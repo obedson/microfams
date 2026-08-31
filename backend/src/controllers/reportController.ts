@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { TenantRequest } from '../middleware/tenant.js';
-import { ReportingService } from '../services/reportingService.js';
+import { REPORT_EXPORT_DISABLED, ReportingService } from '../services/reportingService.js';
 import { validateReportExport } from '../services/reportingPolicy.js';
 
 export const getBookingReport = async (req: TenantRequest, res: Response) => {
@@ -43,6 +43,7 @@ export const exportData = async (req: TenantRequest, res: Response) => {
     res.setHeader('Content-Disposition', `attachment; filename=${selection.table}-export.csv`);
     return res.send(csv);
   } catch (error) {
-    return res.status(400).json({ error: error instanceof Error ? error.message : 'Export failed' });
+    const message = error instanceof Error ? error.message : 'Export failed';
+    return res.status(message === REPORT_EXPORT_DISABLED ? 403 : 400).json({ error: message });
   }
 };
