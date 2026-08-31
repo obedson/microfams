@@ -683,8 +683,8 @@
         "tests": [
           "backend/src/tests/pendingPaymentRecoveryService.test.ts",
           "backend/src/tests/investmentRefundSubmissionService.test.ts",
-          "backend/src/tests/paymentTimeoutJob.test.ts",
-          "backend/src/tests/payoutReconciliationWorker.test.ts"
+          "backend/src/tests/nubanRetryWorker.test.ts",
+          "backend/src/tests/paymentTimeoutJob.test.ts"
         ],
         "operations": [
           "docs/runbooks/DURABLE_OUTBOX_JOB_OPERATIONS.md",

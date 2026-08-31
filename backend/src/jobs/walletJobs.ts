@@ -5,49 +5,9 @@ import { logger } from '../utils/logger.js';
 import { providerEventDrainWorker } from '../services/providerEventDrainService.js';
 import { pendingPaymentRecoveryWorker } from '../services/pendingPaymentRecoveryService.js';
 import { payoutReconciliationWorker } from '../services/payoutReconciliationWorker.js';
+import { nubanRetryWorker } from '../services/nubanRetryWorker.js';
 
 
-/**
- * Requirement 2.3: NUBAN retry job
- * Runs every 5 minutes
- */
-const retryNubanProvisioning = async () => {
-  try {
-    const { data: pendingGvas } = await supabase
-      .from('group_virtual_accounts')
-      .select('*, groups(name, organization_id)')
-      .eq('status', 'PENDING')
-      .lt('retry_count', 3);
-
-    if (!pendingGvas || pendingGvas.length === 0) return;
-
-    for (const gva of pendingGvas) {
-      // Exponential backoff: 1min, 2min, 4min
-      const delay = Math.pow(2, gva.retry_count) * 60 * 1000;
-      const lastAttempt = new Date(gva.updated_at).getTime();
-      
-      if (Date.now() - lastAttempt < delay) continue;
-
-      try {
-        const group = gva.groups as any;
-        await walletService.provisionGroupNuban(gva.group_id, group.name);
-        logger.info(`Successfully provisioned NUBAN for group ${gva.group_id} on retry ${gva.retry_count + 1}`);
-      } catch (error: any) {
-        await supabase
-          .from('group_virtual_accounts')
-          .update({ 
-            retry_count: gva.retry_count + 1,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', gva.id)
-          .eq('organization_id', gva.organization_id);
-        logger.error(`Failed NUBAN retry ${gva.retry_count + 1} for group ${gva.group_id}`);
-      }
-    }
-  } catch (error: any) {
-    logger.error(`Error in retryNubanProvisioning job: ${error.message}`);
-  }
-};
 
 /**
  * Requirement 9.4, 9.5: Grace period expiry job
@@ -110,7 +70,13 @@ export const startWalletJobs = () => {
   });
   
   // NUBAN retry (every 5 minutes)
-  cron.schedule('*/5 * * * *', retryNubanProvisioning);
+  cron.schedule('*/5 * * * *', async () => {
+    try {
+      await nubanRetryWorker.runOnce();
+    } catch (error) {
+      logger.error('NUBAN retry worker could not run', { error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
 
   // Grace period expiry (daily at 2 AM)
   cron.schedule('0 2 * * *', checkGracePeriodExpiries);
