@@ -20,10 +20,24 @@ export interface OrganizationBranding {
   customDomain: string | null;
 }
 
+export interface OrganizationSettings {
+  notificationPreferences: Record<string, unknown>;
+  reportingPolicy: Record<string, unknown>;
+  updatedBy: string | null;
+  updatedAt: string | null;
+}
+
+export interface OrganizationSettingsInput {
+  notificationPreferences?: Record<string, unknown>;
+  reportingPolicy?: Record<string, unknown>;
+}
+
 export interface OrganizationRepository extends TenantRepository {
   create(userId: string, input: CreateOrganizationInput): Promise<OrganizationMembership>;
   getBranding(organizationId: string): Promise<OrganizationBranding | null>;
   updateBranding(organizationId: string, userId: string, branding: Partial<OrganizationBranding>): Promise<OrganizationBranding>;
+  getSettings(organizationId: string): Promise<OrganizationSettings>;
+  updateSettings(organizationId: string, userId: string, settings: OrganizationSettingsInput): Promise<OrganizationSettings>;
 }
 
 export class OrganizationService {
@@ -43,5 +57,13 @@ export class OrganizationService {
 
   updateBranding(organizationId: string, userId: string, branding: Partial<OrganizationBranding>) {
     return this.repository.updateBranding(organizationId, userId, branding);
+  }
+
+  getSettings(organizationId: string) {
+    return this.repository.getSettings(organizationId);
+  }
+
+  updateSettings(organizationId: string, userId: string, settings: OrganizationSettingsInput) {
+    return this.repository.updateSettings(organizationId, userId, settings);
   }
 }

@@ -4,6 +4,8 @@ import {
   CreateOrganizationInput,
   OrganizationBranding,
   OrganizationRepository,
+  OrganizationSettings,
+  OrganizationSettingsInput,
 } from '../services/organizationService.js';
 
 interface BrandingRow {
@@ -16,6 +18,13 @@ interface BrandingRow {
   custom_domain: string | null;
 }
 
+interface SettingsRow {
+  notification_preferences: Record<string, unknown>;
+  reporting_policy: Record<string, unknown>;
+  updated_by: string | null;
+  updated_at: string;
+}
+
 const mapBranding = (row: BrandingRow): OrganizationBranding => ({
   displayName: row.display_name,
   logoUrl: row.logo_url,
@@ -24,6 +33,13 @@ const mapBranding = (row: BrandingRow): OrganizationBranding => ({
   supportEmail: row.support_email,
   supportPhone: row.support_phone,
   customDomain: row.custom_domain,
+});
+
+const mapSettings = (row: SettingsRow): OrganizationSettings => ({
+  notificationPreferences: row.notification_preferences,
+  reportingPolicy: row.reporting_policy,
+  updatedBy: row.updated_by,
+  updatedAt: row.updated_at,
 });
 
 export class SupabaseOrganizationRepository extends SupabaseTenantRepository implements OrganizationRepository {
@@ -78,5 +94,40 @@ export class SupabaseOrganizationRepository extends SupabaseTenantRepository imp
       .single();
     if (error) throw error;
     return mapBranding(data as BrandingRow);
+  }
+
+  async getSettings(organizationId: string): Promise<OrganizationSettings> {
+    const { data, error } = await supabase
+      .from('organization_settings')
+      .select('notification_preferences, reporting_policy, updated_by, updated_at')
+      .eq('organization_id', organizationId)
+      .maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      return {
+        notificationPreferences: {},
+        reportingPolicy: {},
+        updatedBy: null,
+        updatedAt: null,
+      };
+    }
+    return mapSettings(data as SettingsRow);
+  }
+
+  async updateSettings(
+    organizationId: string,
+    userId: string,
+    settings: OrganizationSettingsInput,
+  ): Promise<OrganizationSettings> {
+    const { data, error } = await supabase.rpc('update_organization_settings', {
+      p_organization_id: organizationId,
+      p_actor_id: userId,
+      p_notification_preferences: settings.notificationPreferences ?? null,
+      p_reporting_policy: settings.reportingPolicy ?? null,
+    });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row) throw new Error('Organization settings command returned no data.');
+    return mapSettings(row as SettingsRow);
   }
 }
