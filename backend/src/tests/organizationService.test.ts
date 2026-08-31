@@ -18,6 +18,18 @@ const repository = (): jest.Mocked<OrganizationRepository> => ({
     displayName: 'Growers', logoUrl: null, primaryColor: '#008000', secondaryColor: null,
     supportEmail: null, supportPhone: null, customDomain: null,
   }),
+  getSettings: jest.fn().mockResolvedValue({
+    notificationPreferences: {},
+    reportingPolicy: {},
+    updatedBy: null,
+    updatedAt: null,
+  }),
+  updateSettings: jest.fn().mockResolvedValue({
+    notificationPreferences: { email: true },
+    reportingPolicy: {},
+    updatedBy: 'user-1',
+    updatedAt: '2026-08-31T08:00:00.000Z',
+  }),
 });
 
 describe('OrganizationService', () => {

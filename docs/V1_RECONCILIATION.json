@@ -573,24 +573,24 @@
           ".kiro/specs/farmle-platform-enhancement/tasks.md"
         ],
         "implementation": [
+          "backend/src/services/organizationService.ts",
           "backend/migrations/create_organizations.sql",
           "backend/migrations/harden_wallet_ledger_cutover.sql",
-          "backend/migrations/install_group_committees_meetings.sql",
-          "backend/migrations/install_group_treasury_disbursements.sql"
+          "backend/migrations/install_group_committees_meetings.sql"
         ],
         "api": [
+          "backend/src/controllers/organizationController.ts",
           "backend/src/controllers/groupCommitteeController.ts",
-          "backend/src/controllers/analyticsController.ts",
-          "backend/src/controllers/contributionController.ts",
-          "backend/src/controllers/groupAdminController.ts"
+          "backend/src/routes/organizations.ts",
+          "backend/src/controllers/analyticsController.ts"
         ],
         "client": [
           "frontend/src/pages/CreditProductGovernance.tsx",
           "frontend/src/store/organizationStore.ts"
         ],
         "tests": [
-          "backend/src/tests/organizationBrandingApi.test.ts",
           "backend/src/tests/organizationService.test.ts",
+          "backend/src/tests/organizationBrandingApi.test.ts",
           "backend/src/tests/tenantMiddleware.test.ts",
           "backend/tests/schema/test-group-committees-meetings.sql"
         ],

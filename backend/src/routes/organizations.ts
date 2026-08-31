@@ -44,5 +44,17 @@ router.patch(
   requireTenantRole(['owner', 'admin']),
   organizationController.updateBranding,
 );
+router.get(
+  '/current/settings',
+  resolveTenant,
+  requireTenantRole(['owner', 'admin']),
+  organizationController.getSettings,
+);
+router.patch(
+  '/current/settings',
+  resolveTenant,
+  requireTenantRole(['owner', 'admin']),
+  organizationController.updateSettings,
+);
 
 export default router;

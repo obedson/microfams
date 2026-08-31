@@ -2,6 +2,15 @@
 
 Status: implementation baseline.
 
+The V1 organization settings contract was approved by the product owner on
+2026-08-31. It includes notification preferences and reporting/export policy.
+Owners may change all organization settings. Administrators may change
+operational settings, but ownership and legal identity remain owner-only
+workflows. Every mutation must be tenant-scoped, authorized, and audited.
+Cross-tenant reporting is not enabled by a setting alone: each reporting
+workflow must enforce explicit consent, purpose limitation, data minimization,
+disclosure controls, and audit evidence.
+
 ## Tenant model
 
 An organization is the security, branding, configuration, reporting, and accounting boundary. V1 organization types are farm businesses, cooperatives, NGOs, government programmes, and agribusinesses. A user may belong to multiple organizations with a different role and permissions in each.

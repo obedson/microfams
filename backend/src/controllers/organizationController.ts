@@ -28,6 +28,11 @@ const brandingSchema = Joi.object({
   customDomain: Joi.string().hostname().allow(null),
 }).min(1);
 
+const settingsSchema = Joi.object({
+  notificationPreferences: Joi.object().optional(),
+  reportingPolicy: Joi.object().optional(),
+}).or('notificationPreferences', 'reportingPolicy');
+
 const verificationSchema = Joi.object({
   registrationType: Joi.string().valid(
     'cac_rc', 'cac_bn', 'ngo_registration', 'government_program', 'other',
@@ -78,6 +83,35 @@ export const organizationController = {
       return res.json({ success: true, data: branding });
     } catch {
       return res.status(503).json({ success: false, error: 'ORGANIZATION_SERVICE_UNAVAILABLE' });
+    }
+  },
+
+  async getSettings(req: TenantRequest, res: Response) {
+    try {
+      const settings = await service.getSettings(req.tenant!.id);
+      return res.json({ success: true, data: settings });
+    } catch {
+      return res.status(503).json({ success: false, error: 'ORGANIZATION_SETTINGS_UNAVAILABLE' });
+    }
+  },
+
+  async updateSettings(req: TenantRequest, res: Response) {
+    const { error, value } = settingsSchema.validate(req.body, {
+      abortEarly: false,
+      stripUnknown: true,
+    });
+    if (error) {
+      return res.status(400).json({
+        success: false,
+        error: 'VALIDATION_ERROR',
+        details: error.details.map((item) => item.message),
+      });
+    }
+    try {
+      const settings = await service.updateSettings(req.tenant!.id, req.user!.id, value);
+      return res.json({ success: true, data: settings });
+    } catch {
+      return res.status(503).json({ success: false, error: 'ORGANIZATION_SETTINGS_UNAVAILABLE' });
     }
   },
 
