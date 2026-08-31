@@ -12,4 +12,10 @@ describe('wallet job durable scheduler wiring', () => {
     expect(source).not.toContain('checkPendingWithdrawals');
     expect(source).not.toContain(".from('payouts')");
   });
+
+  it('runs NUBAN retries through the durable worker', () => {
+    expect(source).toContain('await nubanRetryWorker.runOnce()');
+    expect(source).not.toContain('retryNubanProvisioning');
+    expect(source).not.toContain(".from('group_virtual_accounts')");
+  });
 });
