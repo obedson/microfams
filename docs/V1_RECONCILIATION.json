@@ -682,9 +682,9 @@
         "client": [],
         "tests": [
           "backend/src/tests/pendingPaymentRecoveryService.test.ts",
+          "backend/src/tests/durableSavingsStandingOrderJob.test.ts",
           "backend/src/tests/investmentRefundSubmissionService.test.ts",
-          "backend/src/tests/nubanRetryWorker.test.ts",
-          "backend/src/tests/paymentTimeoutJob.test.ts"
+          "backend/src/tests/nubanRetryWorker.test.ts"
         ],
         "operations": [
           "docs/runbooks/DURABLE_OUTBOX_JOB_OPERATIONS.md",
@@ -1976,9 +1976,9 @@
         ],
         "tests": [
           "backend/tests/schema/test-savings-contributions-standing-orders.sql",
+          "backend/src/tests/durableSavingsStandingOrderJob.test.ts",
           "backend/src/tests/savingsProductService.test.ts",
-          "backend/src/tests/groupTreasuryDisbursementRules.test.ts",
-          "backend/src/tests/savingsApiContract.test.ts"
+          "backend/src/tests/groupTreasuryDisbursementRules.test.ts"
         ],
         "operations": [
           "docs/runbooks/SAVINGS_PROVIDER_CERTIFICATION.md"

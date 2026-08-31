@@ -1,11 +1,11 @@
 import cron from 'node-cron';
-import { savingsStandingOrderWorker } from '../domains/financial/savingsStandingOrderWorker.js';
+import { durableSavingsStandingOrderJob } from './durableSavingsStandingOrderJob.js';
 import { logger } from '../utils/logger.js';
 
 export const startSavingsJobs = () => {
   cron.schedule('* * * * *', async () => {
     try {
-      const result = await savingsStandingOrderWorker.runOnce();
+      const result = await durableSavingsStandingOrderJob.runOnce();
       if (result.due > 0) logger.info('Processed savings standing orders', result);
     } catch (error) {
       logger.error('Savings standing-order worker failed', {
