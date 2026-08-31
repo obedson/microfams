@@ -75,6 +75,42 @@ describe('identity verification', () => {
     expect(sendOtp).not.toHaveBeenCalled();
   });
 
+  it('routes BVN verification without retaining the provider profile', async () => {
+    process.env.IDENTITY_DATA_ENCRYPTION_KEY = Buffer.alloc(32, 7).toString('base64');
+    const providerLookup = jest.spyOn(interswitchService, 'getBVNFullDetails').mockResolvedValue({
+      data: {
+        mobile: startInput.registeredPhone,
+        firstName: 'Sensitive',
+        dateOfBirth: '1988-04-04',
+        idNumber: startInput.identifier,
+      },
+    } as never);
+    const ninLookup = jest.spyOn(interswitchService, 'getNINFullDetails');
+    jest.spyOn(interswitchService, 'sendOTP').mockResolvedValue({
+      reference: 'provider-bvn-reference',
+    } as never);
+
+    const challenge = await new InterswitchIdentityAdapter().start({
+      requestId: 'request-bvn',
+      evidenceType: 'bvn',
+      identifier: startInput.identifier,
+      registeredPhone: startInput.registeredPhone,
+      firstName: startInput.firstName,
+      lastName: startInput.lastName,
+      consentAccepted: true,
+    });
+
+    expect(providerLookup).toHaveBeenCalledWith(startInput.identifier);
+    expect(ninLookup).not.toHaveBeenCalled();
+    expect(challenge).toEqual(expect.objectContaining({
+      providerReference: 'provider-bvn-reference',
+      maskedDestination: '0803****123',
+    }));
+    expect(JSON.stringify(challenge)).not.toContain(startInput.identifier);
+    expect(JSON.stringify(challenge)).not.toContain('1988-04-04');
+    delete process.env.IDENTITY_DATA_ENCRYPTION_KEY;
+  });
+
   it('stores only a fingerprint and provider challenge metadata', async () => {
     (supabase.rpc as jest.Mock)
       .mockResolvedValueOnce({ data: {

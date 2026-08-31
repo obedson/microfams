@@ -77,6 +77,7 @@ Exit gate: automated tenant-isolation tests across database, API, exports, jobs,
   - [x] Add a durable, replay-safe identity challenge expiry worker with provider-state redaction and audit evidence.
   - [x] Add provider-neutral degraded-confirmation recovery with sanitized retry responses and audit evidence.
 - [ ] Add organization verification and optional BVN/face-verification adapters.
+  - [x] Add the feature-flagged Interswitch sandbox BVN adapter with registered-phone matching and provider-profile minimization; face verification remains deferred.
 - [ ] Add identity review, suspension, appeal, retention, and audit workflows.
   - [x] Trust review cases, independent appeals, tenant/platform suspension boundaries, audit evidence, and retention dry-run foundation.
   - [x] Add single-purpose suspended-account recovery and appeal tokens.

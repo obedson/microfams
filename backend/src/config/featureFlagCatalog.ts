@@ -63,6 +63,7 @@ export const FEATURE_FLAG_CATALOG: readonly FeatureFlagDefinition[] = [
   flag('integration.interswitch.live', 'payments', 'Route Interswitch operations to live mode.', { risk: 'provider' }),
   flag('integration.organization_verification', 'identity', 'Submit organization registration evidence to an approved verification provider.', { risk: 'provider' }),
   flag('integration.identity_verification', 'identity', 'Use a government or licensed identity verification provider.', { risk: 'provider' }),
+  flag('integration.identity_bvn_verification', 'identity', 'Use BVN verification only for approved progressive-KYC financial workflows.', { risk: 'regulated' }),
   flag('trust.review_cases', 'trust', 'Open, assign, and decide trust review cases.'),
   flag('trust.appeals', 'trust', 'File and decide independent trust appeals.'),
   flag('trust.suspended_account_recovery', 'trust', 'Issue single-purpose recovery links for suspended users to file appeals.', { risk: 'regulated' }),

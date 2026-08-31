@@ -79,6 +79,37 @@ describe('identity verification API contract', () => {
     expect(JSON.stringify((res.json as jest.Mock).mock.calls[0][0])).not.toContain('12345678901');
   });
 
+  it('starts progressive BVN verification through the minimized identity contract', async () => {
+    mockUserLookup();
+    (identityVerificationService.start as jest.Mock).mockResolvedValue({
+      requestId: 'request-bvn',
+      state: 'awaiting_otp',
+      maskedDestination: '0803****123',
+    } as never);
+    const res = response();
+
+    await profileController.verifyBVN({
+      body: { bvn: '12345678901', consent: true },
+      user: { id: 'user-1' },
+      tenant: { id: 'tenant-1' },
+      headers: { 'idempotency-key': 'bvn-request-001' },
+    } as any, res);
+
+    expect(identityVerificationService.start).toHaveBeenCalledWith(expect.objectContaining({
+      organizationId: 'tenant-1',
+      userId: 'user-1',
+      evidenceType: 'bvn',
+      identifier: '12345678901',
+      registeredPhone: '08031234123',
+      idempotencyKey: 'bvn-request-001',
+    }));
+    expect(res.json).toHaveBeenCalledWith(expect.objectContaining({
+      requestId: 'request-bvn',
+      maskedDestination: '0803****123',
+    }));
+    expect(JSON.stringify((res.json as jest.Mock).mock.calls[0][0])).not.toContain('12345678901');
+  });
+
   it('requires a registered account phone before starting verification', async () => {
     mockUserLookup('Ada Farmer', '');
     const res = response();

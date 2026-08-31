@@ -65,10 +65,11 @@ export class InterswitchIdentityAdapter implements IdentityVerificationAdapter {
   readonly environment = (process.env.IDENTITY_PROVIDER_ENVIRONMENT === 'live' ? 'live' : 'sandbox') as 'live' | 'sandbox';
 
   async start(input: StartIdentityChallenge): Promise<IdentityChallenge> {
-    if (input.evidenceType !== 'nin') throw new Error('The configured provider does not support BVN verification');
     let response;
     try {
-      response = await interswitchService.getNINFullDetails(input.identifier, input.consentAccepted);
+      response = input.evidenceType === 'bvn'
+        ? await interswitchService.getBVNFullDetails(input.identifier)
+        : await interswitchService.getNINFullDetails(input.identifier, input.consentAccepted);
     } catch {
       throw new IdentityProviderUnavailableError();
     }

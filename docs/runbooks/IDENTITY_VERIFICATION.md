@@ -53,3 +53,6 @@ npm run test:unit
 npm run test:schema
 npm run test:schema:legacy
 ```
+
+- `integration.identity_bvn_verification` defaults disabled and must be enabled only for approved progressive-KYC financial workflows.
+- Interswitch BVN responses are reduced in memory to registered-phone comparison and provider challenge metadata; full profiles are never persisted.

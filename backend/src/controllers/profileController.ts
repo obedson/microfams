@@ -101,6 +101,54 @@ class ProfileController {
   }
 
   /**
+   * Initiate progressive-KYC BVN verification.
+   */
+  async verifyBVN(req: TenantRequest, res: Response) {
+    const schema = Joi.object({
+      bvn: Joi.string().length(11).required(),
+      consent: Joi.boolean().valid(true).required(),
+    });
+
+    const { error, value } = schema.validate(req.body);
+    if (error) return res.status(400).json({ error: error.details[0].message });
+
+    try {
+      const { data: user, error: userError } = await supabase
+        .from('users')
+        .select('name, phone')
+        .eq('id', req.user!.id)
+        .single();
+      if (userError || !user) throw new Error('User record not found in database');
+
+      const nameParts = user.name.trim().split(/\s+/);
+      if (!user.phone || user.phone.replace(/\D/g, '').length < 10) {
+        throw new Error('A valid registered phone is required for identity verification');
+      }
+      if (!req.tenant) throw new Error('Tenant context is required');
+
+      const header = req.headers['idempotency-key'];
+      const idempotencyKey = typeof header === 'string' && header.length >= 8
+        ? header
+        : 'identity-' + crypto.randomUUID();
+      const result = await identityVerificationService.start({
+        organizationId: req.tenant.id,
+        userId: req.user!.id,
+        evidenceType: 'bvn',
+        identifier: value.bvn,
+        registeredPhone: user.phone,
+        firstName: nameParts[0],
+        lastName: nameParts[nameParts.length - 1],
+        consentVersion: IDENTITY_CONSENT_VERSION,
+        consentTextHash,
+        idempotencyKey,
+      });
+      return res.json(result);
+    } catch (startError: any) {
+      return res.status(422).json({ error: startError.message });
+    }
+  }
+
+  /**
    * Step 2: Confirm Phone and Send OTP
    */
   async sendOTP(req: TenantRequest, res: Response) {
