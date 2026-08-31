@@ -65,3 +65,20 @@ by trigger, so a stuck cycle is repaired by issuing the documented transition,
 not by updating the row. A cycle that opened against the wrong rule version is
 cancelled and reopened; it is never edited in place, because the pinned version
 is the evidence that the member's obligation was disclosed before it was owed.
+
+## Automated servicing policy
+
+Production does not run the legacy monthly contribution schedulers. Those jobs
+write the superseded contribution tables directly, calculate money using decimal
+JavaScript numbers, and split cycle, obligation, member, and notification changes
+across separate operations.
+
+Opening a GT-05 cycle remains an explicit authorized command. It must identify
+the actor, effective rule version, billing period, member snapshot, timezone, and
+idempotency key so the database can create the cycle and all obligations in one
+transaction.
+
+Any future automatic opening or lifecycle servicing requires an approved policy
+for the system actor and schedule. Its worker must use durable execution leases
+and invoke the existing atomic GT-05 commands; it must not restore direct writes
+to legacy contribution tables.
