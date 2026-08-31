@@ -682,9 +682,9 @@
         "client": [],
         "tests": [
           "backend/src/tests/pendingPaymentRecoveryService.test.ts",
+          "backend/src/tests/bookingJobsWiring.test.ts",
           "backend/src/tests/durableRetentionSelectionJob.test.ts",
-          "backend/src/tests/durableSavingsStandingOrderJob.test.ts",
-          "backend/src/tests/investmentRefundSubmissionService.test.ts"
+          "backend/src/tests/durableSavingsStandingOrderJob.test.ts"
         ],
         "operations": [
           "docs/runbooks/DURABLE_OUTBOX_JOB_OPERATIONS.md",
