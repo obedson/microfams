@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "summary": {
-    "workPlanSha256": "42329d20d421dc1c45948620c2f610ea8782f0155a06757cabe503af69873cc6",
+    "workPlanSha256": "0680a1da0f544ca87b6207bb1d5298de8bc9aa544984eecaa9dd21d6fffc82ef",
     "total": 154,
-    "checked": 123,
-    "candidateComplete": 98,
+    "checked": 124,
+    "candidateComplete": 99,
     "checkedWithEvidenceGaps": 25,
-    "partial": 30,
+    "partial": 29,
     "notStarted": 1
   },
   "items": [
@@ -651,9 +651,9 @@
       "phase": "Phase 1 — Multi-tenant platform kernel",
       "line": 68,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Domain-event outbox and durable job processing.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -1129,7 +1129,7 @@
           "backend/tests/schema/test-retention-item-selection.sql"
         ],
         "operations": [
-          "docs/runbooks/LEGAL_HOLDS.md"
+          "docs/runbooks/DURABLE_OUTBOX_JOB_OPERATIONS.md"
         ]
       }
     },
@@ -3178,7 +3178,8 @@
           "backend/src/tests/investmentAllocationPlanService.test.ts"
         ],
         "operations": [
-          "docs/runbooks/INVESTMENT_PRODUCTS.md"
+          "docs/runbooks/INVESTMENT_PRODUCTS.md",
+          "docs/runbooks/DURABLE_OUTBOX_JOB_OPERATIONS.md"
         ]
       }
     },
@@ -4210,7 +4211,7 @@
           "backend/src/tests/bookingDisputeResolutionApi.test.ts"
         ],
         "operations": [
-          "docs/runbooks/GROUP_TREASURY_DISBURSEMENTS.md"
+          "docs/runbooks/DURABLE_OUTBOX_JOB_OPERATIONS.md"
         ]
       }
     },
@@ -4544,7 +4545,7 @@
           "backend/tests/schema/test-loan-repayment-schedules.sql"
         ],
         "operations": [
-          "docs/runbooks/BOOKING_NOTIFICATION_OUTBOX.md"
+          "docs/runbooks/DURABLE_OUTBOX_JOB_OPERATIONS.md"
         ]
       }
     },
