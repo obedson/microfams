@@ -29,6 +29,14 @@ const open = (token: string): { phone: string } => {
   return JSON.parse(Buffer.concat([decipher.update(payload.subarray(28)), decipher.final()]).toString('utf8'));
 };
 
+const normalizedPhone = (value: string): string => value.replace(/\D/g, '');
+const comparablePhone = (value: string): string => normalizedPhone(value).slice(-10);
+const maskedPhone = (value: string): string => {
+  const digits = normalizedPhone(value);
+  if (digits.length < 10) throw new Error('A valid registered phone is required for identity verification');
+  return digits.slice(0, 4) + '****' + digits.slice(-3);
+};
+
 export class DeterministicIdentityAdapter implements IdentityVerificationAdapter {
   readonly name = 'deterministic';
   readonly environment = 'deterministic' as const;
@@ -36,7 +44,7 @@ export class DeterministicIdentityAdapter implements IdentityVerificationAdapter
   async start(input: StartIdentityChallenge): Promise<IdentityChallenge> {
     return {
       providerReference: 'DET-' + crypto.createHash('sha256').update(input.requestId).digest('hex').slice(0, 24),
-      maskedDestination: '0803****123',
+      maskedDestination: maskedPhone(input.registeredPhone),
       challengeToken: crypto.createHash('sha256').update(input.requestId + ':' + input.evidenceType).digest('hex'),
     };
   }
@@ -59,15 +67,18 @@ export class InterswitchIdentityAdapter implements IdentityVerificationAdapter {
     if (input.evidenceType !== 'nin') throw new Error('The configured provider does not support BVN verification');
     const response = await interswitchService.getNINFullDetails(input.identifier, input.consentAccepted);
     const info = response?.data;
-    const phone = info?.mobile || info?.phone || info?.mobileNo || info?.telephone;
-    if (!phone) throw new Error('Identity provider did not return an OTP destination');
-    const otp = await interswitchService.sendOTP(phone, input.requestId);
+    const providerPhone = info?.mobile || info?.phone || info?.mobileNo || info?.telephone;
+    if (!providerPhone) throw new Error('Identity provider did not return a registered phone');
+    if (comparablePhone(String(providerPhone)) !== comparablePhone(input.registeredPhone)) {
+      throw new Error('Identity provider phone does not match the registered account phone');
+    }
+    const otp = await interswitchService.sendOTP(input.registeredPhone, input.requestId);
     const providerReference = otp.reference || otp.otpreferenece;
     if (!providerReference) throw new Error('Identity provider did not return a challenge reference');
     return {
       providerReference,
-      maskedDestination: String(phone).slice(0, 4) + '****' + String(phone).slice(-3),
-      challengeToken: seal({ phone }),
+      maskedDestination: maskedPhone(input.registeredPhone),
+      challengeToken: seal({ phone: input.registeredPhone }),
     };
   }
 

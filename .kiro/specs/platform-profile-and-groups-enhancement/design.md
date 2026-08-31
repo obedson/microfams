@@ -379,6 +379,8 @@ interface MemberDashboardData {
 
 ### Property 7: NIN confirm round-trip
 
+> **Authoritative V1 override (approved 2026-08-31):** Properties 7-10 are superseded where they require raw NIN or provider profile persistence. The governing invariant is an evidence-type-separated platform HMAC binding to one user, plus tenant-scoped consented KYC evidence. `nin_verified` may be set after successful NIN verification while `nin_number` remains null.
+
 *For any* user with `nin_verified = false`, calling `POST /api/auth/confirm-nin` with valid NIN data should result in `nin_verified = true`, all six NIN fields (`nin_number`, `nin_full_name`, `nin_date_of_birth`, `nin_gender`, `nin_address`, `nin_phone`) being non-null, and `GET /api/auth/profile` reflecting those values.
 
 **Validates: Requirements 3.4**

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "summary": {
-    "workPlanSha256": "d359db020ff05bf2e0cd974cc7d43b81e8b1e3b4168de4029d9056c299f5b64b",
+    "workPlanSha256": "0201cadc3c151681cfcdf8a000a360da6797869e4c7bb883881d0df90f3228e6",
     "total": 154,
-    "checked": 125,
-    "candidateComplete": 100,
+    "checked": 126,
+    "candidateComplete": 101,
     "checkedWithEvidenceGaps": 25,
-    "partial": 28,
+    "partial": 27,
     "notStarted": 1
   },
   "items": [
@@ -154,7 +154,8 @@
           "backend/src/tests/savingsProviderCertificationService.test.ts"
         ],
         "operations": [
-          "docs/runbooks/HERMETIC_TEST_ENVIRONMENT.md"
+          "docs/runbooks/HERMETIC_TEST_ENVIRONMENT.md",
+          "docs/runbooks/IDENTITY_VERIFICATION.md"
         ]
       }
     },
@@ -432,6 +433,7 @@
         ],
         "api": [
           "backend/src/controllers/groupProjectCompletionController.ts",
+          "backend/src/controllers/profileController.ts",
           "backend/src/routes/groupAdmin.ts"
         ],
         "client": [
@@ -523,7 +525,7 @@
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/MULTITENANCY.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md"
+          ".kiro/specs/platform-profile-and-groups-enhancement/design.md"
         ],
         "implementation": [
           "backend/migrations/create_organizations.sql",
@@ -746,9 +748,9 @@
       "phase": "Phase 2 — Trust and identity",
       "line": 75,
       "depth": 0,
-      "workPlanChecked": false,
+      "workPlanChecked": true,
       "item": "Approve one authoritative NIN ownership flow.",
-      "status": "partial",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -762,7 +764,7 @@
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           ".kiro/specs/group-individual-wallet-system/tasks.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
+          ".kiro/specs/platform-profile-and-groups-enhancement/design.md"
         ],
         "implementation": [
           "backend/migrations/install_booking_settlement_eligibility_fees.sql",
@@ -812,15 +814,15 @@
       "evidence": {
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
+          "docs/specs/IDENTITY_VERIFICATION.md",
+          ".kiro/specs/platform-profile-and-groups-enhancement/requirements.md",
+          "docs/specs/BOOKING_SETTLEMENTS.md"
         ],
         "implementation": [
           "backend/migrations/create_identity_verification.sql",
+          "backend/migrations/install_identity_platform_binding.sql",
           "backend/src/services/ninService.ts",
-          "backend/migrations/install_loan_disbursement_orchestration.sql",
-          "backend/src/domains/identity/identityAdapters.ts"
+          "backend/migrations/install_loan_disbursement_orchestration.sql"
         ],
         "api": [
           "backend/src/controllers/profileController.ts"
@@ -860,15 +862,15 @@
       "evidence": {
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
+          "docs/specs/IDENTITY_VERIFICATION.md",
           ".kiro/specs/farmle-platform-enhancement/tasks.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
+          "docs/specs/BOOKING_SETTLEMENTS.md"
         ],
         "implementation": [
           "backend/migrations/create_identity_verification.sql",
+          "backend/migrations/install_identity_platform_binding.sql",
           "backend/src/domains/financial/loanDisbursementService.ts",
-          "backend/src/domains/identity/identityAdapters.ts",
-          "backend/src/domains/identity/identityTypes.ts"
+          "backend/src/domains/identity/identityAdapters.ts"
         ],
         "api": [
           "backend/src/controllers/organizationController.ts",
@@ -883,12 +885,13 @@
         "tests": [
           "backend/src/tests/identityVerification.test.ts",
           "backend/src/tests/organizationVerification.test.ts",
-          "backend/src/tests/bookingSupplierPayoutApi.test.ts",
-          "backend/src/tests/groupCommitteeApi.test.ts"
+          "backend/tests/schema/test-identity-verification.sql",
+          "backend/src/tests/bookingSupplierPayoutApi.test.ts"
         ],
         "operations": [
           "docs/CREDENTIALS_SETUP.md",
-          "docs/runbooks/FINANCIAL_RULES_AND_RISK.md"
+          "docs/runbooks/FINANCIAL_RULES_AND_RISK.md",
+          "docs/runbooks/IDENTITY_VERIFICATION.md"
         ]
       }
     },
@@ -4855,8 +4858,8 @@
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          ".kiro/specs/platform-profile-and-groups-enhancement/requirements.md",
+          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md"
         ],
         "implementation": [
           "backend/migrations/install_group_admission_payments.sql",
@@ -5732,7 +5735,7 @@
           "backend/tests/schema/test-group-shared-assets.sql",
           "backend/src/tests/loanProductService.test.ts",
           "backend/src/tests/savingsProductService.test.ts",
-          "backend/tests/schema/test-loan-product-foundation.sql"
+          "backend/tests/schema/test-identity-verification.sql"
         ],
         "operations": [
           "docs/runbooks/BOOKING_FOUNDATION_OPERATIONS.md",
@@ -7279,9 +7282,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/platform-profile-and-groups-enhancement/requirements.md",
           "docs/specs/FINANCIAL_CORE.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md"
+          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
         ],
         "implementation": [
           "backend/migrations/install_group_contribution_cycles.sql",

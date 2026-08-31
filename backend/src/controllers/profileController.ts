@@ -14,8 +14,8 @@ interface AuthRequest extends Request {
     role: string;
   };
 }
-const IDENTITY_CONSENT_VERSION = 'identity-verification-v1';
-const IDENTITY_CONSENT_TEXT = 'I consent to Micro Fams verifying my identity against authorized records.';
+const IDENTITY_CONSENT_VERSION = 'identity-verification-v2';
+const IDENTITY_CONSENT_TEXT = 'I consent to Micro Fams verifying my identity against authorized records and sending the verification OTP to my registered account phone.';
 const consentTextHash = crypto.createHash('sha256').update(IDENTITY_CONSENT_TEXT).digest('hex');
 
 
@@ -64,7 +64,7 @@ class ProfileController {
 
     try {
       
-      const { data: user, error: userError } = await supabase.from('users').select('name').eq('id', req.user!.id).single();
+      const { data: user, error: userError } = await supabase.from('users').select('name, phone').eq('id', req.user!.id).single();
       
       if (userError || !user) {
         throw new Error('User record not found in database');
@@ -73,6 +73,9 @@ class ProfileController {
       const nameParts = user.name.trim().split(/\s+/);
       const firstName = nameParts[0];
       const lastName = nameParts[nameParts.length - 1];
+      if (!user.phone || user.phone.replace(/\D/g, '').length < 10) {
+        throw new Error('A valid registered phone is required for identity verification');
+      }
       
       if (!req.tenant) throw new Error('Tenant context is required');
       const header = req.headers['idempotency-key'];
@@ -84,6 +87,7 @@ class ProfileController {
         userId: req.user!.id,
         evidenceType: 'nin',
         identifier: value.nin,
+        registeredPhone: user.phone,
         firstName,
         lastName,
         consentVersion: IDENTITY_CONSENT_VERSION,
