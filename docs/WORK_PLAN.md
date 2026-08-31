@@ -75,6 +75,7 @@ Exit gate: automated tenant-isolation tests across database, API, exports, jobs,
 - [x] Approve one authoritative NIN ownership flow.
 - [ ] Implement provider-neutral KYC contracts, OTP, consent, retries, and redaction.
   - [x] Add a durable, replay-safe identity challenge expiry worker with provider-state redaction and audit evidence.
+  - [x] Add provider-neutral degraded-confirmation recovery with sanitized retry responses and audit evidence.
 - [ ] Add organization verification and optional BVN/face-verification adapters.
 - [ ] Add identity review, suspension, appeal, retention, and audit workflows.
   - [x] Trust review cases, independent appeals, tenant/platform suspension boundaries, audit evidence, and retention dry-run foundation.

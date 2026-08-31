@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { interswitchService } from '../../services/interswitchService.js';
 import {
   IdentityChallenge,
+  IdentityProviderUnavailableError,
   IdentityVerificationAdapter,
   StartIdentityChallenge,
 } from './identityTypes.js';
@@ -65,14 +66,24 @@ export class InterswitchIdentityAdapter implements IdentityVerificationAdapter {
 
   async start(input: StartIdentityChallenge): Promise<IdentityChallenge> {
     if (input.evidenceType !== 'nin') throw new Error('The configured provider does not support BVN verification');
-    const response = await interswitchService.getNINFullDetails(input.identifier, input.consentAccepted);
+    let response;
+    try {
+      response = await interswitchService.getNINFullDetails(input.identifier, input.consentAccepted);
+    } catch {
+      throw new IdentityProviderUnavailableError();
+    }
     const info = response?.data;
     const providerPhone = info?.mobile || info?.phone || info?.mobileNo || info?.telephone;
     if (!providerPhone) throw new Error('Identity provider did not return a registered phone');
     if (comparablePhone(String(providerPhone)) !== comparablePhone(input.registeredPhone)) {
       throw new Error('Identity provider phone does not match the registered account phone');
     }
-    const otp = await interswitchService.sendOTP(input.registeredPhone, input.requestId);
+    let otp;
+    try {
+      otp = await interswitchService.sendOTP(input.registeredPhone, input.requestId);
+    } catch {
+      throw new IdentityProviderUnavailableError();
+    }
     const providerReference = otp.reference || otp.otpreferenece;
     if (!providerReference) throw new Error('Identity provider did not return a challenge reference');
     return {
@@ -84,7 +95,11 @@ export class InterswitchIdentityAdapter implements IdentityVerificationAdapter {
 
   async confirm(challengeToken: string, otp: string): Promise<boolean> {
     const { phone } = open(challengeToken);
-    return interswitchService.validateOTP(otp, phone);
+    try {
+      return await interswitchService.validateOTP(otp, phone);
+    } catch {
+      throw new IdentityProviderUnavailableError();
+    }
   }
 }
 
