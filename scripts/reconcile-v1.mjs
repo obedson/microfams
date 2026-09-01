@@ -28,6 +28,7 @@ const evidenceExclusions = new Set([
   'docs/runbooks/V1_EVIDENCE_RECONCILIATION.md',
   // Verified overrides own high-signal contracts so fuzzy matching cannot misattribute them.
   'backend/src/tests/profileBvnRouteApi.test.ts',
+  'backend/src/tests/organizationVerificationRouteApi.test.ts',
 ]);
 const searchableFiles = repoFiles.filter(path => /\.(md|sql|ts|tsx|js|jsx|mjs|yml|yaml)$/i.test(path) && !evidenceExclusions.has(relative(root, path).replaceAll('\\', '/')));
 const contents = new Map(searchableFiles.map(path => [path, read(path).toLowerCase()]));
@@ -60,6 +61,18 @@ const evidence = (item, roots, minimum = 1) => {
   return matches.slice(0, 4).map(match => match.path);
 };
 const evidenceOverrides = new Map([
+  ['WP-P2-006', {
+    api: [
+      'backend/src/routes/organizations.ts',
+      'backend/src/controllers/organizationController.ts',
+    ],
+    tests: [
+      'backend/src/tests/organizationVerificationRouteApi.test.ts',
+      'backend/src/tests/organizationVerificationApi.test.ts',
+      'backend/src/tests/organizationVerification.test.ts',
+      'backend/tests/schema/test-organization-verification.sql',
+    ],
+  }],
   ['WP-P2-007', {
     api: [
       'backend/src/routes/profile.ts',

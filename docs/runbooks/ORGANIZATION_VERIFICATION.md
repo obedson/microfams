@@ -8,6 +8,7 @@ The organization-verification core supports deterministic development tests and 
 - Outside production, `ORGANIZATION_VERIFICATION_PROVIDER=deterministic` may be used.
 - Production fails closed until an approved provider adapter is configured.
 - Existing verification status stays readable when submissions are disabled.
+- A supplied idempotency key must be opaque, contain 8 to 160 non-whitespace characters, and must not contain the raw or formatted registration identifier. If omitted, the API creates an opaque random key.
 
 ## Configuration
 

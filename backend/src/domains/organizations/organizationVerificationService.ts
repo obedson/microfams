@@ -5,6 +5,7 @@ import {
   OrganizationRegistrationType,
   OrganizationVerificationAdapter,
   StartOrganizationVerificationInput,
+  validateOrganizationIdempotencyKey,
 } from './organizationVerificationTypes.js';
 
 const registrationPattern = /^[A-Z0-9][A-Z0-9\/-]{3,63}$/;
@@ -51,7 +52,7 @@ export class OrganizationVerificationService {
     }
     if (!/^[A-Fa-f0-9]{64}$/.test(input.attestationTextHash)) throw new Error('Attestation text hash is invalid');
     if (!input.attestationVersion.trim()) throw new Error('Attestation version is required');
-    if (input.idempotencyKey.length < 8) throw new Error('Idempotency key is too short');
+    validateOrganizationIdempotencyKey(input.idempotencyKey, normalizedNumber);
 
     const adapter = this.adapterFactory();
     const registrationFingerprint = fingerprint(input.jurisdiction, input.registrationType, normalizedNumber);

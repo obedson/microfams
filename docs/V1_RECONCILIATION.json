@@ -1020,6 +1020,7 @@
           "backend/src/domains/identity/identityAdapters.ts"
         ],
         "api": [
+          "backend/src/routes/organizations.ts",
           "backend/src/controllers/organizationController.ts",
           "backend/src/controllers/profileController.ts",
           "backend/src/controllers/bookingController.ts",
@@ -1030,8 +1031,11 @@
           "frontend/src/pages/AdminRetentionDryRuns.tsx"
         ],
         "tests": [
-          "backend/src/tests/identityVerification.test.ts",
+          "backend/src/tests/organizationVerificationRouteApi.test.ts",
+          "backend/src/tests/organizationVerificationApi.test.ts",
           "backend/src/tests/organizationVerification.test.ts",
+          "backend/tests/schema/test-organization-verification.sql",
+          "backend/src/tests/identityVerification.test.ts",
           "backend/src/tests/profileIdentityApi.test.ts",
           "backend/tests/schema/test-identity-verification.sql"
         ],
