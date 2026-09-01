@@ -215,9 +215,9 @@ class InterswitchService {
       );
 
       return response.data.status === 'SUCCESS' || response.data.responseCode === '00';
-    } catch (error: any) {
+    } catch {
       console.error('Interswitch OTP validation request failed');
-      return false;
+      throw new Error('OTP validation is temporarily unavailable');
     }
   }
 

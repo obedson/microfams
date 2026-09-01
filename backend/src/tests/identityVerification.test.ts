@@ -1,4 +1,5 @@
 import { jest } from '@jest/globals';
+import axios from 'axios';
 import { DeterministicIdentityAdapter, InterswitchIdentityAdapter } from '../domains/identity/identityAdapters.js';
 import { interswitchService } from '../services/interswitchService.js';
 import { IdentityVerificationService } from '../domains/identity/identityVerificationService.js';
@@ -204,6 +205,47 @@ describe('identity verification', () => {
     });
     await expect(result).rejects.toBeInstanceOf(IdentityProviderUnavailableError);
     await expect(result).rejects.not.toThrow('upstream host and token detail');
+  });
+
+  it('distinguishes an authoritative invalid OTP from provider unavailability', async () => {
+    jest.spyOn(interswitchService, 'getAccessToken').mockResolvedValue('provider-token');
+    const providerRequest = jest.spyOn(axios, 'post');
+
+    providerRequest.mockResolvedValueOnce({ data: { status: 'FAILED', responseCode: '01' } } as never);
+    await expect(interswitchService.validateOTP('000000', startInput.registeredPhone))
+      .resolves.toBe(false);
+
+    const providerLog = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+    providerRequest.mockRejectedValueOnce(new Error('upstream host and token detail'));
+    await expect(interswitchService.validateOTP('123456', startInput.registeredPhone))
+      .rejects.toThrow('OTP validation is temporarily unavailable');
+    expect(providerLog).toHaveBeenCalledWith('Interswitch OTP validation request failed');
+    expect(JSON.stringify(providerLog.mock.calls)).not.toContain('upstream host and token detail');
+  });
+
+  it('maps OTP validation outages to the provider-neutral unavailable error', async () => {
+    process.env.IDENTITY_DATA_ENCRYPTION_KEY = Buffer.alloc(32, 7).toString('base64');
+    jest.spyOn(interswitchService, 'getNINFullDetails').mockResolvedValue({
+      data: { mobile: startInput.registeredPhone },
+    } as never);
+    jest.spyOn(interswitchService, 'sendOTP').mockResolvedValue({ reference: 'provider-otp-reference' } as never);
+    const validateOtp = jest.spyOn(interswitchService, 'validateOTP')
+      .mockRejectedValue(new Error('OTP validation is temporarily unavailable'));
+    const adapter = new InterswitchIdentityAdapter();
+    const challenge = await adapter.start({
+      requestId: 'request-confirm-outage',
+      evidenceType: 'nin',
+      identifier: startInput.identifier,
+      registeredPhone: startInput.registeredPhone,
+      firstName: startInput.firstName,
+      lastName: startInput.lastName,
+      consentAccepted: true,
+    });
+
+    await expect(adapter.confirm(challenge.challengeToken, '123456'))
+      .rejects.toBeInstanceOf(IdentityProviderUnavailableError);
+    expect(validateOtp).toHaveBeenCalledWith('123456', startInput.registeredPhone);
+    delete process.env.IDENTITY_DATA_ENCRYPTION_KEY;
   });
 
   it('marks provider-start outages terminal and returns a sanitized retry instruction', async () => {

@@ -32,7 +32,7 @@ Platform binding, tenant evidence, financial KYC evidence, request completion, c
 
 ## IV-08 Degraded-provider recovery
 
-A provider transport failure before challenge creation terminates that request with a stable reason and requires a new idempotency key. A transient provider failure during OTP confirmation preserves the active challenge, does not consume an OTP attempt, records a tenant-scoped deferred event, and permits confirmation retry until expiry. Provider error details must not be returned or logged.
+A provider transport failure before challenge creation terminates that request with a stable reason and requires a new idempotency key. During OTP confirmation, only an authoritative provider response may classify an OTP as invalid and consume an attempt. A transport, authentication, timeout, or malformed-provider failure preserves the active challenge, does not consume an OTP attempt, records a tenant-scoped deferred event, and permits confirmation retry until expiry. Provider error details must not be returned or logged.
 
 ## IV-09 Progressive BVN verification
 

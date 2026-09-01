@@ -76,6 +76,7 @@ Exit gate: automated tenant-isolation tests across database, API, exports, jobs,
 - [ ] Implement provider-neutral KYC contracts, OTP, consent, retries, and redaction.
   - [x] Add a durable, replay-safe identity challenge expiry worker with provider-state redaction and audit evidence.
   - [x] Add provider-neutral degraded-confirmation recovery with sanitized retry responses and audit evidence.
+  - [x] Preserve OTP challenges and attempts when the provider validation call is unavailable; consume attempts only for authoritative invalid responses.
 - [ ] Add organization verification and optional BVN/face-verification adapters.
   - [x] Add the feature-flagged Interswitch sandbox BVN adapter with registered-phone matching and provider-profile minimization; face verification remains deferred.
 - [ ] Add identity review, suspension, appeal, retention, and audit workflows.
