@@ -6,8 +6,8 @@ This report interprets the evidence matrix in [V1_RECONCILIATION.md](V1_RECONCIL
 
 ### Foundation and platform kernel
 
-- Complete secret rotation and repository-history remediation evidence.
-- Finish typed runtime configuration validation and a maintained secret inventory.
+- Complete secret rotation, provider-side revocation, and repository-history remediation or approved containment evidence. Repository scans cannot prove these external actions occurred.
+- Restore a passing post-merge dependency gate, finish typed runtime configuration and the maintained secret inventory, and validate the production deployment manifest against the current platform schema.
 - Prove tenant isolation across database reads/writes, APIs, exports, analytics, jobs, and aggregate reports.
 - Add durable cross-domain outbox/job infrastructure or explicitly document the approved substitute for each asynchronous workflow.
 - Complete metrics, tracing, health checks, correlation propagation, and operational alerting.
@@ -15,7 +15,7 @@ This report interprets the evidence matrix in [V1_RECONCILIATION.md](V1_RECONCIL
 
 ### Trust and identity
 
-- Approve one authoritative NIN ownership and consent flow.
+- The authoritative NIN/BVN ownership and consent specification is approved; production provider approval, protected configuration, certification, and joined user-journey acceptance remain open.
 - Demonstrate provider-neutral KYC retry, replay, redaction, retention, and degraded-provider behavior.
 - Complete organization verification and any approved BVN/face-verification scope.
 - Join review, suspension, appeal, legal hold, retention, and recovery into tested end-to-end user and operator journeys.
@@ -50,7 +50,7 @@ This report interprets the evidence matrix in [V1_RECONCILIATION.md](V1_RECONCIL
 
 ### Release validation and operations
 
-- Implement the thirteen critical journeys listed in `docs/TEST_STRATEGY.md`; one smoke file is not sufficient.
+- Implement the thirteen critical journeys listed in `docs/TEST_STRATEGY.md`. The three current Playwright files are a login smoke and mocked farm/inventory UI slices; none executes a required journey against the real backend, database, workers, or provider sandbox.
 - Add accessibility, performance, load/concurrency, backup/restore, migration recovery, and provider-degradation test gates.
 - Test feature flags when enabled, disabled, missing, misconfigured, and servicing existing records.
 - Publish incident response, backup/restore, rollback, reconciliation, support, and deployment runbooks.

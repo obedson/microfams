@@ -1,6 +1,7 @@
 # V1 Acceptance Evidence
 
-Date: 2026-08-26
+Date: 2026-09-01
+Candidate commit: none
 Decision: NO-GO
 
 This record is the evidence index for the current Version 1 release candidate review. It does not override approved specifications or mark incomplete work as complete.
@@ -14,9 +15,10 @@ This record is the evidence index for the current Version 1 release candidate re
 
 ## Release blockers
 
-- Phase 0-5 evidence still contains unresolved gaps.
+- Phase 0 remains open for a green post-merge dependency gate, verified production configuration, manual evidence acceptance, and external secret rotation/revocation or approved containment.
+- Phase 1-5 evidence still contains unresolved implementation, client, provider, journey, operations, and acceptance gaps.
 - Farm operations, marketplace, education, intelligence, and institutional workflows are not complete end to end.
-- Required API, client, E2E, recovery, and reconciliation evidence is missing for multiple work-plan items.
+- Required API, client, E2E, recovery, and reconciliation evidence is missing for multiple work-plan items; zero of the thirteen critical journeys executes end to end.
 - Provider certification and production readiness are not established.
 
 ## Review protocol

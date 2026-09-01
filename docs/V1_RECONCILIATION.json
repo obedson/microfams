@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
   "summary": {
-    "workPlanSha256": "0193e9d41d1da65e81fd83d6d631b4fa1bcbcf4357ea4d32ff46b472774bb1b3",
+    "workPlanSha256": "17967447897bf0bbb36ace0b9423557aff16d299e01883672abd9ee09b702aec",
     "total": 158,
-    "checked": 130,
-    "candidateComplete": 105,
+    "checked": 126,
+    "candidateComplete": 101,
     "checkedWithEvidenceGaps": 25,
-    "partial": 27,
+    "partial": 31,
     "notStarted": 1
   },
   "items": [
@@ -60,50 +60,43 @@
       "phase": "Phase 0 — Foundation and release safety",
       "line": 51,
       "depth": 0,
-      "workPlanChecked": true,
-      "item": "Establish CI for backend, frontend, mobile, migrations, security, and E2E.",
-      "status": "candidate_complete",
+      "workPlanChecked": false,
+      "item": "Establish CI for backend, frontend, mobile, migrations, security, and E2E. Browser smoke CI exists, but the thirteen required critical journeys are not executable end to end.",
+      "status": "partial",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
         "api": "not_required",
         "client": "not_required",
         "tests": "evidence_found",
-        "operations": "evidence_found"
+        "operations": "missing"
       },
       "evidence": {
         "specification": [
-          ".kiro/specs/farmle-platform-enhancement/tasks.md",
-          "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/tasks.md"
+          "docs/specs/BOOKING_SETTLEMENTS.md",
+          "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/farmle-platform-enhancement/requirements.md"
         ],
         "implementation": [
-          "backend/migrations/create_organizations.sql",
-          "backend/migrations/activate_wallet_ledger_cutover.sql",
-          "backend/migrations/add_atomic_group_creation.sql",
-          "backend/migrations/add_domain_tenant_ownership.sql"
+          "backend/migrations/install_group_asset_condition_events.sql",
+          "backend/migrations/install_group_asset_disposal_execution.sql",
+          "backend/migrations/install_group_asset_transfer_execution.sql",
+          "backend/migrations/activate_wallet_ledger_cutover.sql"
         ],
         "api": [
-          "backend/src/routes/webhooks.ts",
-          "backend/src/controllers/adminController.ts",
-          "backend/src/controllers/bookingController.ts",
-          "backend/src/controllers/paymentController.ts"
+          "backend/src/routes/webhooks.ts"
         ],
         "client": [
-          "frontend/src/pages/Properties.tsx",
-          "frontend/src/components/bookings/__tests__/BookingCalendar.properties.test.tsx",
-          "frontend/src/components/Header.tsx",
-          "frontend/src/components/ui/MFASetup.tsx"
+          "frontend/src/components/analytics/__tests__/PendingPayments.properties.test.tsx",
+          "frontend/src/components/ui/MFASetup.tsx",
+          "frontend/src/config/env.config.ts",
+          "frontend/src/pages/AdminDashboard.tsx"
         ],
         "tests": [
-          "backend/src/tests/v1TestLayerMatrix.test.ts",
-          "backend/src/tests/booking-api-integration.test.ts",
-          "backend/src/tests/committeeRules.test.ts"
+          "frontend/src/components/analytics/__tests__/PendingPayments.properties.test.tsx"
         ],
-        "operations": [
-          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
-        ]
+        "operations": []
       }
     },
     {
@@ -164,52 +157,9 @@
       "phase": "Phase 0 — Foundation and release safety",
       "line": 53,
       "depth": 0,
-      "workPlanChecked": true,
-      "item": "Resolve critical dependency and webhook-security findings.",
-      "status": "candidate_complete",
-      "layers": {
-        "specification": "evidence_found",
-        "implementation": "evidence_found",
-        "api": "evidence_found",
-        "client": "not_required",
-        "tests": "evidence_found",
-        "operations": "evidence_found"
-      },
-      "evidence": {
-        "specification": [
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FINANCIAL_CORE.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/farmle-platform-enhancement/requirements.md"
-        ],
-        "implementation": [
-          "backend/src/services/webhookSecurityService.ts"
-        ],
-        "api": [
-          "backend/src/routes/webhooks.ts"
-        ],
-        "client": [
-          "mobile/scripts/audit-production.mjs",
-          "frontend/src/config/env.config.ts"
-        ],
-        "tests": [
-          "backend/src/tests/webhookSecurityService.test.ts"
-        ],
-        "operations": [
-          "docs/runbooks/BACKEND_DEPENDENCY_AUDIT.md",
-          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md",
-          "docs/runbooks/SECURITY_DEPENDENCY_AND_WEBHOOK_CONTROLS.md"
-        ]
-      }
-    },
-    {
-      "id": "WP-P0-005",
-      "phase": "Phase 0 — Foundation and release safety",
-      "line": 54,
-      "depth": 0,
-      "workPlanChecked": true,
-      "item": "Implement typed configuration validation and secret inventory.",
-      "status": "candidate_complete",
+      "workPlanChecked": false,
+      "item": "Resolve critical dependency and webhook-security findings. This remains open until the current dependency gate is green and the remaining development-toolchain advisories have an approved disposition.",
+      "status": "partial",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
@@ -220,32 +170,81 @@
       },
       "evidence": {
         "specification": [
-          ".kiro/specs/group-individual-wallet-system/design.md",
-          ".kiro/specs/group-individual-wallet-system/requirements.md",
+          "docs/specs/BOOKING_SETTLEMENTS.md",
           ".kiro/specs/group-individual-wallet-system/tasks.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md"
+          "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/farmle-platform-enhancement/design.md"
         ],
         "implementation": [
-          "backend/migrations/install_savings_provider_certification.sql",
-          "backend/src/domains/financial/payoutAdapters.ts",
-          "backend/src/domains/financial/investmentRefundSubmissionService.ts",
-          "backend/src/domains/financial/loanProductService.ts"
+          "backend/src/services/webhookSecurityService.ts",
+          "backend/migrations/install_group_contribution_cycles.sql"
         ],
         "api": [
-          "backend/src/controllers/savingsProviderCertificationController.ts"
+          "backend/src/routes/webhooks.ts"
         ],
         "client": [
-          "frontend/src/pages/SavingsProviderCertification.tsx"
+          "mobile/scripts/audit-production.mjs"
         ],
         "tests": [
+          "backend/src/tests/webhookSecurityService.test.ts"
+        ],
+        "operations": [
+          "docs/runbooks/SECURITY_DEPENDENCY_AND_WEBHOOK_CONTROLS.md",
+          "docs/runbooks/BACKEND_DEPENDENCY_AUDIT.md"
+        ]
+      }
+    },
+    {
+      "id": "WP-P0-005",
+      "phase": "Phase 0 — Foundation and release safety",
+      "line": 54,
+      "depth": 0,
+      "workPlanChecked": false,
+      "item": "Implement typed configuration validation and secret inventory. Core startup validation exists, but production and provider configuration still requires reconciliation and deployment verification.",
+      "status": "partial",
+      "layers": {
+        "specification": "evidence_found",
+        "implementation": "evidence_found",
+        "api": "not_required",
+        "client": "not_required",
+        "tests": "evidence_found",
+        "operations": "evidence_found"
+      },
+      "evidence": {
+        "specification": [
+          "docs/specs/FINANCIAL_CORE.md",
+          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
+          "docs/specs/BOOKING_SETTLEMENTS.md",
+          "docs/specs/FEATURE_FLAGS.md"
+        ],
+        "implementation": [
+          "backend/src/domains/financial/payoutAdapters.ts",
+          "backend/src/domains/financial/savingsProviderCertificationService.ts",
+          "backend/migrations/install_savings_provider_certification.sql",
+          "backend/src/domains/financial/paymentAdapters.ts"
+        ],
+        "api": [
+          "backend/src/controllers/savingsProviderCertificationController.ts",
+          "backend/src/controllers/investmentRefundReconciliationController.ts",
+          "backend/src/controllers/profileController.ts",
+          "backend/src/controllers/featureFlagAdministrationController.ts"
+        ],
+        "client": [
+          "frontend/src/pages/SavingsProviderCertification.tsx",
+          "frontend/src/App.tsx",
+          "frontend/src/config/env.config.test.ts",
+          "frontend/src/pages/Payment.tsx"
+        ],
+        "tests": [
+          "backend/src/tests/savingsProviderCertificationService.test.ts",
           "backend/src/tests/environmentConfig.test.ts",
           "backend/src/tests/liveProviderActivation.test.ts",
-          "backend/src/tests/savingsProviderCertificationApi.test.ts",
-          "backend/src/tests/savingsProviderCertificationService.test.ts"
+          "backend/src/tests/payoutAdapters.test.ts"
         ],
         "operations": [
           "docs/runbooks/CONFIGURATION_VALIDATION.md",
-          "docs/runbooks/SAVINGS_PROVIDER_CERTIFICATION.md"
+          "docs/CREDENTIALS_SETUP.md",
+          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
         ]
       }
     },
@@ -407,48 +406,44 @@
       "phase": "Phase 0 — Foundation and release safety",
       "line": 58,
       "depth": 0,
-      "workPlanChecked": true,
-      "item": "Replace placeholder completion claims with evidence-linked status.",
-      "status": "candidate_complete",
+      "workPlanChecked": false,
+      "item": "Replace placeholder completion claims with evidence-linked status. Generated evidence exists, but manual acceptance and stale-claim review remain incomplete.",
+      "status": "partial",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
-        "api": "evidence_found",
+        "api": "missing",
         "client": "not_required",
         "tests": "evidence_found",
-        "operations": "evidence_found"
+        "operations": "missing"
       },
       "evidence": {
         "specification": [
           "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
           ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/farmle-platform-enhancement/tasks.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/tasks.md"
+          "docs/specs/BOOKING_SETTLEMENTS.md",
+          ".kiro/specs/farmle-platform-enhancement/tasks.md"
         ],
         "implementation": [
-          "backend/migrations/install_booking_settlement_eligibility_fees.sql",
-          "backend/migrations/install_booking_state_transitions.sql",
           "backend/migrations/install_group_contribution_cycles.sql",
-          "backend/migrations/install_group_project_foundation.sql"
+          "backend/migrations/install_group_project_foundation.sql",
+          "backend/migrations/001_farmle_platform_enhancement_schema.sql",
+          "backend/migrations/create_financial_ledger.sql"
         ],
-        "api": [
-          "backend/src/controllers/groupProjectCompletionController.ts",
-          "backend/src/controllers/profileController.ts",
-          "backend/src/routes/groupAdmin.ts"
-        ],
+        "api": [],
         "client": [
           "frontend/src/components/admin/ReportingDashboard.tsx",
-          "frontend/src/pages/MyBookings.tsx",
-          "frontend/src/pages/Wallet.tsx",
-          "frontend/src/.backup/OwnerBookings_OLD.tsx"
+          "frontend/src/components/ui/MFASetup.tsx",
+          "frontend/src/pages/BecomeAMember.tsx",
+          "frontend/src/pages/MyBookings.tsx"
         ],
         "tests": [
-          "backend/tests/schema/test-group-asset-condition-events.sql",
-          "backend/tests/schema/test-group-proposals-voting.sql"
+          "backend/tests/schema/test-loan-disbursement-orchestration.sql",
+          "backend/tests/schema/test-loan-repayment-schedules.sql",
+          "backend/tests/schema/test-group-asset-transfer-accounting-facts.sql",
+          "backend/tests/schema/test-group-asset-transfer-execution.sql"
         ],
-        "operations": [
-          "docs/runbooks/GROUP_MEMBER_DISCIPLINE_APPEALS.md"
-        ]
+        "operations": []
       }
     },
     {

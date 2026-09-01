@@ -1,1 +1,16 @@
-{"version":1,"decision":"partial","layers":[{"layer":"unit","status":"present","evidence":"backend test job"},{"layer":"integration","status":"present","evidence":"database integration"},{"layer":"api","status":"present","evidence":"backend API suites"},{"layer":"component","status":"present","evidence":"frontend job"},{"layer":"e2e","status":"present","evidence":"browser E2E smoke"},{"layer":"security","status":"present","evidence":"repository security and audit"},{"layer":"reconciliation","status":"present","evidence":"schema and financial invariant suites"},{"layer":"performance","status":"present","evidence":"docs/runbooks/V1_PERFORMANCE_SMOKE.md"},{"layer":"accessibility","status":"present","evidence":"docs/runbooks/V1_ACCESSIBILITY_SMOKE.md"},{"layer":"recovery","status":"present","evidence":"docs/runbooks/V1_RECOVERY_SMOKE.md"}]}
+{
+  "version": 1,
+  "decision": "partial",
+  "layers": [
+    { "layer": "unit", "status": "present", "evidence": "backend unit CI job" },
+    { "layer": "integration", "status": "present", "evidence": "hosted database integration and legacy-upgrade CI jobs" },
+    { "layer": "api", "status": "present", "evidence": "backend API contract suites for implemented routes" },
+    { "layer": "component", "status": "present", "evidence": "frontend component test CI job" },
+    { "layer": "e2e", "status": "partial", "evidence": "three local Playwright smoke or mocked-UI files; zero of thirteen critical journeys executes end to end" },
+    { "layer": "security", "status": "partial", "evidence": "dependency audits and current-tree token-pattern scan; historical secret remediation and broader security gates remain open" },
+    { "layer": "reconciliation", "status": "partial", "evidence": "schema and financial invariant suites exist for implemented domains; full V1 journey and provider reconciliation is incomplete" },
+    { "layer": "performance", "status": "partial", "evidence": "bounded performance smoke only; no release load, soak, or full concurrency gate" },
+    { "layer": "accessibility", "status": "partial", "evidence": "authentication control smoke only; no product-wide automated or manual accessibility gate" },
+    { "layer": "recovery", "status": "partial", "evidence": "in-process recovery smoke only; no verified backup/restore or migration rollback exercise" }
+  ]
+}

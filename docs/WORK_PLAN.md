@@ -48,14 +48,14 @@ Confirmed blockers include:
 ## Phase 0 — Foundation and release safety
 
 - [ ] Rotate exposed secrets and remove sensitive values from history.
-- [x] Establish CI for backend, frontend, mobile, migrations, security, and E2E.
+- [ ] Establish CI for backend, frontend, mobile, migrations, security, and E2E. Browser smoke CI exists, but the thirteen required critical journeys are not executable end to end.
 - [x] Create hermetic test configuration and seeded test tenants.
-- [x] Resolve critical dependency and webhook-security findings.
-- [x] Implement typed configuration validation and secret inventory.
+- [ ] Resolve critical dependency and webhook-security findings. This remains open until the current dependency gate is green and the remaining development-toolchain advisories have an approved disposition.
+- [ ] Implement typed configuration validation and secret inventory. Core startup validation exists, but production and provider configuration still requires reconciliation and deployment verification.
 - [x] Implement backend feature-flag service with tenant/environment overrides and audit records.
 - [x] Add architecture decision records and API/error conventions.
 - [x] Normalize browser API deployment URLs and restrict production/preview CORS origins.
-- [x] Replace placeholder completion claims with evidence-linked status.
+- [ ] Replace placeholder completion claims with evidence-linked status. Generated evidence exists, but manual acceptance and stale-claim review remain incomplete.
 
 Exit gate: clean builds, deterministic tests, secret scan, dependency gate, and documented recovery.
 

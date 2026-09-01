@@ -10,18 +10,18 @@ The repository contains mature database-enforced foundations for financial accou
 
 - The generated [V1 reconciliation report](V1_RECONCILIATION.md) is the current source for work-plan counts, evidence paths, and status. Numeric claims are not duplicated here because they become stale as stacked delivery PRs advance.
 - `candidate_complete` means every automatically required layer has discoverable evidence; it does not mean accepted or release-ready. Checked rows with missing layers remain `claimed_complete_evidence_gap`.
-- CI covers type checks, unit tests, clean-schema migration tests, hosted database integration, frontend/mobile checks, a browser smoke test, dependency audit, and basic secret-pattern scanning.
+- CI covers type checks, unit tests, clean-schema migration tests, hosted database integration, frontend/mobile checks, three local Playwright smoke or mocked-UI files, dependency audit, and basic current-tree secret-pattern scanning. It does not execute any of the thirteen required critical journeys.
 - Financial and governance work is concentrated in migrations and schema tests; application-layer and user-journey coverage is less complete.
 
-These counts are navigation aids, not acceptance metrics. A row becomes complete only after a reviewer confirms specification approval, implementation, API, required clients, tests, and operational recovery evidence.
+These counts are navigation aids, not acceptance metrics. A row becomes complete only after a reviewer confirms specification approval, implementation, API, required clients, tests, and operational recovery evidence. A release candidate also requires a passing post-merge run on its exact main-branch commit; a green pull-request run or the existence of a CI job is not sufficient.
 
 ## Gate Status
 
 | Gate | Status | Required to pass |
 |---|---|---|
-| Phase 0: foundation and release safety | Fail | Secret remediation and any remaining CI release-gate evidence; deterministic evidence reconciliation is enforced in CI |
+| Phase 0: foundation and release safety | Fail | Green post-merge dependency gate, production configuration verification, external secret rotation/revocation or approved containment, and manually accepted evidence |
 | Phase 1: tenant platform kernel | Fail | End-to-end isolation, durable jobs/events, observability and correlation evidence |
-| Phase 2: trust and identity | Fail | Approved NIN/KYC flow, provider contracts, privacy/replay and complete journeys |
+| Phase 2: trust and identity | Fail | The identity flow is approved, but production providers, protected configuration, certification, retention/privacy acceptance, and complete journeys remain open |
 | Phase 3: financial core | Partial | Full account servicing, limits/freezes/closures, provider certification and zero-variance reconciliation |
 | Phase 4: financial products | Partial | Complete APIs/clients/E2E, valuation/redemption, escrow settlement, live-adapter evidence |
 | Phase 5: booking/groups/accounting | Partial | Parent acceptance, client journeys, operational recovery and full E2E evidence |
