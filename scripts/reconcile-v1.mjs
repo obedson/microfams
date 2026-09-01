@@ -26,6 +26,7 @@ const evidenceExclusions = new Set([
   'docs/V1_GAPS.md',
   'docs/V1_RELEASE_READINESS.md',
   'docs/runbooks/V1_EVIDENCE_RECONCILIATION.md',
+  'docs/runbooks/PHASE0_SECRET_REMEDIATION.md',
   // Verified overrides own high-signal contracts so fuzzy matching cannot misattribute them.
   'backend/src/tests/profileBvnRouteApi.test.ts',
   'backend/src/tests/organizationVerificationRouteApi.test.ts',
