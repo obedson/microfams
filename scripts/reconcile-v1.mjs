@@ -57,6 +57,20 @@ const evidence = (item, roots, minimum = 1) => {
   }).filter(match => match.score >= minimum).sort((a, b) => b.score - a.score || a.path.localeCompare(b.path));
   return matches.slice(0, 4).map(match => match.path);
 };
+const evidenceOverrides = new Map([
+  ['WP-P2-007', {
+    api: [
+      'backend/src/routes/profile.ts',
+      'backend/src/controllers/profileController.ts',
+    ],
+    tests: [
+      'backend/src/tests/profileBvnRouteApi.test.ts',
+      'backend/src/tests/profileIdentityApi.test.ts',
+      'backend/src/tests/identityVerification.test.ts',
+    ],
+  }],
+]);
+const mergeEvidence = (discovered, verified = []) => [...new Set([...verified, ...discovered])];
 const explicitId = text => text.match(/\b(?:FC|SAV|CRD|INV|ESC|BS|GT|AC|DIV)-\d+[A-Z0-9]*/)?.[0] ?? null;
 const slug = text => text.toLowerCase().replace(/\[[^\]]+\]\([^\)]+\)/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
 
@@ -74,12 +88,13 @@ for (const [index, line] of read(workPlanPath).split(/\r?\n/).entries()) {
   const text = checkbox[3].replace(/;$/, '').trim();
   const rawId = explicitId(text) ?? `WP-P${phaseNumber}-${String(counter).padStart(3, '0')}`;
   const id = items.some(item => item.id === rawId) ? `${rawId}-${counter}` : rawId;
-  const specEvidence = evidence(text, ['docs/specs/', '.kiro/specs/'], 1);
-  const implementationEvidence = evidence(text, ['backend/migrations/', 'backend/src/domains/', 'backend/src/services/'], 2);
-  const apiEvidence = evidence(text, ['backend/src/routes/', 'backend/src/controllers/'], 2);
-  const clientEvidence = evidence(text, ['frontend/src/', 'mobile/'], 2);
-  const testEvidence = evidence(text, ['backend/src/tests/', 'backend/tests/', 'frontend/src/', 'frontend/e2e/', 'mobile/'], 2).filter(path => /test|spec|e2e/i.test(path));
-  const opsEvidence = evidence(text, ['docs/runbooks/', 'docs/'], 2).filter(path => /runbook|rollback|recovery|deployment|credentials|readiness/i.test(path));
+  const verified = evidenceOverrides.get(id) ?? {};
+  const specEvidence = mergeEvidence(evidence(text, ['docs/specs/', '.kiro/specs/'], 1), verified.specification);
+  const implementationEvidence = mergeEvidence(evidence(text, ['backend/migrations/', 'backend/src/domains/', 'backend/src/services/'], 2), verified.implementation);
+  const apiEvidence = mergeEvidence(evidence(text, ['backend/src/routes/', 'backend/src/controllers/'], 2), verified.api);
+  const clientEvidence = mergeEvidence(evidence(text, ['frontend/src/', 'mobile/'], 2), verified.client);
+  const testEvidence = mergeEvidence(evidence(text, ['backend/src/tests/', 'backend/tests/', 'frontend/src/', 'frontend/e2e/', 'mobile/'], 2).filter(path => /test|spec|e2e/i.test(path)), verified.tests);
+  const opsEvidence = mergeEvidence(evidence(text, ['docs/runbooks/', 'docs/'], 2).filter(path => /runbook|rollback|recovery|deployment|credentials|readiness/i.test(path)), verified.operations);
   const isFoundation = ['0','1','8'].includes(phaseNumber);
   const clientRequired = !isFoundation && !/migration|schema|account purpose|audit export|reconciliation|worker|adapter|foundation/i.test(text);
   const apiRequired = !/specification|approve|migration|cutover|schema|runbook|ci|test|secret|architecture decision/i.test(text);

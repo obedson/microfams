@@ -4,8 +4,8 @@
     "workPlanSha256": "0193e9d41d1da65e81fd83d6d631b4fa1bcbcf4357ea4d32ff46b472774bb1b3",
     "total": 158,
     "checked": 130,
-    "candidateComplete": 104,
-    "checkedWithEvidenceGaps": 26,
+    "candidateComplete": 105,
+    "checkedWithEvidenceGaps": 25,
     "partial": 27,
     "notStarted": 1
   },
@@ -969,10 +969,10 @@
           "backend/src/domains/identity/identityVerificationService.ts"
         ],
         "api": [
+          "backend/src/controllers/profileController.ts",
           "backend/src/controllers/accountingBalanceSheetController.ts",
           "backend/src/controllers/accountingBudgetController.ts",
-          "backend/src/controllers/accountingCashFlowController.ts",
-          "backend/src/controllers/accountingController.ts"
+          "backend/src/controllers/accountingCashFlowController.ts"
         ],
         "client": [
           "frontend/src/pages/BookingRecovery.tsx",
@@ -1049,11 +1049,11 @@
       "depth": 2,
       "workPlanChecked": true,
       "item": "Add the feature-flagged Interswitch sandbox BVN adapter with registered-phone matching and provider-profile minimization; face verification remains deferred.",
-      "status": "claimed_complete_evidence_gap",
+      "status": "candidate_complete",
       "layers": {
         "specification": "evidence_found",
         "implementation": "evidence_found",
-        "api": "missing",
+        "api": "evidence_found",
         "client": "not_required",
         "tests": "evidence_found",
         "operations": "evidence_found"
@@ -1071,9 +1071,14 @@
           "backend/migrations/install_group_contribution_cycles.sql",
           "backend/migrations/install_group_contributions.sql"
         ],
-        "api": [],
+        "api": [
+          "backend/src/routes/profile.ts",
+          "backend/src/controllers/profileController.ts"
+        ],
         "client": [],
         "tests": [
+          "backend/src/tests/profileBvnRouteApi.test.ts",
+          "backend/src/tests/profileIdentityApi.test.ts",
           "backend/src/tests/identityVerification.test.ts",
           "backend/src/tests/organizationVerification.test.ts",
           "backend/tests/schema/test-group-treasury-external-disbursements.sql",
@@ -3660,7 +3665,7 @@
           "backend/src/controllers/reconciliationController.ts",
           "backend/src/controllers/groupTreasuryController.ts",
           "backend/src/controllers/investmentRefundReversalController.ts",
-          "backend/src/routes/groupAdmin.ts"
+          "backend/src/controllers/profileController.ts"
         ],
         "client": [
           "frontend/src/pages/CreditRepaymentReversals.tsx",

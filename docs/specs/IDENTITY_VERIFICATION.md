@@ -36,6 +36,6 @@ A provider transport failure before challenge creation terminates that request w
 
 ## IV-09 Progressive BVN verification
 
-Interswitch sandbox implements the provider-neutral BVN lookup contract. BVN verification is available only when both the general identity-verification flag and the dedicated BVN progressive-KYC flag are enabled.
+Interswitch sandbox implements the provider-neutral BVN lookup contract. BVN verification is available only when both the general identity-verification flag and the dedicated BVN progressive-KYC flag are enabled. The authenticated start command requires an active tenant selection, explicit consent, and a client-supplied idempotency key.
 
 The full provider profile is used only in process memory to compare the provider-registered phone with the Micro Fams registered phone, then discarded. Face verification remains deferred.

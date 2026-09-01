@@ -17,6 +17,17 @@ interface AuthRequest extends Request {
 const IDENTITY_CONSENT_VERSION = 'identity-verification-v2';
 const IDENTITY_CONSENT_TEXT = 'I consent to Micro Fams verifying my identity against authorized records and sending the verification OTP to my registered account phone.';
 const consentTextHash = crypto.createHash('sha256').update(IDENTITY_CONSENT_TEXT).digest('hex');
+const BVN_START_PUBLIC_ERRORS = new Set([
+  'A valid registered phone is required for identity verification',
+  'Identity provider phone does not match the registered account phone',
+  'Identity provider is temporarily unavailable; start a new verification request',
+]);
+
+const publicBvnStartError = (error: unknown): string => (
+  error instanceof Error && BVN_START_PUBLIC_ERRORS.has(error.message)
+    ? error.message
+    : 'BVN verification could not be started'
+);
 
 
 class ProfileController {
@@ -105,12 +116,19 @@ class ProfileController {
    */
   async verifyBVN(req: TenantRequest, res: Response) {
     const schema = Joi.object({
-      bvn: Joi.string().length(11).required(),
+      bvn: Joi.string().pattern(/^\d{11}$/).required(),
       consent: Joi.boolean().valid(true).required(),
     });
 
     const { error, value } = schema.validate(req.body);
     if (error) return res.status(400).json({ error: error.details[0].message });
+
+    const header = req.headers['idempotency-key'];
+    if (typeof header !== 'string' || header.length < 8 || header.length > 128) {
+      return res.status(400).json({
+        error: 'Idempotency-Key header must contain between 8 and 128 characters',
+      });
+    }
 
     try {
       const { data: user, error: userError } = await supabase
@@ -126,10 +144,6 @@ class ProfileController {
       }
       if (!req.tenant) throw new Error('Tenant context is required');
 
-      const header = req.headers['idempotency-key'];
-      const idempotencyKey = typeof header === 'string' && header.length >= 8
-        ? header
-        : 'identity-' + crypto.randomUUID();
       const result = await identityVerificationService.start({
         organizationId: req.tenant.id,
         userId: req.user!.id,
@@ -140,11 +154,11 @@ class ProfileController {
         lastName: nameParts[nameParts.length - 1],
         consentVersion: IDENTITY_CONSENT_VERSION,
         consentTextHash,
-        idempotencyKey,
+        idempotencyKey: header,
       });
       return res.json(result);
-    } catch (startError: any) {
-      return res.status(422).json({ error: startError.message });
+    } catch (startError: unknown) {
+      return res.status(422).json({ error: publicBvnStartError(startError) });
     }
   }
 
