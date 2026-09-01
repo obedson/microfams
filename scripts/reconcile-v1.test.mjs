@@ -35,6 +35,19 @@ test('V1 reconciliation is current and every linked evidence path exists', () =>
   const ids = report.items.map(item => item.id);
   assert.equal(new Set(ids).size, ids.length, 'work-plan IDs must be unique');
 
+  const bvnApiContract = report.items.find(item => item.id === 'WP-P2-007');
+  assert.ok(bvnApiContract, 'progressive BVN evidence item must exist');
+  assert.equal(bvnApiContract.status, 'candidate_complete');
+  assert.equal(bvnApiContract.layers.api, 'evidence_found');
+  assert.ok(bvnApiContract.evidence.api.includes('backend/src/routes/profile.ts'));
+  assert.ok(bvnApiContract.evidence.api.includes('backend/src/controllers/profileController.ts'));
+  assert.ok(bvnApiContract.evidence.tests.includes('backend/src/tests/profileBvnRouteApi.test.ts'));
+  assert.equal(
+    report.items.filter(item => Object.values(item.evidence).flat().includes('backend/src/tests/profileBvnRouteApi.test.ts')).length,
+    1,
+    'verified BVN route evidence must not be attributed to unrelated work-plan items',
+  );
+
   for (const item of report.items) {
     assert.ok(validStatuses.has(item.status), `invalid status for ${item.id}`);
     assert.ok(markdown.includes(`| ${item.id} |`), `${item.id} is missing from the Markdown report`);

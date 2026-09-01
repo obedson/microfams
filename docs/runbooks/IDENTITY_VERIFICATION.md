@@ -4,7 +4,7 @@ The identity domain verifies NIN or BVN ownership without storing the raw identi
 
 ## Controls
 
-- The API requires authentication, active tenant membership, and the backend `integration.identity_verification` feature flag.
+- The API requires authentication, active tenant membership, and the backend `integration.identity_verification` feature flag. BVN start additionally requires `integration.identity_bvn_verification` and an `Idempotency-Key` between 8 and 128 characters.
 - Explicit versioned consent is recorded before provider contact.
 - Raw NIN/BVN values exist only in process memory during provider submission.
 - Persistence uses a platform-wide, evidence-type-separated HMAC fingerprint, masked OTP destination, provider reference, and encrypted opaque provider state.
