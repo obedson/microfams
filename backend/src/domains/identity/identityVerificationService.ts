@@ -6,6 +6,7 @@ import {
   IdentityProviderUnavailableError,
   IdentityVerificationAdapter,
   StartIdentityVerificationInput,
+  validateIdentityIdempotencyKey,
 } from './identityTypes.js';
 
 const identifierPattern = /^[0-9]{11}$/;
@@ -42,7 +43,7 @@ export class IdentityVerificationService {
     if (input.registeredPhone.replace(/\D/g, '').length < 10) throw new Error('A valid registered phone is required for identity verification');
     if (!/^[a-f0-9]{64}$/.test(input.consentTextHash)) throw new Error('Consent text hash is invalid');
     if (input.consentVersion.trim().length < 1) throw new Error('Consent version is required');
-    if (input.idempotencyKey.length < 8) throw new Error('Idempotency key is too short');
+    validateIdentityIdempotencyKey(input.idempotencyKey, input.identifier);
 
     const adapter = this.adapterFactory();
     const identityFingerprint = fingerprint(input.evidenceType, input.identifier);

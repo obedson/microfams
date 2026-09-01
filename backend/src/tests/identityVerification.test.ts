@@ -182,6 +182,20 @@ describe('identity verification', () => {
     expect(supabase.rpc).not.toHaveBeenCalled();
   });
 
+  it.each([
+    startInput.identifier,
+    `identity-${startInput.identifier}`,
+    'identity-123-456-789-01',
+    '        ',
+    ' identity-command-1',
+  ])('rejects a non-opaque idempotency key before creating evidence: %j', async (idempotencyKey) => {
+    await expect(new IdentityVerificationService(() => adapter).start({
+      ...startInput, idempotencyKey,
+    })).rejects.toThrow(/opaque|non-whitespace/);
+    expect(adapter.start).not.toHaveBeenCalled();
+    expect(supabase.rpc).not.toHaveBeenCalled();
+  });
+
   it('rejects an invalid registered phone before creating evidence', async () => {
     await expect(new IdentityVerificationService(() => adapter).start({
       ...startInput, registeredPhone: '123',
