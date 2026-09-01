@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import crypto from 'node:crypto';
 import { identityVerificationService } from '../domains/identity/identityVerificationService.js';
+import { validateIdentityIdempotencyKey } from '../domains/identity/identityTypes.js';
 import { TenantRequest } from '../middleware/tenant.js';
 import { ninService } from '../services/ninService.js';
 import { supabase } from '../utils/supabase.js';
@@ -124,9 +125,18 @@ class ProfileController {
     if (error) return res.status(400).json({ error: error.details[0].message });
 
     const header = req.headers['idempotency-key'];
-    if (typeof header !== 'string' || header.length < 8 || header.length > 128) {
+    if (typeof header !== 'string') {
       return res.status(400).json({
-        error: 'Idempotency-Key header must contain between 8 and 128 characters',
+        error: 'Idempotency-Key header must contain between 8 and 128 non-whitespace characters',
+      });
+    }
+    try {
+      validateIdentityIdempotencyKey(header, value.bvn, 128);
+    } catch (idempotencyError: unknown) {
+      return res.status(400).json({
+        error: idempotencyError instanceof Error
+          ? idempotencyError.message
+          : 'Idempotency-Key header is invalid',
       });
     }
 

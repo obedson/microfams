@@ -1,6 +1,17 @@
 export type IdentityEvidenceType = 'nin' | 'bvn';
 export type IdentityProviderEnvironment = 'deterministic' | 'sandbox' | 'live';
 
+const identityNumberInKeyPattern = /[0-9]{11}/;
+
+export const validateIdentityIdempotencyKey = (key: string, identifier: string, maximumLength = 160): void => {
+  if (key !== key.trim() || key.length < 8 || key.length > maximumLength) {
+    throw new Error(`Idempotency key must contain between 8 and ${maximumLength} non-whitespace characters`);
+  }
+  if (identityNumberInKeyPattern.test(key) || key.replace(/[^0-9]/g, '').includes(identifier)) {
+    throw new Error('Idempotency key must be opaque and must not contain identity numbers');
+  }
+};
+
 export class IdentityProviderUnavailableError extends Error {
   readonly code = 'IDENTITY_PROVIDER_UNAVAILABLE';
 

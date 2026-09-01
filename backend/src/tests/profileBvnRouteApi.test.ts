@@ -166,7 +166,26 @@ describe('progressive BVN route API contract', () => {
 
     const response = await command.send({ bvn: BVN, consent: true }).expect(400);
 
-    expect(response.body.error).toBe('Idempotency-Key header must contain between 8 and 128 characters');
+    expect(response.body.error).toContain('between 8 and 128 non-whitespace characters');
+    expect(supabase.from).not.toHaveBeenCalled();
+    expect(identityVerificationService.start).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    BVN,
+    `request-${BVN}`,
+    'request-123-456-789-01',
+    '        ',
+  ])('rejects an idempotency key that could persist identity data or ambiguous whitespace: %j', async (idempotencyKey) => {
+    const response = await request(app)
+      .post('/api/auth/profile/verify-bvn')
+      .set('Authorization', 'Bearer valid-token')
+      .set('X-Organization-Id', ORGANIZATION_ID)
+      .set('Idempotency-Key', idempotencyKey)
+      .send({ bvn: BVN, consent: true })
+      .expect(400);
+
+    expect(response.body.error).toMatch(/opaque|non-whitespace/);
     expect(supabase.from).not.toHaveBeenCalled();
     expect(identityVerificationService.start).not.toHaveBeenCalled();
   });
