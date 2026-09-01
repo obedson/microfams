@@ -1,0 +1,61 @@
+title = "MicroFAMS secret-scanning policy"
+minVersion = "8.30.0"
+
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Non-secret business idempotency values in enumerated test fixtures"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "match"
+regexes = [
+  '''(?i)\b(?:idempotencyKey|idempotency-key|p_idempotency_key|creation_idempotency_key)\b''',
+]
+paths = [
+  '''(^|/)backend/src/tests/bookingSupplierPayoutApi\.test\.ts$''',
+  '''(^|/)backend/src/tests/escrowContractService\.test\.ts$''',
+  '''(^|/)backend/src/tests/financialLedgerService\.test\.ts$''',
+  '''(^|/)backend/src/tests/investmentAllocationPlanService\.test\.ts$''',
+  '''(^|/)backend/src/tests/investmentRefundReconciliationService\.test\.ts$''',
+  '''(^|/)backend/src/tests/investmentRefundReversalService\.test\.ts$''',
+  '''(^|/)backend/src/tests/loanApplicationApiContract\.test\.ts$''',
+  '''(^|/)backend/src/tests/loanApplicationService\.test\.ts$''',
+  '''(^|/)backend/src/tests/loanDelinquencyApiContract\.test\.ts$''',
+  '''(^|/)backend/src/tests/loanDelinquencyService\.test\.ts$''',
+  '''(^|/)backend/src/tests/loanDisbursementApiContract\.test\.ts$''',
+  '''(^|/)backend/src/tests/loanDisbursementService\.test\.ts$''',
+  '''(^|/)backend/src/tests/loanRepaymentReversalService\.test\.ts$''',
+  '''(^|/)backend/src/tests/loanScheduleApiContract\.test\.ts$''',
+  '''(^|/)backend/src/tests/organizationVerification\.test\.ts$''',
+  '''(^|/)backend/src/tests/savingsApiContract\.test\.ts$''',
+  '''(^|/)backend/src/tests/savingsProductService\.test\.ts$''',
+  '''(^|/)backend/src/tests/savingsProviderCertificationService\.test\.ts$''',
+  '''(^|/)backend/src/tests/trustApi\.test\.ts$''',
+  '''(^|/)backend/tests/schema/test-savings-accrual-concurrency\.sh$''',
+  '''(^|/)frontend/src/pages/InvestmentRefundRecognition\.test\.tsx$''',
+]
+
+[[allowlists]]
+description = "Synthetic JWT startup-validation fixture"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+regexes = [
+  '''JWT_SECRET\s*:\s*['"][^'"]*synthetic''',
+]
+paths = [
+  '''(^|/)backend/src/tests/environmentConfig\.test\.ts$''',
+]
+
+[[allowlists]]
+description = "Public RFC 6238 TOTP test vector"
+targetRules = ["generic-api-key"]
+condition = "AND"
+regexTarget = "line"
+regexes = [
+  '''const\s+rfcSecret\s*=''',
+]
+paths = [
+  '''(^|/)backend/src/tests/securityService\.test\.ts$''',
+]

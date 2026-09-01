@@ -29,6 +29,37 @@ These actions can be completed through reviewed pull requests:
 
 A passing scan is evidence only for the scanner, rules and reachable objects used in that run. It is not rotation or revocation evidence.
 
+## Current-tree triage
+
+The 2026-09-02 tracked-tree scan produced 43 redacted findings before triage:
+
+- 39 false positives were business idempotency-key values in 21 explicitly enumerated test or schema fixtures. They are not authentication credentials.
+- 2 confirmed synthetic fixtures were the startup-validation JWT placeholder and the public RFC 6238 TOTP test vector.
+- 2 potentially actionable findings were literal authorization examples in `prompts/prompt3.md`. The literals were replaced with environment-variable placeholders. The issuing-system owner must still determine whether any removed value was active and rotate or revoke it if necessary.
+
+The repository Gitleaks configuration targets only the `generic-api-key` rule and requires both an exact semantic line match and an enumerated fixture path. It does not suppress whole directories, file types, commits, providers, or secret classes. With those rules and the prompt redaction applied, the tracked current tree has zero findings.
+
+Any new fixture path or detector rule must be reviewed independently. A failing scan must not be resolved by widening a path expression, lowering detector sensitivity, or baselining an unexplained finding.
+
+## Reachable-history gate decision
+
+After applying only the approved fixture rules, a redacted full reachable-history scan still reports 18 unresolved findings across 7 commits and 5 files:
+
+- 10 `curl-auth-header`;
+- 4 `jwt`;
+- 2 `generic-api-key`;
+- 2 `sendinblue-api-token`.
+
+These are security leads, not approved exceptions. A blocking full-history gate is therefore not enabled yet: adding a baseline or commit allowlist now would hide unresolved evidence and falsely imply acceptance. The current-tree gate is blocking and prevents new tracked-tree exposure.
+
+Before enabling the full reachable-history gate, the security owner must:
+
+1. classify the 18 findings in a protected incident record;
+2. complete and independently verify required rotation or revocation;
+3. approve history rewriting or documented containment;
+4. approve any exact-fingerprint baseline only for findings proven synthetic or permanently contained;
+5. verify that the proposed gate fails on a newly introduced test secret and passes on the reviewed history.
+
 ## External security and operations actions
 
 An authorized owner must complete these outside the repository:
