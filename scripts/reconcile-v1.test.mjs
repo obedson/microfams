@@ -41,6 +41,12 @@ test('V1 reconciliation is current and every linked evidence path exists', () =>
   assert.equal(bvnApiContract.layers.api, 'evidence_found');
   assert.ok(bvnApiContract.evidence.api.includes('backend/src/routes/profile.ts'));
   assert.ok(bvnApiContract.evidence.api.includes('backend/src/controllers/profileController.ts'));
+  assert.ok(bvnApiContract.evidence.tests.includes('backend/src/tests/profileBvnRouteApi.test.ts'));
+  assert.equal(
+    report.items.filter(item => Object.values(item.evidence).flat().includes('backend/src/tests/profileBvnRouteApi.test.ts')).length,
+    1,
+    'verified BVN route evidence must not be attributed to unrelated work-plan items',
+  );
 
   for (const item of report.items) {
     assert.ok(validStatuses.has(item.status), `invalid status for ${item.id}`);

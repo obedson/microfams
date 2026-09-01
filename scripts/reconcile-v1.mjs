@@ -26,6 +26,8 @@ const evidenceExclusions = new Set([
   'docs/V1_GAPS.md',
   'docs/V1_RELEASE_READINESS.md',
   'docs/runbooks/V1_EVIDENCE_RECONCILIATION.md',
+  // Verified overrides own high-signal contracts so fuzzy matching cannot misattribute them.
+  'backend/src/tests/profileBvnRouteApi.test.ts',
 ]);
 const searchableFiles = repoFiles.filter(path => /\.(md|sql|ts|tsx|js|jsx|mjs|yml|yaml)$/i.test(path) && !evidenceExclusions.has(relative(root, path).replaceAll('\\', '/')));
 const contents = new Map(searchableFiles.map(path => [path, read(path).toLowerCase()]));
