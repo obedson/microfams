@@ -53,7 +53,14 @@ describe('backend configuration validation', () => {
   it('publishes a unique value-free secret inventory', () => {
     const names = SECRET_INVENTORY.map(item => item.name);
     expect(new Set(names).size).toBe(names.length);
-    expect(names).toEqual(expect.arrayContaining(['SUPABASE_SERVICE_KEY', 'JWT_SECRET', 'PAYSTACK_SECRET_KEY']));
+    expect(names).toEqual(expect.arrayContaining([
+      'SUPABASE_SERVICE_KEY',
+      'JWT_SECRET',
+      'PAYSTACK_SECRET_KEY',
+      'IDENTITY_FINGERPRINT_KEY',
+      'ORGANIZATION_REGISTRATION_FINGERPRINT_KEY',
+      'ONEPIPE_SECRET',
+    ]));
     expect(JSON.stringify(SECRET_INVENTORY)).not.toContain('synthetic-jwt-secret');
   });
 });
