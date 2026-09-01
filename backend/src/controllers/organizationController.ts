@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import Joi from 'joi';
 import { TenantRequest } from '../middleware/tenant.js';
 import { organizationVerificationService } from '../domains/organizations/organizationVerificationService.js';
+import { validateOrganizationIdempotencyKey } from '../domains/organizations/organizationVerificationTypes.js';
 import { SupabaseOrganizationRepository } from '../repositories/organizationRepository.js';
 import { OrganizationService } from '../services/organizationService.js';
 
@@ -139,14 +140,25 @@ export const organizationController = {
       return res.status(400).json({
         success: false,
         error: 'VALIDATION_ERROR',
-        details: error.details.map((item) => item.message),
+        message: 'Organization verification request is invalid',
       });
     }
     try {
       const header = req.headers['idempotency-key'];
-      const idempotencyKey = typeof header === 'string' && header.length >= 8
-        ? header
-        : 'organization-verification-' + crypto.randomUUID();
+      const idempotencyKey = header === undefined
+        ? 'organization-verification-' + crypto.randomUUID()
+        : typeof header === 'string' ? header : '';
+      try {
+        validateOrganizationIdempotencyKey(idempotencyKey, value.registrationNumber);
+      } catch (idempotencyError: unknown) {
+        return res.status(400).json({
+          success: false,
+          error: 'INVALID_IDEMPOTENCY_KEY',
+          message: idempotencyError instanceof Error
+            ? idempotencyError.message
+            : 'Idempotency-Key header is invalid',
+        });
+      }
       const verification = await organizationVerificationService.start({
         organizationId: req.tenant!.id,
         userId: req.user!.id,

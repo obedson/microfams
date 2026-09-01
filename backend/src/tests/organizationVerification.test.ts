@@ -104,6 +104,21 @@ describe('organization verification', () => {
     expect(JSON.stringify(result)).not.toContain(input.registrationNumber);
   });
 
+  it.each([
+    input.registrationNumber,
+    'command-' + input.registrationNumber,
+    'command-rc-123-4567',
+    'short',
+    'x'.repeat(161),
+    ' organization-command-1',
+  ])('rejects a non-opaque or unbounded idempotency key before storage: %j', async (idempotencyKey) => {
+    await expect(new OrganizationVerificationService(() => adapter).start({
+      ...input, idempotencyKey,
+    })).rejects.toThrow(/opaque|non-whitespace/);
+    expect(supabase.rpc).not.toHaveBeenCalled();
+    expect(verifyAdapter).not.toHaveBeenCalled();
+  });
+
   it('rejects incompatible evidence before storage or provider access', async () => {
     await expect(new OrganizationVerificationService(() => adapter).start({
       ...input,

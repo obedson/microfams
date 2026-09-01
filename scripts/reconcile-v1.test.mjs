@@ -35,6 +35,20 @@ test('V1 reconciliation is current and every linked evidence path exists', () =>
   const ids = report.items.map(item => item.id);
   assert.equal(new Set(ids).size, ids.length, 'work-plan IDs must be unique');
 
+  const organizationApiContract = report.items.find(item => item.id === 'WP-P2-006');
+  assert.ok(organizationApiContract, 'organization verification evidence item must exist');
+  assert.equal(organizationApiContract.status, 'partial');
+  assert.equal(organizationApiContract.workPlanChecked, false);
+  assert.equal(organizationApiContract.layers.api, 'evidence_found');
+  assert.ok(organizationApiContract.evidence.api.includes('backend/src/routes/organizations.ts'));
+  assert.ok(organizationApiContract.evidence.api.includes('backend/src/controllers/organizationController.ts'));
+  assert.ok(organizationApiContract.evidence.tests.includes('backend/src/tests/organizationVerificationRouteApi.test.ts'));
+  assert.equal(
+    report.items.filter(item => Object.values(item.evidence).flat().includes('backend/src/tests/organizationVerificationRouteApi.test.ts')).length,
+    1,
+    'verified organization route evidence must not be attributed to unrelated work-plan items',
+  );
+
   const bvnApiContract = report.items.find(item => item.id === 'WP-P2-007');
   assert.ok(bvnApiContract, 'progressive BVN evidence item must exist');
   assert.equal(bvnApiContract.status, 'candidate_complete');
