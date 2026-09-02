@@ -4,6 +4,7 @@ import { WalletService } from '../services/walletService.js';
 import { generateToken, generateRefreshToken } from '../utils/jwt.js';
 import { supabase } from '../utils/supabase.js';
 import Joi from 'joi';
+import { randomBytes } from 'node:crypto';
 
 const walletService = new WalletService();
 const registerSchema = Joi.object({
@@ -130,7 +131,7 @@ export const forgotPassword = async (req: Request, res: Response) => {
       return res.json({ success: true, message: 'If email exists, reset link sent' });
     }
 
-    const resetToken = require('crypto').randomBytes(32).toString('hex');
+    const resetToken = randomBytes(32).toString('hex');
     const expires = new Date(Date.now() + 3600000); // 1 hour
 
     await UserModel.updateResetToken(value.email, resetToken, expires);
