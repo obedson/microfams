@@ -15,14 +15,14 @@ Why this matters for MicroFamsInterswitch’s Marketplace API is a "multi-tenant
 python download_video.py "https://www.youtube.com/watch?v=CmG5_sIas1Q" /mnt/e/Tuto
 
 
-curl --location 'https://qa.interswitchng.com/passport/oauth/token' \ --header 'Content-Type: application/x-www-form-urlencoded' \ --header 'Cookie: SESSION=2b6bc85d-32f8-4495-861f-5d9089e21c21; SESSION=2b6bc85d-32f8-4495-861f-5d9089e21c21' \ --header 'Authorization: Basic Your-ClientId-And-Secret-In-Base64' \ --data-urlencode 'scope=profile' \ --data-urlencode 'grant_type=client_credentials'
+curl --location 'https://qa.interswitchng.com/passport/oauth/token' \ --header 'Content-Type: application/x-www-form-urlencoded' \ --header 'Cookie: ${INTERSWITCH_SESSION_COOKIE}' \ --header 'Authorization: Basic ${INTERSWITCH_BASIC_AUTH}' \ --data-urlencode 'scope=profile' \ --data-urlencode 'grant_type=client_credentials'
 
 curl --location 'https://api-marketplace-routing.k8.isw.la/marketplace-routing/api/v1/verify/identity/tin?tin=08120451-1001' \
---header 'Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOlsiYXBpL'
+--header 'Authorization: Bearer ${INTERSWITCH_ACCESS_TOKEN}'
 
 curl --location 'https://api-marketplace-routing.k8.isw.la/marketplace-routing/api/v1/verify/identity/nin/verify' \
 --header 'Content-Type: application/json' \
---header 'Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.eyJhdWQiOlsiYW1sX2RvbWVzdGljX3NlcnZpY' \
+--header 'Authorization: Bearer ${INTERSWITCH_ACCESS_TOKEN}' \
 --data '{
     "id": "11111111111"
 }'
