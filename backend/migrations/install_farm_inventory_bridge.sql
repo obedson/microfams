@@ -1,7 +1,7 @@
 BEGIN;
 -- Shared inventory command needed by farm input/production integration.
 -- Uses the existing item and movement ledger; does not create another ledger.
-CREATE FUNCTION apply_inventory_movement(p_organization UUID,p_item UUID,p_quantity BIGINT,p_reason TEXT,p_key TEXT)
+CREATE OR REPLACE FUNCTION apply_inventory_movement(p_organization UUID,p_item UUID,p_quantity BIGINT,p_reason TEXT,p_key TEXT)
 RETURNS JSONB LANGUAGE plpgsql SECURITY DEFINER SET search_path=public AS $$
 DECLARE item inventory_items; prior inventory_movements;
 BEGIN
