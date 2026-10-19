@@ -31,7 +31,7 @@
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/TRUST_REVIEW_APPEALS.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md"
         ],
         "implementation": [
           "backend/migrations/install_group_constitution_offices.sql",
@@ -75,8 +75,8 @@
         "specification": [
           ".kiro/specs/farmle-platform-enhancement/design.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/farmle-platform-enhancement/requirements.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          "docs/specs/GROUP_GOVERNANCE_TREASURY.md"
         ],
         "implementation": [
           "backend/migrations/install_group_asset_condition_events.sql",
@@ -120,7 +120,7 @@
           "docs/specs/FEATURE_FLAGS.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/MULTITENANCY.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md"
         ],
         "implementation": [
           "backend/migrations/install_booking_settlement_foundation.sql",
@@ -171,9 +171,9 @@
       "evidence": {
         "specification": [
           "docs/specs/BOOKING_SETTLEMENTS.md",
+          ".kiro/specs/agro-fintech-credit-system/design.md",
           ".kiro/specs/group-individual-wallet-system/tasks.md",
-          "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md"
+          "docs/specs/GROUP_GOVERNANCE_TREASURY.md"
         ],
         "implementation": [
           "backend/src/services/webhookSecurityService.ts",
@@ -212,10 +212,10 @@
       },
       "evidence": {
         "specification": [
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FEATURE_FLAGS.md"
+          "docs/specs/BOOKING_SETTLEMENTS.md"
         ],
         "implementation": [
           "backend/src/domains/financial/payoutAdapters.ts",
@@ -318,10 +318,10 @@
       },
       "evidence": {
         "specification": [
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
           ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/group-individual-wallet-system/design.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/design.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/tasks.md"
+          ".kiro/specs/group-individual-wallet-system/design.md"
         ],
         "implementation": [
           "backend/migrations/install_group_treasury_disbursements.sql",
@@ -371,10 +371,10 @@
       },
       "evidence": {
         "specification": [
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           ".kiro/specs/group-individual-wallet-system/design.md",
           ".kiro/specs/group-individual-wallet-system/requirements.md",
-          "docs/specs/ORGANIZATION_VERIFICATION.md",
-          ".kiro/specs/group-individual-wallet-system/tasks.md"
+          "docs/specs/ORGANIZATION_VERIFICATION.md"
         ],
         "implementation": [
           "backend/src/domains/financial/paymentService.ts",
@@ -422,7 +422,7 @@
           "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
           ".kiro/specs/farmle-platform-enhancement/design.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          ".kiro/specs/farmle-platform-enhancement/tasks.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md"
         ],
         "implementation": [
           "backend/migrations/install_group_contribution_cycles.sql",
@@ -565,9 +565,9 @@
       "evidence": {
         "specification": [
           "docs/specs/MULTITENANCY.md",
-          "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/farmle-platform-enhancement/tasks.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
+          "docs/specs/GROUP_GOVERNANCE_TREASURY.md"
         ],
         "implementation": [
           "backend/src/services/organizationService.ts",
@@ -710,8 +710,8 @@
         "specification": [
           ".kiro/specs/farmle-platform-enhancement/design.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          "docs/specs/MULTITENANCY.md",
-          ".kiro/specs/farmle-platform-enhancement/requirements.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_group_contribution_cycles.sql",
@@ -758,8 +758,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/group-individual-wallet-system/tasks.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/design.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/group-individual-wallet-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_booking_settlement_eligibility_fees.sql",
@@ -811,8 +811,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/IDENTITY_VERIFICATION.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/requirements.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/platform-profile-and-groups-enhancement/requirements.md"
         ],
         "implementation": [
           "backend/migrations/create_identity_verification.sql",
@@ -858,10 +858,10 @@
       },
       "evidence": {
         "specification": [
+          ".kiro/specs/agro-fintech-credit-system/design.md",
           "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/IDENTITY_VERIFICATION.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/requirements.md"
+          "docs/specs/IDENTITY_VERIFICATION.md"
         ],
         "implementation": [
           "backend/migrations/install_identity_challenge_expiry.sql",
@@ -952,10 +952,10 @@
       },
       "evidence": {
         "specification": [
+          ".kiro/specs/agro-fintech-credit-system/design.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
           "docs/specs/FINANCIAL_CORE.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/design.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md"
         ],
         "implementation": [
           "backend/src/domains/financial/investmentRefundSubmissionService.ts",
@@ -1005,8 +1005,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/IDENTITY_VERIFICATION.md",
-          ".kiro/specs/farmle-platform-enhancement/tasks.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/create_identity_verification.sql",
@@ -1109,8 +1109,8 @@
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/TRUST_REVIEW_APPEALS.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/create_trust_review_appeals.sql",
@@ -1160,8 +1160,8 @@
         "specification": [
           "docs/specs/TRUST_REVIEW_APPEALS.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
+          "docs/specs/BOOKING_SETTLEMENTS.md"
         ],
         "implementation": [
           "backend/migrations/create_trust_review_appeals.sql",
@@ -1310,8 +1310,8 @@
         "specification": [
           "docs/specs/LEGAL_HOLD_COMMANDS.md",
           "docs/specs/TRUST_REVIEW_APPEALS.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/farmle-platform-enhancement/requirements.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/src/services/retentionSelectionWorker.ts"
@@ -1350,8 +1350,8 @@
         "specification": [
           "docs/specs/TRUST_RECOVERY_NEGATIVE_E2E.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
+          ".kiro/specs/farmle-platform-enhancement/design.md"
         ],
         "implementation": [
           "backend/migrations/create_suspended_account_recovery.sql",
@@ -1649,10 +1649,10 @@
       },
       "evidence": {
         "specification": [
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
           "docs/specs/FINANCIAL_CORE.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md"
+          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
         ],
         "implementation": [
           "backend/migrations/install_savings_provider_certification.sql",
@@ -1748,8 +1748,8 @@
         "specification": [
           "docs/specs/BOOKING_SETTLEMENTS.md",
           "docs/specs/FINANCIAL_CORE.md",
-          ".kiro/specs/group-individual-wallet-system/design.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md"
         ],
         "implementation": [
           "backend/migrations/install_group_committees_meetings.sql",
@@ -2050,8 +2050,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/FEATURE_FLAGS.md",
-          "docs/specs/GROUP_GOVERNANCE_TREASURY.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md"
         ],
         "implementation": [
           "backend/src/domains/financial/savingsProductService.ts",
@@ -2448,8 +2448,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          ".kiro/specs/group-individual-wallet-system/tasks.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md"
         ],
         "implementation": [
           "backend/migrations/install_group_contribution_cycles.sql",
@@ -2653,9 +2653,9 @@
       "evidence": {
         "specification": [
           "docs/specs/BOOKING_SETTLEMENTS.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/FEATURE_FLAGS.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          "docs/specs/FEATURE_FLAGS.md"
         ],
         "implementation": [
           "backend/migrations/install_loan_repayment_schedules.sql",
@@ -2798,10 +2798,10 @@
       },
       "evidence": {
         "specification": [
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           "docs/specs/RETENTION_ITEM_SELECTION.md",
           "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          "docs/specs/BOOKING_SETTLEMENTS.md"
         ],
         "implementation": [
           "backend/migrations/install_loan_delinquency_servicing.sql",
@@ -3101,7 +3101,7 @@
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          "docs/specs/INVESTMENT_OVERSUBSCRIPTION.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md"
         ],
         "implementation": [
           "backend/migrations/install_investment_subscription_intents.sql",
@@ -3150,9 +3150,9 @@
       "evidence": {
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/design.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/tasks.md"
+          ".kiro/specs/platform-profile-and-groups-enhancement/design.md"
         ],
         "implementation": [
           "backend/migrations/install_group_treasury_disbursements.sql",
@@ -3351,9 +3351,9 @@
       "evidence": {
         "specification": [
           "docs/specs/INVESTMENT_OVERSUBSCRIPTION_REFUNDS.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/INVESTMENT_OVERSUBSCRIPTION.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_investment_refund_obligations.sql",
@@ -3703,8 +3703,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md"
         ],
         "implementation": [
           "backend/migrations/install_booking_dispute_resolution.sql",
@@ -3848,8 +3848,8 @@
         "specification": [
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_escrow_release_request.sql",
@@ -3998,8 +3998,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/GROUP_GOVERNANCE_TREASURY.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          "docs/specs/BOOKING_SETTLEMENTS.md"
         ],
         "implementation": [
           "backend/migrations/install_booking_settlement_eligibility_fees.sql",
@@ -4051,7 +4051,7 @@
           "docs/specs/BOOKING_SETTLEMENTS.md",
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md"
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_atomic_booking_reservations.sql",
@@ -4293,9 +4293,9 @@
       "evidence": {
         "specification": [
           "docs/specs/BOOKING_SETTLEMENTS.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
           "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/FINANCIAL_CORE.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
+          "docs/specs/FINANCIAL_CORE.md"
         ],
         "implementation": [
           "backend/migrations/install_booking_dispute_opening.sql",
@@ -4765,9 +4765,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/design.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_group_lifecycle_foundation.sql",
@@ -4812,9 +4812,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
           "docs/specs/FINANCIAL_CORE.md",
-          ".kiro/specs/group-individual-wallet-system/tasks.md",
-          ".kiro/specs/group-individual-wallet-system/design.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md"
         ],
         "implementation": [
           "backend/migrations/install_group_lifecycle_foundation.sql",
@@ -4865,8 +4865,8 @@
         "specification": [
           "docs/specs/BOOKING_SETTLEMENTS.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          "docs/specs/FINANCIAL_CORE.md",
-          "docs/specs/MULTITENANCY.md"
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
+          "docs/specs/FINANCIAL_CORE.md"
         ],
         "implementation": [
           "backend/migrations/install_group_lifecycle_foundation.sql",
@@ -4911,7 +4911,7 @@
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
           "docs/specs/FINANCIAL_CORE.md",
-          "docs/specs/FEATURE_FLAGS.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md"
         ],
         "implementation": [
           "backend/migrations/install_group_constitution_offices.sql",
@@ -4959,8 +4959,8 @@
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/MULTITENANCY.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/group-individual-wallet-system/design.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md"
         ],
         "implementation": [
           "backend/migrations/install_group_membership_invitations.sql",
@@ -5005,8 +5005,8 @@
         "specification": [
           "docs/specs/BOOKING_SETTLEMENTS.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md"
         ],
         "implementation": [
           "backend/migrations/create_identity_verification.sql",
@@ -5051,9 +5051,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/requirements.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md"
         ],
         "implementation": [
           "backend/migrations/install_group_admission_payments.sql",
@@ -5193,9 +5193,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/farmle-platform-enhancement/requirements.md",
-          ".kiro/specs/farmle-platform-enhancement/tasks.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_group_contributions.sql",
@@ -5237,8 +5237,8 @@
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/FINANCIAL_CORE.md",
-          ".kiro/specs/group-individual-wallet-system/requirements.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/group-individual-wallet-system/requirements.md"
         ],
         "implementation": [
           "backend/migrations/install_group_contribution_cycles.sql",
@@ -5285,9 +5285,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FINANCIAL_CORE.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
+          "docs/specs/BOOKING_SETTLEMENTS.md"
         ],
         "implementation": [
           "backend/migrations/install_group_treasury_disbursements.sql",
@@ -5334,9 +5334,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FINANCIAL_CORE.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
+          "docs/specs/FINANCIAL_CORE.md"
         ],
         "implementation": [
           "backend/migrations/install_group_treasury_external_disbursements.sql",
@@ -5385,9 +5385,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
           "docs/specs/FEATURE_FLAGS.md",
-          "docs/specs/FINANCIAL_CORE.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
+          "docs/specs/FINANCIAL_CORE.md"
         ],
         "implementation": [
           "backend/migrations/install_group_treasury_emergency_expenditure.sql",
@@ -5478,14 +5478,14 @@
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FEATURE_FLAGS.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_loan_product_foundation.sql",
+          "backend/migrations/003_microfams_reputation_lending_system.sql",
           "backend/migrations/install_escrow_contract_foundation.sql",
-          "backend/migrations/install_group_constitution_offices.sql",
-          "backend/migrations/install_group_contribution_cycles.sql"
+          "backend/migrations/install_group_constitution_offices.sql"
         ],
         "api": [
           "backend/src/controllers/groupContributionController.ts",
@@ -5530,15 +5530,15 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          "docs/specs/TRUST_REVIEW_APPEALS.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_group_contributions.sql",
           "backend/src/domains/groups/treasuryDisbursementRules.ts",
-          "backend/migrations/create_legal_hold_commands.sql",
-          "backend/migrations/create_retention_item_selection.sql"
+          "backend/migrations/003_microfams_reputation_lending_system.sql",
+          "backend/migrations/create_legal_hold_commands.sql"
         ],
         "api": [
           "backend/src/controllers/groupTreasuryController.ts",
@@ -5627,9 +5627,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/tasks.md"
+          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
         ],
         "implementation": [
           "backend/migrations/install_group_project_foundation.sql",
@@ -5671,8 +5671,8 @@
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          ".kiro/specs/platform-profile-and-groups-enhancement/tasks.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md"
         ],
         "implementation": [
           "backend/migrations/install_group_project_foundation.sql",
@@ -5714,9 +5714,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/agro-fintech-credit-system/design.md",
           ".kiro/specs/group-individual-wallet-system/design.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md"
+          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
         ],
         "implementation": [
           "backend/migrations/install_group_lifecycle_foundation.sql",
@@ -5737,8 +5737,7 @@
           "backend/src/tests/cors.test.ts"
         ],
         "operations": [
-          "docs/runbooks/GROUP_TREASURY_DISBURSEMENTS.md",
-          "docs/runbooks/DEPLOYMENT_CONFIGURATION.md"
+          "docs/runbooks/GROUP_TREASURY_DISBURSEMENTS.md"
         ]
       }
     },
@@ -5762,8 +5761,8 @@
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/group-individual-wallet-system/design.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md"
         ],
         "implementation": [
           "backend/migrations/install_group_committees_meetings.sql",
@@ -5853,8 +5852,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/group-individual-wallet-system/design.md",
-          ".kiro/specs/group-individual-wallet-system/requirements.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_group_document_access.sql",
@@ -5880,7 +5879,7 @@
           "backend/src/tests/groupDocumentAccessService.test.ts"
         ],
         "operations": [
-          "docs/runbooks/INBOUND_PAYMENTS.md"
+          "docs/deployment.md"
         ]
       }
     },
@@ -6006,8 +6005,8 @@
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/FEATURE_FLAGS.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          "docs/specs/FEATURE_FLAGS.md"
         ],
         "implementation": [
           "backend/migrations/install_group_asset_loss_events.sql",
@@ -6047,7 +6046,7 @@
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md"
         ],
         "implementation": [
           "backend/migrations/install_group_asset_loss_events.sql",
@@ -6359,8 +6358,8 @@
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/farmle-platform-enhancement/design.md"
         ],
         "implementation": [
           "backend/migrations/install_group_asset_accounting_mappings.sql",
@@ -6661,7 +6660,7 @@
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          ".kiro/specs/group-individual-wallet-system/design.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md"
         ],
         "implementation": [
           "backend/migrations/install_accounting_trial_balance.sql",
@@ -6759,8 +6758,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/group-individual-wallet-system/design.md",
-          ".kiro/specs/group-individual-wallet-system/requirements.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md"
         ],
         "implementation": [
           "backend/migrations/install_accounting_balance_sheet.sql",
@@ -6851,9 +6850,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_accounting_budgets.sql",
@@ -7005,7 +7004,7 @@
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/FEATURE_FLAGS.md"
+          ".kiro/specs/agro-fintech-credit-system/tasks.md"
         ],
         "implementation": [
           "backend/migrations/install_dividend_review_approval.sql",
@@ -7055,8 +7054,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/GROUP_GOVERNANCE_TREASURY.md"
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
+          "docs/specs/BOOKING_SETTLEMENTS.md"
         ],
         "implementation": [
           "backend/migrations/install_dividend_payable_recognition.sql",
@@ -7252,10 +7251,10 @@
       },
       "evidence": {
         "specification": [
-          "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
+          "docs/specs/GROUP_GOVERNANCE_TREASURY.md"
         ],
         "implementation": [
           "backend/migrations/install_booking_authorization_completion.sql",
@@ -7297,8 +7296,8 @@
         "specification": [
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/BOOKING_SETTLEMENTS.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          "docs/specs/BOOKING_CANCELLATION_REFUNDS.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/farmle-platform-enhancement/design.md"
         ],
         "implementation": [
           "backend/migrations/add_marketplace_order_workflow.sql",
@@ -7347,10 +7346,10 @@
       },
       "evidence": {
         "specification": [
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/design.md",
           ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/farmle-platform-enhancement/requirements.md",
-          ".kiro/specs/farmle-platform-enhancement/tasks.md",
-          ".kiro/specs/group-individual-wallet-system/tasks.md"
+          ".kiro/specs/farmle-platform-enhancement/requirements.md"
         ],
         "implementation": [
           "backend/migrations/000_core_schema.sql",
@@ -7439,9 +7438,10 @@
       },
       "evidence": {
         "specification": [
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/farmle-platform-enhancement/requirements.md",
-          ".kiro/specs/farmle-platform-enhancement/tasks.md"
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
+          ".kiro/specs/farmle-platform-enhancement/design.md"
         ],
         "implementation": [
           "backend/src/services/agronomicRecommendationService.ts",
@@ -7485,9 +7485,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/agro-fintech-credit-system/design.md",
           ".kiro/specs/platform-profile-and-groups-enhancement/requirements.md",
-          "docs/specs/FINANCIAL_CORE.md",
-          "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md"
+          "docs/specs/FINANCIAL_CORE.md"
         ],
         "implementation": [
           "backend/migrations/install_group_contribution_cycles.sql",
@@ -7537,10 +7537,10 @@
       },
       "evidence": {
         "specification": [
-          ".kiro/specs/farmle-platform-enhancement/requirements.md",
-          "docs/specs/ORGANIZATION_VERIFICATION.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md",
-          ".kiro/specs/farmle-platform-enhancement/tasks.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md",
+          ".kiro/specs/agro-fintech-credit-system/design.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
+          ".kiro/specs/farmle-platform-enhancement/requirements.md"
         ],
         "implementation": [
           "backend/migrations/install_institutional_programme_foundation.sql",
@@ -7582,9 +7582,9 @@
       "evidence": {
         "specification": [
           "docs/specs/GROUP_GOVERNANCE_TREASURY.md",
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           ".kiro/specs/farmle-platform-enhancement/design.md",
-          "docs/specs/FINANCIAL_CORE.md",
-          ".kiro/specs/farmle-platform-enhancement/requirements.md"
+          "docs/specs/FINANCIAL_CORE.md"
         ],
         "implementation": [
           "backend/migrations/install_booking_operational_statements.sql",
@@ -7678,10 +7678,10 @@
       },
       "evidence": {
         "specification": [
+          ".kiro/specs/agro-fintech-credit-system/tasks.md",
           "docs/specs/TRUST_REVIEW_APPEALS.md",
           ".kiro/specs/group-individual-wallet-system/tasks.md",
-          "docs/specs/BOOKING_SETTLEMENTS.md",
-          "docs/specs/FINANCIAL_CORE.md"
+          "docs/specs/BOOKING_SETTLEMENTS.md"
         ],
         "implementation": [
           "backend/src/services/walletService.ts",
@@ -7704,7 +7704,7 @@
         "operations": [
           "docs/runbooks/PAYOUT_ORCHESTRATION.md",
           "docs/runbooks/TENANT_ISOLATION.md",
-          "docs/runbooks/CI_OPERATIONS_AND_RECOVERY.md"
+          "docs/deployment.md"
         ]
       }
     },
@@ -7729,7 +7729,7 @@
           "docs/specs/BOOKING_SETTLEMENTS.md",
           "docs/specs/FINANCIAL_CORE.md",
           "docs/specs/FINANCIAL_MODULES_APPROVAL_SPEC.md",
-          ".kiro/specs/farmle-platform-enhancement/design.md"
+          ".kiro/specs/agro-fintech-credit-system/requirements.md"
         ],
         "implementation": [],
         "api": [

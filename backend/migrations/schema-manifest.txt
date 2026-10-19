@@ -165,9 +165,7 @@ install_escrow_partial_release.sql
 install_escrow_expiry_servicing.sql
 install_escrow_dispute_resolution.sql
 install_tenant_scoped_booking_analytics.sql
-
 install_inventory_foundation.sql
-
 install_institutional_programme_foundation.sql
 install_institutional_programme_reporting_scopes.sql
 harden_tenant_membership_rls.sql
@@ -179,3 +177,4 @@ install_farm_operations.sql
 install_farm_task_reminders.sql
 install_farm_legacy_retention.sql
 fix_farm_effective_assignment_access.sql
+002_microfams_reputation_lending_system.sql
